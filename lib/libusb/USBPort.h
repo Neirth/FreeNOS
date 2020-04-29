@@ -18,6 +18,14 @@
 #ifndef __LIBUSB_USBPORT_H
 #define __LIBUSB_USBPORT_H
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
 namespace USBPort
 {
     /**
@@ -51,5 +59,10 @@ namespace USBPort
     }
     Status;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USBPORT_H */

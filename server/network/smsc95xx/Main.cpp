@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,13 +24,11 @@ int main(int argc, char **argv)
     KernelLog log;
     log.setMinimumLogLevel(Log::Notice);
 
-    NetworkServer server("/network/smsc95xx"); // TODO: add serial code? something unique to this device.
+    NetworkServer server("/network/smsc95xx");
 
     server.initialize();
     server.registerDevice(new SMSC95xx(2, "/usb", &server), "io");
 
-    /*
-     * Start serving requests
-     */
+    // Start serving requests
     return server.run();
 }

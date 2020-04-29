@@ -28,6 +28,14 @@
 #include "NetworkQueue.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Network Device abstract class.
  */
 class NetworkDevice : public Device
@@ -46,6 +54,8 @@ class NetworkDevice : public Device
 
     /**
      * Initialize the NetworkDevice.
+     *
+     * @return Error code
      */
     virtual Error initialize();
 
@@ -60,6 +70,7 @@ class NetworkDevice : public Device
      * Read ethernet address.
      *
      * @param address Ethernet address reference for output
+     *
      * @return Error code
      */
     virtual Error getAddress(Ethernet::Address *address) = 0;
@@ -87,6 +98,8 @@ class NetworkDevice : public Device
      *
      * @param buffer Input/Output buffer to input bytes from.
      * @param size Size of the network packet.
+     *
+     * @return Error code
      */
     virtual Error transmit(NetworkQueue::Packet *packet) = 0;
 
@@ -95,6 +108,7 @@ class NetworkDevice : public Device
      *
      * @param packet Network packet received by the device
      * @param offset Network packet payload offset
+     *
      * @return Error code
      */
     virtual Error process(NetworkQueue::Packet *packet, Size offset = 0);
@@ -120,5 +134,10 @@ class NetworkDevice : public Device
 
     UDP *m_udp;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_NETWORKDEVICE_H */

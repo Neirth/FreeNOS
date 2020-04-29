@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,14 @@
 #define __LIBIPC_INTNOTIFIER_H
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libipc
+ * @{
+ */
+
+/**
  * Notify of events using Inter-Processor-Interrupts (IPIs)
  */
 class IntNotifier
@@ -28,5 +36,10 @@ class IntNotifier
   private:
 
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBIPC_INTNOTIFIER_H */

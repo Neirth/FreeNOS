@@ -21,6 +21,14 @@
 #include "TestReporter.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
  * Output TestResults in TAP format to stdout.
  *
  * @see https://testanything.org/tap-specification.html
@@ -59,5 +67,10 @@ class TAPReporter : public TestReporter
     /** Test counter. */
     uint m_count;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TAPREPORTER_H */

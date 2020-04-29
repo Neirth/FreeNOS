@@ -37,18 +37,23 @@ def iso_func(target, source, env):
     # Generate the ISO.
     if env.Detect('grub-mkrescue'):
         shutil.copy('config/intel/pc/grub.cfg', temp + '/boot/grub')
-        os.system('grub-mkrescue -d /usr/lib/grub/i386-pc -o ' + str(target[0]) +
-                  ' --modules="multiboot iso9660 biosdisk gzio" ' + temp)
+        iso_cmd = 'grub-mkrescue -d /usr/lib/grub/i386-pc -o ' + str(target[0]) + \
+                  ' --modules="multiboot iso9660 biosdisk gzio" ' + temp
 
     # Fallback without grub2.
-    elif env.Detect('mkisofs'):
+    elif env.Detect('genisoimage'):
         shutil.copy('config/intel/pc/menu.lst', temp + '/boot/grub')
         shutil.copy('kernel/intel/pc/stage2_eltorito', temp)
-        os.system('mkisofs -quiet -R -b stage2_eltorito -no-emul-boot ' +
-                  '-boot-load-size 4 -boot-info-table -o ' + str(target[0]) +
-                  ' -V "FreeNOS ' + env['VERSION'] + '" ' + temp);
+        iso_cmd = 'genisoimage -quiet -R -b stage2_eltorito -no-emul-boot ' + \
+                  '-boot-load-size 4 -boot-info-table -o ' + str(target[0]) + \
+                  ' -V "FreeNOS ' + env['VERSION'] + '" ' + temp
     else:
-        raise Exception("no ISO generation program found. Install grub-mkrescue or mkisofs")
+        raise Exception("no ISO generation program found. Install grub-mkrescue or genisoimage")
+
+    # Run the command
+    r = os.system(iso_cmd)
+    if r != 0:
+        raise Exception("failed to generate ISO `" + str(target[0]) + "': command `" + iso_cmd + "' failed: exit code " + str(r>>8))
 
     # Clean up temporary directory.
     shutil.rmtree(temp);

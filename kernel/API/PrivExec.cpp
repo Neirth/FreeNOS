@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,26 +18,22 @@
 #include <Log.h>
 #include "PrivExec.h"
 
-Error PrivExecHandler(PrivOperation op, Address addr)
+API::Result PrivExecHandler(PrivOperation op, Address addr)
 {
-    ProcessManager *procs = Kernel::instance->getProcessManager();
-
     DEBUG("");
 
     switch (op)
     {
-    case Idle:
-        
+    case Idle: {
+        ProcessManager *procs = Kernel::instance->getProcessManager();
         procs->setIdle(procs->current());
-        irq_enable();
+        return API::Success;
+    }
 
-        while (true)
-            idle();
-    
     case Reboot:
         cpu_reboot();
         while (true) ;
-        
+
     case Shutdown:
         cpu_shutdown();
         return API::Success;

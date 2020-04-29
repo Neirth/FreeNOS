@@ -16,6 +16,7 @@
  */
 
 #include "ArgumentParser.h"
+#include "ConstHashIterator.h"
 
 ArgumentParser::ArgumentParser()
 {
@@ -38,42 +39,52 @@ ArgumentParser::~ArgumentParser()
         delete m_positionals[i];
 }
 
-String & ArgumentParser::getUsage()
+String ArgumentParser::getUsage() const
 {
-    // Clear current usage
-    m_usage = "";
+    String usage;
 
     // Build the syntax line
-    m_usage << "usage: " << *m_name << " [OPTIONS] ";
+    usage << "usage: " << *m_name << " [OPTIONS] ";
 
     // Append positional arguments to syntax line
     for (Size i = 0; i < m_positionals.count(); i++)
     {
         if (m_positionals[i]->getCount() == 0)
-            m_usage << "[" << m_positionals[i]->getName() << "] ";
+            usage << "[" << m_positionals[i]->getName() << "..] ";
         else
-            m_usage << m_positionals[i]->getName() << " ";
+            usage << m_positionals[i]->getName() << " ";
     }
     // Append description
-    m_usage << "\r\n\r\n" << *m_description << "\r\n\r\n  Positional Arguments:\r\n\r\n";
+    usage << "\r\n\r\n" << *m_description << "\r\n";
+
+    if (m_positionals.count() > 0)
+        usage << "\r\n  Positional Arguments:\r\n\r\n";
 
     // Make list of positional arguments
     for (Size i = 0; i < m_positionals.count(); i++)
     {
-        (m_usage << "   " << m_positionals[i]->getName()).pad(16) <<
-                    "   " << m_positionals[i]->getDescription()   << "\r\n";
+        (usage << "   " << m_positionals[i]->getName()).pad(16) <<
+                  "   " << m_positionals[i]->getDescription()   << "\r\n";
     }
 
     // Make list of flag arguments
-    m_usage << "\r\n  Optional Arguments:\r\n\r\n";
+    if (m_flags.count() > 0)
+        usage << "\r\n  Optional Arguments:\r\n\r\n";
 
-    for (HashIterator<String, Argument *> it(m_flags);
+    for (ConstHashIterator<String, Argument *> it(m_flags);
          it.hasCurrent(); it++)
     {
-        (m_usage << "   --" << it.current()->getName()).pad(16) <<
+        char tmp[2] = { it.current()->getIdentifier(), 0 };
+
+        (usage << "   -" << tmp << ", --"  << it.current()->getName()).pad(16) <<
                     "   " << it.current()->getDescription()   << "\r\n";
     }
-    return m_usage;
+    return usage;
+}
+
+const String & ArgumentParser::name() const
+{
+    return m_name;
 }
 
 void ArgumentParser::setName(const char *name)
@@ -81,19 +92,27 @@ void ArgumentParser::setName(const char *name)
     m_name = name;
 }
 
-void ArgumentParser::setDescription(const char *desc)
+void ArgumentParser::setDescription(const String & description)
 {
-    m_description = desc;
+    m_description = description;
 }
 
 ArgumentParser::Result ArgumentParser::registerFlag(char id,
                                                     const char *name,
                                                     const char *description)
 {
+    // Insert the flag by its full name
     Argument *arg = new Argument(name);
     arg->setDescription(description);
     arg->setIdentifier(id);
     m_flags.insert(name, arg);
+
+    // Also insert the flag using its single character identifier
+    char tmp[2];
+    tmp[0] = id;
+    tmp[1] = 0;
+
+    m_flagsId.insert(tmp, arg);
     return Success;
 }
 
@@ -130,38 +149,66 @@ ArgumentParser::Result ArgumentParser::parse(int argc,
         List<String> parts = str.split('=');
         String & part1 = parts[0];
         String argname;
-        Argument *arg;
+        Argument * const *arg;
+        Argument *outarg;
 
-        // Is this a flag based argument?
-        if (part1[0] == '-')
+        // Is this a flag based argument in full form? (e.g.: --arg)
+        if (part1.length() > 1 && part1[0] == '-' && part1[1] == '-')
         {
-            if (part1.length() > 1 && part1[1] == '-')
-                argname = part1.substring(2);
-            else
-                argname = part1.substring(1);
+            argname = part1.substring(2);
 
             // Flag must exist
-            if (!m_flags.get(*argname))
-                return InvalidArgument;
+            arg = m_flags.get(*argname);
+            if (!arg)
+            {
+                arg = m_flagsId.get(*argname);
+                if (!arg)
+                    return InvalidArgument;
+            }
 
-            arg = new Argument(*argname);
-            arg->setValue(*parts.last());
-            output.addFlag(arg);
+            outarg = new Argument((*arg)->getName());
+            outarg->setValue(*parts.last());
+            output.addFlag(outarg);
+        }
+        // Flag based argument in short form? (e.g.: -a or a list: -abc)
+        else if (part1.length() > 1 && part1[0] == '-' && part1[1] != '-')
+        {
+            // Loop all supplied short form arguments
+            for (Size i = 1; i < part1.length(); i++)
+            {
+                char tmp[2];
+                tmp[0] = part1[i];
+                tmp[1] = 0;
+
+                // Flag must exist
+                arg = m_flags.get(tmp);
+                if (!arg)
+                {
+                    arg = m_flagsId.get(tmp);
+                    if (!arg)
+                        return InvalidArgument;
+                }
+
+                outarg = new Argument((*arg)->getName());
+                outarg->setValue(*parts.last());
+                output.addFlag(outarg);
+            }
         }
         // Positional argument
-        else
+        else if (m_positionals.count() > 0)
         {
             if (pos > m_positionals.count() - 1)
                 return InvalidArgument;
 
             if (m_positionals[pos]->getCount() == 0)
-                arg = new Argument(*part1);
+                outarg = new Argument(*part1);
             else
-                arg = new Argument(*m_positionals[pos++]->getName());
+                outarg = new Argument(*m_positionals[pos++]->getName());
 
-            arg->setValue(*parts.last());
-            output.addPositional(arg);
+            outarg->setValue(*parts.last());
+            output.addPositional(outarg);
         }
+        else return InvalidArgument;
     }
     // Check that all required arguments are set
     for (i = 0; i < m_positionals.count(); i++)

@@ -2,6 +2,7 @@
 # Use serial port as console.
 #
 /server/serial/server &
+write /sys/mountwait /dev/serial
 stdio /dev/serial/serial0/io /dev/serial/serial0/io
 
 #

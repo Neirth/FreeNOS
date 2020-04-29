@@ -16,14 +16,12 @@
  */
 
 #include <Log.h>
-#include <KernelLog.h>
+#include <StdioLog.h>
 #include "NetCat.h"
 
 int main(int argc, char **argv)
 {
-    KernelLog log;
-    log.setMinimumLogLevel(Log::Notice);
-
+    StdioLog log;
     NetCat app(argc, argv);
     return app.run();
 }

@@ -53,51 +53,24 @@
 NetSend::NetSend(int argc, char **argv)
     : POSIXApplication(argc, argv)
 {
-    m_socket = 0;
-
-    m_parser.setDescription("send network packets");
-    m_parser.registerPositional("DEVICE", "device name of network adapter");
-    m_parser.registerPositional("ARGS", "optional key=value arguments", 0);
-    m_parser.registerFlag('a', "arp", "send ARP packet(s)");
+    parser().setDescription("send network packets");
+    parser().registerPositional("DEVICE", "device name of network adapter");
+    parser().registerPositional("ARGS", "optional key=value arguments", 0);
+    parser().registerFlag('a', "arp", "send ARP packet(s)");
 }
 
 NetSend::~NetSend()
 {
 }
 
-NetSend::Result NetSend::initialize()
+NetSend::Result NetSend::exec()
 {
     DEBUG("");
-
-    for (HashIterator<String, Argument *> it(m_arguments.getFlags());
-         it.hasCurrent(); it++)
-    {
-        printf("key = '%s' value = '%s'\n",
-                *it.key(), *it.current()->getName());
-    }
-        
-    for (Size i = 0; i < m_arguments.getPositionals().count(); i++)
-    {
-        printf("pos[%d]: %s = %s\n", i, *m_arguments.getPositionals()[i]->getName(),
-                                        *m_arguments.getPositionals()[i]->getValue());
-    }
-
-    //const String *dev = m_arguments.get("device");
-    //if (dev)
-    //    DEBUG("sending on device: " << **dev);
 
     IPV4::Address ipAddr = (192 << 24) | (168 << 16) | (1 << 8) | (123);
     Ethernet::Address etherAddr;
 
-    arpRequest(ipAddr, &etherAddr);
-
-    return Success;
-}
-
-NetSend::Result NetSend::exec()
-{
-    DEBUG("");
-    return Success;
+    return arpRequest(ipAddr, &etherAddr);
 }
 
 NetSend::Result NetSend::arpRequest(IPV4::Address ipAddr,
@@ -135,7 +108,7 @@ NetSend::Result NetSend::arpRequest(IPV4::Address ipAddr,
     arp->ipTarget = cpu_to_be32(ipAddr);;
 
     // Transmit on physical device
-    const char *device = *m_arguments.getPositionals()[0]->getValue();
+    const char *device = *arguments().getPositionals()[0]->getValue();
     int fd = open(device, O_RDWR);
     if (fd < 0)
     {

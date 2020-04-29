@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,14 +20,14 @@
 #include "VMCtl.h"
 #include "ProcessID.h"
 
-Error VMCtlHandler(ProcessID procID, MemoryOperation op, Memory::Range *range)
+API::Result VMCtlHandler(ProcessID procID, MemoryOperation op, Memory::Range *range)
 {
     ProcessManager *procs = Kernel::instance->getProcessManager();
     Process *proc = ZERO;
     Error ret = API::Success;
 
     DEBUG("");
-    
+
     // Find the given process
     if (procID == SELF)
         proc = procs->current();
@@ -36,7 +36,7 @@ Error VMCtlHandler(ProcessID procID, MemoryOperation op, Memory::Range *range)
         return API::NotFound;
     }
 
-    // TODO: capability checking.
+    // Retrieve memory context
     MemoryContext *mem = proc->getMemoryContext();
 
     // Perform operation
@@ -69,21 +69,29 @@ Error VMCtlHandler(ProcessID procID, MemoryOperation op, Memory::Range *range)
             cache.cleanInvalidate(Cache::Data);
             break;
         }
-        case Access:
-            ret = (API::Error) mem->access(range->virt, &range->access);
-            break;
 
-        case RemoveMem:
-#warning TODO: claiming memory should be atomic single shot call.
-            for (uint i = 0; i < range->size; i+=PAGESIZE)
+        case Access: {
+            MemoryContext::Result mr = mem->access(range->virt, &range->access);
+            if (mr == MemoryContext::Success)
+                ret = API::Success;
+            else
+                ret = (API::Result) mr;
+            break;
+        }
+
+        case ReserveMem: {
+            Allocator::Arguments alloc_args;
+            alloc_args.address = range->phys;
+            alloc_args.size    = range->size;
+            alloc_args.alignment = PAGESIZE;
+
+            if (Kernel::instance->getAllocator()->allocate(alloc_args) != Allocator::Success)
             {
-                if (Kernel::instance->getAllocator()->allocate(range->phys + i) != Allocator::Success)
-                {
-                    ERROR("address " << (void *) (range->phys + i) << " already allocated");
-                    return API::OutOfMemory;
-                }
+                ERROR("address " << (void *) (range->phys) << " already allocated");
+                return API::OutOfMemory;
             }
             break;
+        }
 
         default:
             ret = API::InvalidArgument;

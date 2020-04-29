@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,12 +27,10 @@
 Process::Process(ProcessID id, Address entry, bool privileged, const MemoryMap &map)
     : m_id(id), m_map(map), m_shares(id)
 {
-    m_state         = Stopped;
-    m_kernelStack   = 0;
-    m_userStack     = 0;
-    m_pageDirectory = 0;
+    m_state         = Sleeping;
     m_parent        = 0;
     m_waitId        = 0;
+    m_waitResult    = 0;
     m_wakeups       = 0;
     m_entry         = entry;
     m_privileged    = privileged;
@@ -40,7 +38,7 @@ Process::Process(ProcessID id, Address entry, bool privileged, const MemoryMap &
     m_kernelChannel = new MemoryChannel;
     MemoryBlock::set(&m_sleepTimer, 0, sizeof(m_sleepTimer));
 }
-    
+
 Process::~Process()
 {
     delete m_kernelChannel;
@@ -51,6 +49,8 @@ Process::~Process()
         m_memoryContext->releaseRegion(MemoryMap::UserHeap);
         m_memoryContext->releaseRegion(MemoryMap::UserStack);
         m_memoryContext->releaseRegion(MemoryMap::UserPrivate);
+        m_memoryContext->releaseRegion(MemoryMap::UserArgs);
+        m_memoryContext->releaseRegion(MemoryMap::UserShare, true);
         delete m_memoryContext;
     }
 }
@@ -70,6 +70,16 @@ ProcessID Process::getWait() const
     return m_waitId;
 }
 
+uint Process::getWaitResult() const
+{
+    return m_waitResult;
+}
+
+void Process::setWaitResult(uint result)
+{
+    m_waitResult = result;
+}
+
 Process::State Process::getState() const
 {
     return m_state;
@@ -80,24 +90,9 @@ ProcessShares & Process::getShares()
     return m_shares;
 }
 
-const Timer::Info * Process::getSleepTimer() const
+const Timer::Info & Process::getSleepTimer() const
 {
-    return &m_sleepTimer;
-}
-
-Address Process::getPageDirectory() const
-{
-    return m_pageDirectory;
-}
-
-Address Process::getUserStack() const
-{
-    return m_userStack;
-}
-
-Address Process::getKernelStack() const
-{
-    return m_kernelStack;
+    return m_sleepTimer;
 }
 
 MemoryContext * Process::getMemoryContext()
@@ -110,39 +105,23 @@ bool Process::isPrivileged() const
     return m_privileged;
 }
 
-void Process::setState(Process::State st)
-{
-    m_state = st;
-}
-
 void Process::setParent(ProcessID id)
 {
     m_parent = id;
 }
 
-void Process::setWait(ProcessID id)
+Process::Result Process::wait(ProcessID id)
 {
+    if (m_state != Ready)
+    {
+        ERROR("Process ID " << m_id << " has invalid state: " << (uint) m_state);
+        return InvalidArgument;
+    }
+
+    m_state  = Waiting;
     m_waitId = id;
-}
 
-void Process::setSleepTimer(const Timer::Info *sleepTimer)
-{
-    MemoryBlock::copy(&m_sleepTimer, sleepTimer, sizeof(m_sleepTimer));
-}
-
-void Process::setPageDirectory(Address addr)
-{
-    m_pageDirectory = addr;
-}
-
-void Process::setUserStack(Address addr)
-{
-    m_userStack = addr;
-}
-
-void Process::setKernelStack(Address addr)
-{
-    m_kernelStack = addr;
+    return Success;
 }
 
 Process::Result Process::raiseEvent(ProcessEvent *event)
@@ -161,10 +140,19 @@ Process::Result Process::initialize()
     Memory::Range range;
     Address paddr, vaddr;
     Arch::Cache cache;
+    Allocator::Arguments alloc_args;
 
     // Allocate two pages for the kernel event channel
-    if (Kernel::instance->getAllocator()->allocateLow(PAGESIZE*2, &paddr) != Allocator::Success)
+    alloc_args.address = 0;
+    alloc_args.size = PAGESIZE * 2;
+    alloc_args.alignment = PAGESIZE;
+
+    if (Kernel::instance->getAllocator()->allocateLow(alloc_args) != Allocator::Success)
+    {
+        ERROR("failed to allocate kernel event channel");
         return OutOfMemory;
+    }
+    paddr = alloc_args.address;
 
     // Translate to virtual address in kernel low memory
     vaddr = (Address) Kernel::instance->getAllocator()->toVirtual(paddr);
@@ -196,23 +184,35 @@ Process::Result Process::initialize()
     return Success;
 }
 
-Process::Result Process::wakeup()
+Process::Result Process::wakeup(bool ignorePendingSleep)
 {
-    m_wakeups++;
+    // This process might be just about to call sleep().
+    // When another process is asking to wakeup this Process
+    // such that it can receive an IPC message, we must guarantee
+    // that the next sleep will be skipped.
+    if (ignorePendingSleep)
+        m_wakeups = 0;
+    else
+        m_wakeups++;
 
-    if (m_state != Running)
-        m_state = Ready;
-
+    m_state = Ready;
     MemoryBlock::set(&m_sleepTimer, 0, sizeof(m_sleepTimer));
+
     return Success;
 }
 
-Process::Result Process::sleep(Timer::Info *timer)
+Process::Result Process::sleep(const Timer::Info *timer, bool ignoreWakeups)
 {
-    if (!m_wakeups)
+    if (m_state != Ready)
+    {
+        ERROR("Process ID " << m_id << " has invalid state: " << (uint) m_state);
+        return InvalidArgument;
+    }
+
+    if (!m_wakeups || ignoreWakeups)
     {
         m_state = Sleeping;
-        
+
         if (timer)
             MemoryBlock::copy(&m_sleepTimer, timer, sizeof(m_sleepTimer));
 

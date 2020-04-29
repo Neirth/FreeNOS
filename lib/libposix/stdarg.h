@@ -28,8 +28,6 @@ Boston, MA 02110-1301, USA.  */
  * ISO C Standard:  7.15  Variable arguments  <stdarg.h>
  */
 
-// TODO: #warning Cleanup this file. We do not support old systems anymore.
-
 #ifndef _STDARG_H
 #ifndef _ANSI_STDARG_H_
 #ifndef __need___va_list

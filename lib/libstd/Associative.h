@@ -26,6 +26,14 @@
 #include "ListIterator.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
  * Associatives are containers that provide a mapping of keys to values.
  */
 template <class K, class V> class Associative : public Container, public Comparable<Associative<K,V> >
@@ -34,10 +42,12 @@ template <class K, class V> class Associative : public Container, public Compara
 
     /**
      * Inserts the given item to the Assocation.
+     *
      * If an item exists for the given key, its value will be replaced.
      *
-     * @param position The position to insert the item.
+     * @param key The key of the item to insert
      * @param item The item to insert
+     *
      * @return bool Whether inserting the item at the given position succeeded.
      */
     virtual bool insert(const K & key, const V & item)
@@ -47,6 +57,11 @@ template <class K, class V> class Associative : public Container, public Compara
 
     /**
      * Append the given item to the Association.
+     *
+     * @param key The key of the item to insert
+     * @param item The item to insert
+     *
+     * @return True on success and false otherwise
      */
     virtual bool append(const K & key, const V & item)
     {
@@ -57,6 +72,7 @@ template <class K, class V> class Associative : public Container, public Compara
      * Removes all items associated with the given key.
      *
      * @param key The key to remove items for.
+     *
      * @return Number of items removed associated with the key.
      */
     virtual int remove(const K & key)
@@ -115,29 +131,40 @@ template <class K, class V> class Associative : public Container, public Compara
      * Returns the first value for the given key.
      *
      * @param key Key to find.
+     *
      * @return Pointer to the first value for the given key or ZERO if not found.
      */
     virtual const V * get(const K & key) const = 0;
 
     /**
      * Returns a reference to the first value for the given key.
+     *
      * This function assumes the key exists.
      *
      * @param key Key to find.
+     *
      * @return Reference to the first value for the key.
      */
     virtual const V & at(const K & key) const = 0;
 
     /**
      * Return the first value for the given key.
+     *
      * If the key is not found, the default value is returned.
+     *
+     * @param key Key to find value for
+     * @param defaultValue Return this default value if not found
      *
      * @return First value for the given key, or the defaultValue.
      */
     virtual const V value(const K & key, const V defaultValue = V()) const = 0;
 
     /**
-     * Compare this Container to another Container.
+     * Compare this instance to another instance
+     *
+     * @param a Other instance to compare to
+     *
+     * @return Zero if equal, non-zero otherwise
      */
     virtual int compareTo(const Associative<K,V> &a) const
     {
@@ -162,11 +189,25 @@ template <class K, class V> class Associative : public Container, public Compara
     }
 
     /**
+     * Test if an Associative is equal to an other Associative.
+     *
+     * @param a Associative instance.
+     *
+     * @return True if equal, false otherwise.
+     */
+    virtual bool equals(const Associative<K,V> &a) const
+    {
+        return compareTo(a) == 0;
+    }
+
+    /**
      * Returns the first value for the given key.
+     *
      * If there are multiple values for the key, the first
      * value is returned.
      *
      * @param key The key of the item to return.
+     *
      * @return The first value for the key.
      */
     const V & operator [] (K key) const
@@ -174,5 +215,10 @@ template <class K, class V> class Associative : public Container, public Compara
         return at(key);
     }
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_ASSOCIATIVE_H */

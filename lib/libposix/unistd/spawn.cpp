@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,6 +27,7 @@ int spawn(Address program, Size programSize, const char *command)
 {
     ExecutableFormat *fmt;
     ExecutableFormat::Region regions[16];
+    Arch::MemoryMap map;
     Memory::Range range;
     uint count = 0;
     pid_t pid = 0;
@@ -35,24 +36,37 @@ int spawn(Address program, Size programSize, const char *command)
 
     // Attempt to read executable format
     if (ExecutableFormat::find((u8 *) program, programSize, &fmt) != ExecutableFormat::Success)
+    {
+        errno = ENOEXEC;
         return -1;
+    }
 
-    // Retrieve memory regions
-    if (fmt->regions(regions, &numRegions) != ExecutableFormat::Success)
-        return -1;
-
+    // Find entry point
     if (fmt->entry(&entry) != ExecutableFormat::Success)
+    {
+        delete fmt;
+        errno = ENOEXEC;
         return -1;
+    }
 
     // Create new process
     pid = ProcessCtl(ANY, Spawn, entry);
+    if (pid == (pid_t) -1)
+    {
+        delete fmt;
+        errno = EIO;
+        return -1;
+    }
 
-    // TODO: check the result of ProcessCtl()
-
-    // TODO: make this much more efficient. perhaps let libexec write directly to the target buffer.
-    // at least Map & copy in one shot.
-    // TODO: move the memory administration updates to coreserver instead.
-    // this process can read the libexec data once, and then let coreserver create a process for it.
+    // Retrieve memory regions
+    if (fmt->regions(regions, &numRegions) != ExecutableFormat::Success)
+    {
+        delete fmt;
+        errno = ENOEXEC;
+        return -1;
+    }
+    // Release buffers
+    delete fmt;
 
     // Map program regions into virtual memory of the new process
     for (Size i = 0; i < numRegions; i++)
@@ -65,28 +79,32 @@ int spawn(Address program, Size programSize, const char *command)
                        Memory::Readable |
                        Memory::Writable |
                        Memory::Executable;
-        
+
         // Create mapping first
         if (VMCtl(pid, Map, &range) != 0)
         {
-            // TODO: convert from API::Error to errno.
             errno = EFAULT;
             return -1;
         }
+
         // Copy bytes
         VMCopy(pid, API::Write, (Address) regions[i].data,
                regions[i].virt, regions[i].size);
+
+        // Release data buffer
+        delete regions[i].data;
     }
-    /* Create mapping for command-line arguments. */
-    range.virt  = ARGV_ADDR;
-    range.phys  = ZERO;
-    range.size  = PAGESIZE;
+
+    // Create mapping for command-line arguments
+    range = map.range(MemoryMap::UserArgs);
+    range.phys = ZERO;
+    range.access = Memory::User | Memory::Readable | Memory::Writable;
     VMCtl(pid, Map, &range);
 
     // Allocate arguments
-    char *arguments = new char[PAGESIZE];
+    char *arguments = new char[PAGESIZE * 2];
     char *arg = (char *)command;
-    memset(arguments, 0, PAGESIZE);
+    memset(arguments, 0, PAGESIZE * 2);
 
     // Fill in arguments
     while (*command && count < PAGESIZE / ARGV_SIZE)
@@ -99,15 +117,16 @@ int spawn(Address program, Size programSize, const char *command)
         }
         command++;
     }
+
     // The last argument
     strlcpy(arguments + (ARGV_SIZE * count), arg, command-arg+1);
 
     // Copy argc/argv into the new process
-    if ((VMCopy(pid, API::Write, (Address) arguments,
-               (Address) ARGV_ADDR, PAGESIZE)) < 0)
+    if ((VMCopy(pid, API::Write, (Address) arguments, range.virt, PAGESIZE * 2)) < 0)
     {
-        delete arguments;
+        delete[] arguments;
         errno = EFAULT;
+        ProcessCtl(pid, KillPID);
         return -1;
     }
 
@@ -115,6 +134,6 @@ int spawn(Address program, Size programSize, const char *command)
     ProcessCtl(pid, Resume);
 
     // Done. Cleanup.
-    delete arguments;
+    delete[] arguments;
     return pid;
 }

@@ -1,0 +1,163 @@
+#
+# Copyright (C) 2019 Niek Linnenbank
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+require 'rubygems/package'
+require 'find'
+
+# Generate a TAR archive from the current source tree
+File.open("src.tar", "wb") do |file|
+    Gem::Package::TarWriter.new(file) do |tar|
+        Find.find("../../") do |path|
+            filename = "FreeNOS/" + path[6..-1]
+
+            if filename == "FreeNOS/support/jenkins/src.tar" or filename.start_with?("FreeNOS/build")
+                next
+            end
+
+            if FileTest.symlink?(path)
+                tar.add_symlink(filename, File.readlink(path), File.stat(path).mode)
+            elsif FileTest.directory?(path)
+                tar.mkdir(filename, 0755)
+            else
+                tar.add_file(filename, File.stat(path).mode) do |io|
+                    File.open(path, "rb") do |f|
+                        io.write(f.read())
+                    end
+                end
+            end
+        end
+    end
+end
+
+# Sets the number of CPUs used by the jenkins build slaves
+if ENV.has_key?('SLAVE_CPUS')
+    slave_cpus = ENV['SLAVE_CPUS']
+else
+    slave_cpus = 4
+end
+
+# Sets the amount of memory in MB used by jenkins build slaves
+if ENV.has_key?('SLAVE_MEMORY')
+    slave_memory = ENV['SLAVE_MEMORY']
+else
+    slave_memory = 2048
+end
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+Vagrant.configure("2") do |config|
+  # The most common configuration options are documented and commented below.
+  # For a complete reference, please see the online documentation at
+  # https://docs.vagrantup.com.
+
+  config.vm.define "master" do |master|
+
+    # Every Vagrant development environment requires a box. You can search for
+    # boxes at https://vagrantcloud.com/search.
+    master.vm.box = "generic/ubuntu1804"
+
+    # Create a forwarded port mapping which allows access to a specific port
+    # within the machine from a port on the host machine and only allow access
+    # via 127.0.0.1 to disable public access
+    master.vm.network "forwarded_port", guest: 8080, host: 8888, host_ip: "127.0.0.1"
+
+    master.vm.network "private_network", ip: "192.168.50.10"
+
+    master.vm.provider "virtualbox" do |vb|
+        vb.cpus   = 1
+        vb.memory = "512"
+    end
+    master.vm.provider :libvirt do |libvirt|
+        libvirt.cpus = 1
+        libvirt.memory = 512
+    end
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    master.vm.provision "file", source: "master.key", destination: "master.key"
+    master.vm.provision "file", source: "hudson.util.Secret", destination: "hudson.util.Secret"
+    master.vm.provision "file", source: "credentials.xml", destination: "credentials.xml"
+    master.vm.provision "file", source: "ubuntu1804.job.xml", destination: "ubuntu1804.job.xml"
+    master.vm.provision "file", source: "ubuntu1804.node.xml", destination: "ubuntu1804.node.xml"
+    master.vm.provision "file", source: "freebsd12.job.xml", destination: "freebsd12.job.xml"
+    master.vm.provision "file", source: "freebsd12.node.xml", destination: "freebsd12.node.xml"
+    master.vm.provision "file", source: "common.sh", destination: "common.sh"
+    master.vm.provision "shell", path: "master.sh", env: { "SLAVE_CPUS" => slave_cpus }
+  end
+
+  config.vm.define "ubuntu1804" do |ubuntu1804|
+
+    # Every Vagrant development environment requires a box. You can search for
+    # boxes at https://vagrantcloud.com/search.
+    ubuntu1804.vm.box = "generic/ubuntu1804"
+
+    ubuntu1804.vm.network "private_network", ip: "192.168.50.20"
+
+    ubuntu1804.vm.provider "virtualbox" do |vb|
+        vb.cpus   = slave_cpus
+        vb.memory = slave_memory
+    end
+    ubuntu1804.vm.provider :libvirt do |libvirt|
+        libvirt.cpus = slave_cpus
+        libvirt.memory = slave_memory
+    end
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    if ENV.has_key?('QEMUSRC')
+       ubuntu1804.vm.provision "file", source: ENV['QEMUSRC'], destination: "qemu-src.tar.gz"
+    end
+    ubuntu1804.vm.provision "file", source: "src.tar", destination: "src.tar"
+    ubuntu1804.vm.provision "file", source: "common.sh", destination: "common.sh"
+    ubuntu1804.vm.provision "shell", path: "ubuntu1804.sh", env: { "SLAVE_CPUS" => slave_cpus }
+    ubuntu1804.vm.provision "shell", path: "schedule-job.sh", args: "FreeNOS-ubuntu1804"
+  end
+
+  config.vm.define "freebsd12" do |freebsd12|
+
+    # Every Vagrant development environment requires a box. You can search for
+    # boxes at https://vagrantcloud.com/search.
+    freebsd12.vm.box = "generic/freebsd12"
+
+    freebsd12.vm.network "private_network", ip: "192.168.50.21"
+
+    freebsd12.vm.provider "virtualbox" do |vb|
+        vb.cpus   = slave_cpus
+        vb.memory = slave_memory
+    end
+    freebsd12.vm.provider :libvirt do |libvirt|
+        libvirt.cpus = slave_cpus
+        libvirt.memory = slave_memory
+    end
+
+    # Enable provisioning with a shell script. Additional provisioners such as
+    # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
+    # documentation for more information about their specific syntax and use.
+    if ENV.has_key?('QEMUSRC')
+       freebsd12.vm.provision "file", source: ENV['QEMUSRC'], destination: "qemu-src.tar.gz"
+    end
+    freebsd12.vm.provision "file", source: "src.tar", destination: "src.tar"
+    freebsd12.vm.provision "file", source: "common.sh", destination: "common.sh"
+    freebsd12.vm.provision "shell", path: "freebsd12.sh", env: { "SLAVE_CPUS" => slave_cpus }
+    freebsd12.vm.provision "shell", path: "schedule-job.sh", args: "FreeNOS-freebsd12"
+  end
+
+end

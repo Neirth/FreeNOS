@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -69,27 +69,21 @@ IntelKernel::IntelKernel(CoreInfo *info)
     if (info->coreId == 0)
     {
         // Set PIT interrupt frequency to 250 hertz
-        m_pit.setFrequency(250);
+        m_pit.setFrequency(100);
 
         // Configure the master and slave PICs
-        // TODO: the IntelKernel should also have a method ::initialize(),
-        //       such that it can capture the result of these functions.
         m_pic.initialize();
         m_intControl = &m_pic;
     }
     else
-        m_intControl = 0;
+        m_intControl = &m_apic;
 
     // Try to configure the APIC.
     if (m_apic.initialize() == Timer::Success)
     {
         NOTICE("Using APIC timer");
-        // TODO: do we need to explicityly disable the PICs?
-#warning the APIC is not used as IntController yet
-        // m_intControl = &m_apic;
 
         // Enable APIC timer interrupt
-        //enableIRQ(m_apic.getTimerInterrupt(), true);
         hookIntVector(m_apic.getInterrupt(), clocktick, 0);
 
         m_timer = &m_apic;
@@ -136,8 +130,22 @@ IntelKernel::IntelKernel(CoreInfo *info)
     ltr(KERNEL_TSS_SEL);
 }
 
-// TODO: this is a generic function?
-void IntelKernel::exception(CPUState *state, ulong param)
+void IntelKernel::enableIRQ(u32 irq, bool enabled)
+{
+    if (irq == m_apic.getInterrupt())
+    {
+        if (enabled)
+            m_apic.start();
+        else
+            m_apic.stop();
+
+        return;
+    }
+
+    Kernel::enableIRQ(irq, enabled);
+}
+
+void IntelKernel::exception(CPUState *state, ulong param, ulong vector)
 {
     IntelCore core;
     ProcessManager *procs = Kernel::instance->getProcessManager();
@@ -150,7 +158,7 @@ void IntelKernel::exception(CPUState *state, ulong param)
     procs->schedule();
 }
 
-void IntelKernel::interrupt(CPUState *state, ulong param)
+void IntelKernel::interrupt(CPUState *state, ulong param, ulong vector)
 {
     IntelKernel *kern = (IntelKernel *) Kernel::instance;
 
@@ -162,7 +170,7 @@ void IntelKernel::interrupt(CPUState *state, ulong param)
     }
 }
 
-void IntelKernel::trap(CPUState *state, ulong param)
+void IntelKernel::trap(CPUState *state, ulong param, ulong vector)
 {
     state->regs.eax = Kernel::instance->getAPI()->invoke(
         (API::Number) state->regs.eax,
@@ -174,15 +182,14 @@ void IntelKernel::trap(CPUState *state, ulong param)
     );
 }
 
-void IntelKernel::clocktick(CPUState *state, ulong param)
+void IntelKernel::clocktick(CPUState *state, ulong param, ulong vector)
 {
     IntelKernel *kern = (IntelKernel *) Kernel::instance;
     Size irq = kern->m_timer->getInterrupt();
 
-#warning not working for APIC timer, because the timer IRQ is out of range on the PIC
     kern->enableIRQ(irq, true);
 
-#warning TODO: tmp hack for APIC timer end-of-interrupt
+    // Ensure the APIC timer gets end-of-interrupt
     if (irq == kern->m_apic.getInterrupt())
         kern->m_apic.clear(irq);
 

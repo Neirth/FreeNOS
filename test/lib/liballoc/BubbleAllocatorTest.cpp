@@ -22,6 +22,9 @@
 #include <TestMain.h>
 #include <BubbleAllocator.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+
 TestCase(BubbleConstruct)
 {
     TestInt<uint> addresses(UINT_MIN, UINT_MAX);

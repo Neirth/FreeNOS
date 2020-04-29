@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,10 +21,31 @@
 #include "TestRunner.h"
 #include "TestSuite.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
+ * Default test program main function
+ *
+ * @param argc Argument count
+ * @param argv Argument values
+ *
+ * @return Zero on success or number of failed tests on failure
+ */
 int main(int argc, char **argv)
 {
     TestRunner tests(argc, argv);
     return tests.run();
 }
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTMAIN_H */

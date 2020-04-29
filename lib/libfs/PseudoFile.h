@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,19 +23,29 @@
 #include "IOBuffer.h"
 
 /**
- * @brief Pseudo files only exist in memory.
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
+ * Pseudo files only exist in memory.
  */
 class PseudoFile : public File
 {
   public:
 
     /**
-     * Constructor.
+     * Default constructor.
      */
     PseudoFile();
 
     /**
      * Constructor.
+     *
+     * @param str Text string with file data
      */
     PseudoFile(const char *str);
 
@@ -52,13 +62,14 @@ class PseudoFile : public File
      */
     virtual ~PseudoFile();
 
-    /** 
-     * @brief Read bytes from the file. 
+    /**
+     * Read bytes from the file.
      *
-     * @param buffer Output buffer. 
-     * @param size Number of bytes to read, at maximum. 
-     * @param offset Offset inside the file to start reading. 
-     * @return Number of bytes read on success, Error on failure. 
+     * @param buffer Output buffer.
+     * @param size Number of bytes to read, at maximum.
+     * @param offset Offset inside the file to start reading.
+     *
+     * @return Number of bytes read on success, Error on failure.
      *
      * @see IOBuffer
      */
@@ -70,6 +81,7 @@ class PseudoFile : public File
      * @param buffer Input/Output buffer to input bytes from.
      * @param size Number of bytes to write, at maximum.
      * @param offset Offset inside the file to start writing.
+     *
      * @return Number of bytes written on success, Error on failure.
      */
     virtual Error write(IOBuffer & buffer, Size size, Size offset);
@@ -81,6 +93,7 @@ class PseudoFile : public File
 };
 
 /**
+ * @}
  * @}
  */
 

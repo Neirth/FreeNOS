@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,12 +28,16 @@
 #include "IOBuffer.h"
 
 /**
- * @defgroup linn LinnFS (Linnenbank Filesystem) 
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup linnfs
  * @{
  */
 
 /**
  * Represents an directory on a LinnFS filesystem.
+ *
  * @see Directory
  * @see LinnDirectoryEntry
  * @see LinnFileSystem
@@ -41,23 +45,26 @@
 class LinnDirectory : public Directory
 {
   public:
-    
+
     /**
      * Constructor function.
+     *
      * @param fs Filesystem pointer.
      * @param inode Inode pointer.
+     *
      * @see LinnFileSystem
      * @see LinnInode
      */
     LinnDirectory(LinnFileSystem *fs, LinnInode *inode);
 
-    /** 
+    /**
      * @brief Read directory entries.
      *
      * @param buffer Input/Output buffer to write bytes to.
-     * @param size Number of bytes to copy at maximum. 
-     * @param offset Offset in the file to start reading. 
-     * @return Number of bytes read on success, Error on failure. 
+     * @param size Number of bytes to copy at maximum.
+     * @param offset Offset in the file to start reading.
+     *
+     * @return Number of bytes read on success, Error on failure.
      *
      * @see IOBuffer
      */
@@ -71,6 +78,7 @@ class LinnDirectory : public Directory
      * an File object associated with that LinnInode.
      *
      * @param name Name of the entry to lookup.
+     *
      * @return Pointer to a File if found, or ZERO otherwise.
      *
      * @see File
@@ -82,12 +90,16 @@ class LinnDirectory : public Directory
 
     /**
      * Retrieve a directory entry.
+     *
      * @param dent LinnDirectoryEntry buffer pointer.
      * @param name Unique name of the entry.
+     *
      * @return True if successful, false otherwise.
      */
     bool getLinnDirectoryEntry(LinnDirectoryEntry *dent,
                                const char *name);
+
+  private:
 
     /** Filesystem pointer. */
     LinnFileSystem *fs;
@@ -97,6 +109,7 @@ class LinnDirectory : public Directory
 };
 
 /**
+ * @}
  * @}
  */
 

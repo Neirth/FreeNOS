@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,7 +21,13 @@
 #include <Types.h>
 #include "limits.h"
 
-// TODO: move this to libfs
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
 /** Maximum number of mounted filesystems. */
 #define FILESYSTEM_MAXMOUNTS 16
@@ -33,13 +39,18 @@ typedef struct FileSystemMount
 {
     /** Path of the mount. */
     char path[PATH_MAX];
-    
+
     /** Server which is responsible for the mount. */
     ProcessID procID;
-    
+
     /** Mount options. */
     ulong options;
 }
 FileSystemMount;
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __FILESYSTEM_FILE_SYSTEM_MOUNT_H */

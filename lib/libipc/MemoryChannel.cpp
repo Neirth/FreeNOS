@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -79,8 +79,6 @@ MemoryChannel::Result MemoryChannel::read(void *buffer)
     m_feedback.write(0, sizeof(m_head), &m_head);
     return Success;
 }
-
-// TODO: optimization for performance: write multiple messages in one shot.
 
 MemoryChannel::Result MemoryChannel::write(void *buffer)
 {

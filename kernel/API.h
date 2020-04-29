@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,7 +27,7 @@
 #include <Vector.h>
 
 /**
- * @defgroup kernel kernel (generic)
+ * @addtogroup kernel
  * @{
  */
 
@@ -59,7 +59,7 @@ class API
     /**
      * Enumeration of generic kernel API error codes.
      */
-    typedef enum Error
+    typedef enum ErrorCode
     {
         Success         =  0,
         AccessViolation = -1,
@@ -72,11 +72,14 @@ class API
     }
     Error;
 
+    /** Represents the result of an system call handler */
+    typedef ::Error Result;
+
     /**
      * Function which handles an kernel API (system call) request.
      * @return Status code of the APIHandler execution.
      */
-    typedef ::Error Handler(ulong, ulong, ulong, ulong, ulong);
+    typedef Result Handler(ulong, ulong, ulong, ulong, ulong);
 
     /**
      * Various actions which may be performed inside an APIHandler.
@@ -94,6 +97,8 @@ class API
     }
     Operation;
 
+  public:
+
     /**
      * Constructor
      */
@@ -102,18 +107,22 @@ class API
     /**
      * Execute a generic API function.
      */
-    ::Error invoke(Number number,
-                   ulong arg1,
-                   ulong arg2,
-                   ulong arg3,
-                   ulong arg4,
-                   ulong arg5);
+    Result invoke(Number number,
+                  ulong arg1,
+                  ulong arg2,
+                  ulong arg3,
+                  ulong arg4,
+                  ulong arg5);
 
   private:
 
     /** API handlers */
     Vector<Handler *> m_apis;
 };
+
+/**
+ * @}
+ */
 
 /** Operator to print a Operation to a Log */
 Log & operator << (Log &log, API::Operation op);
@@ -130,9 +139,5 @@ Log & operator << (Log &log, API::Operation op);
 #include "API/VMShare.h"
 #include "API/IOCtl.h"
 #include "API/ProcessID.h"
-
-/**
- * @}
- */
 
 #endif /* __KERNEL_API_H */

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,26 +15,44 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SH_SHELL
-#define __SH_SHELL
+#ifndef __BIN_SH_SHELL
+#define __BIN_SH_SHELL
 
 #include <Types.h>
+#include <POSIXApplication.h>
 #include "ShellCommand.h"
 
-/** Maximum number of supported command arguments. */
-#define MAX_ARGV 16
+/**
+ * @addtogroup bin
+ * @{
+ */
 
 /**
- * Very basic command shell.
+ * System command shell interpreter
  */
-class Shell
+class Shell : public POSIXApplication
 {
   public:
 
     /**
      * Constructor
+     *
+     * @param argc Argument count
+     * @param argv Argument values
      */
-    Shell();
+    Shell(int argc, char **argv);
+
+    /**
+     * Destructor
+     */
+    virtual ~Shell();
+
+    /**
+     * Execute the application.
+     *
+     * @return Result code
+     */
+    virtual Result exec();
 
     /**
      * Get shell command.
@@ -58,11 +76,14 @@ class Shell
      */
     void registerCommand(ShellCommand *command);
 
+  private:
+
     /**
      * Executes the Shell by entering an infinite loop.
-     * @return Never.
+     *
+     * @return Result code
      */
-    int run();
+    Result runInteractive();
 
     /**
      * Executes the given input.
@@ -72,14 +93,11 @@ class Shell
      */
     int executeInput(char *cmdline);
 
-  private:
-    
     /**
      * Fetch a command text from standard input.
      * @return Pointer to a command text.
      */
     char * getInput();
-
 
     /**
      * Output a prompt.
@@ -96,8 +114,14 @@ class Shell
      */
     Size parse(char *cmdline, char **argv, Size maxArgv, bool *background);
 
+  private:
+
     /** All known ShellCommands. */
     HashTable<String, ShellCommand *> m_commands;
 };
 
-#endif /* __SH_SHELL */
+/**
+ * @}
+ */
+
+#endif /* __BIN_SH_SHELL */

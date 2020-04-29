@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,10 +20,13 @@
 
 #include <Macros.h>
 
-/**                                                                                                                                                                                                     
- * @defgroup libposix libposix (POSIX.1-2008)
+/**
+ * @addtogroup lib
  * @{
- */ 
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
 /**
  * @brief Return the last component of a pathname.
@@ -34,17 +37,22 @@
  * trailing '/' characters.
  *
  * @param path Filesystem path.
+ *
  * @return String pointer to the last component.
  */
 extern C char * basename(char *path);
 
 /**
  * @brief Return the directory portion of a pathname.
+ *
+ * @param path Filesystem path
+ *
  * @return String pointer to the directory of pathname.
  */
 extern C char * dirname(char *path);
 
 /**
+ * @}
  * @}
  */
 

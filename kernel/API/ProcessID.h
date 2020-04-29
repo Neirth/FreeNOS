@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,7 +19,15 @@
 #define __API_PROCESSID_H
 
 /**
- * @brief Static PIDS.
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernelapi
+ * @{
+ */
+
+/**
+ * @name Static Process IDs
  * @{
  */
 
@@ -28,10 +36,12 @@
 #define KERNEL_PID      65533
 
 #define CORESRV_PID     0
-#define MOUNTFS_PID     1
+#define SYSFS_PID       1
 #define ROOTFS_PID      2
 
 /**
+ * @}
+ * @}
  * @}
  */
 

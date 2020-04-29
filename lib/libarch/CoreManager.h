@@ -23,6 +23,14 @@
 #include "CoreInfo.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ */
+
+/**
  * Generic Core Manager.
  */
 class CoreManager
@@ -64,6 +72,7 @@ class CoreManager
      * Boot a processor.
      *
      * @param info CoreInfo object pointer.
+     *
      * @return Result code.
      */
     virtual Result boot(CoreInfo *info) = 0;
@@ -73,5 +82,10 @@ class CoreManager
     /** List of core ids found. */
     List<uint> m_cores;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_COREMANAGER_H */

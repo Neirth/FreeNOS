@@ -21,19 +21,51 @@
 #include <String.h>
 #include "TestResult.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
+ * Represents a test instance
+ */
 class TestInstance
 {
   public:
 
+    /**
+     * Class constructor
+     *
+     * @param name Name of the test
+     */
     TestInstance(const char *name);
 
+    /**
+     * Retrieve test instance name
+     *
+     * @return Test instance name
+     */
     const String & getName() const;
 
+    /**
+     * Run the test instance
+     *
+     * @return TestResult
+     */
     virtual TestResult run() = 0;
 
   protected:
 
+    /** Name of the test instance */
     String m_name;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTINSTANCE_H */

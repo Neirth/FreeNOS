@@ -85,8 +85,8 @@ TestCase(HashTableInsertRandom)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);    
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
-    Size size = sizes.random();
+    TestInt<Size> sizes(32, 128);
+    Size size = 20U;
 
     // Generate unique keys
     strings.unique(size);
@@ -124,7 +124,7 @@ TestCase(HashTableAppend)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);    
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
 
     // Generate one key.

@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2010 Niek Linnenbank
+# Copyright (C) 2015 Niek Linnenbank
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,4 +20,4 @@ Import('build_env')
 env = build_env.Clone()
 env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libexec', 'libarch', 'libipc', 'libfs' ])
 env.UseServers([ 'core' ])
-env.TargetProgram('sysinfo', 'Main.cpp', env['bin'])
+env.TargetProgram('sysinfo', Glob('*.cpp'), env['bin'])

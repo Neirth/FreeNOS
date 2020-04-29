@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,6 +18,14 @@
 #ifndef __LIBIPC_EVENTNOTIFIER_H
 #define __LIBIPC_EVENTNOTIFIER_H
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libipc
+ * @{
+ */
+
 class EventNotifier
 {
   public:
@@ -25,5 +33,10 @@ class EventNotifier
   private:
 
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBIPC_EVENTNOTIFIER_H */

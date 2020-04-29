@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,51 +26,53 @@
 #include <Index.h>
 #include "ProcessShares.h"
 
-/** 
- * @defgroup kernel kernel (generic)
- * @{ 
- */
-
 /** @see IPCMessage.h. */
 struct Message;
 class MemoryContext;
 class MemoryChannel;
 struct ProcessEvent;
+class ProcessManager;
+class Scheduler;
 
-/** Virtual memory address of the array of arguments for new processes. */
-#define ARGV_ADDR  0x9ffff000
-
-/** Maximum size of each argument. */
-// TODO: ARGV_ADDR fixed address here is wrong. Put it in Arch::Memory::range(). Or perhaps put it on the stack?
-#define ARGV_SIZE  128
-
-/** Number of arguments at maximum. */
-#define ARGV_COUNT (PAGESIZE / ARGV_SIZE)
+/**
+ * @addtogroup kernel
+ * @{
+ */
 
 /**
  * Represents a process which may run on the host.
  */
 class Process
 {
+  friend class ProcessManager;
+  friend class Scheduler;
+
   public:
 
+    /**
+     * Result codes
+     */
     enum Result
     {
         Success,
+        InvalidArgument,
         MemoryMapError,
         OutOfMemory,
         WakeupPending
     };
 
+    /**
+     * Represents the execution state of the Process
+     */
     enum State
     {
-        Running,
         Ready,
-        Stopped,
         Sleeping,
         Waiting
-    };    
-    
+    };
+
+  public:
+
     /**
      * Constructor function.
      *
@@ -79,7 +81,7 @@ class Process
      * @param privileged If true, the process has unlimited access to hardware.
      */
     Process(ProcessID id, Address entry, bool privileged, const MemoryMap &map);
-    
+
     /**
      * Destructor function.
      */
@@ -87,12 +89,14 @@ class Process
 
     /**
      * Retrieve our ID number.
+     *
      * @return Process Identification number.
      */
     ProcessID getID() const;
 
     /**
      * Retrieve our parent ID.
+     *
      * @return Process ID of our parent.
      */
     ProcessID getParent() const;
@@ -103,42 +107,23 @@ class Process
     ProcessID getWait() const;
 
     /**
-     * Get sleep timer.
-     * @return Sleep timer value.
+     * Get wait result
      */
-    const Timer::Info * getSleepTimer() const;
+    uint getWaitResult() const;
 
     /**
      * Get process shares.
+     *
      * @return Reference to memory shares.
      */
     ProcessShares & getShares();
 
     /**
      * Retrieves the current state.
+     *
      * @return Current status of the Process.
      */
     State getState() const;
-
-    /*
-     * Get the address of our page directory.
-     * @return Page directory address.
-     */
-    Address getPageDirectory() const;
-
-    /**
-     * Get the address of the user stack.
-     *
-     * @return User stack address.
-     */
-    Address getUserStack() const;
-
-    /**
-     * Get the address of the kernel stack.
-     *
-     * @return Kernel stack address.
-     */
-    Address getKernelStack() const;
 
     /**
      * Get MMU memory context.
@@ -147,10 +132,6 @@ class Process
      */
     MemoryContext * getMemoryContext();
 
-    /**
-     * Raise kernel event
-     */
-    Result raiseEvent(struct ProcessEvent *event);
 
     /**
      * Get privilege.
@@ -160,69 +141,15 @@ class Process
     bool isPrivileged() const;
 
     /**
-     * Puts the Process in a new state.
-     * @param st New state of the Process.
-     */
-    void setState(State st);
-
-    /**
-     * Set parent process ID.
-     */
-    void setParent(ProcessID id);
-
-    /**
-     * Set Wait ID.
-     */
-    void setWait(ProcessID id);
-
-    /**
-     * Set sleep timer.
-     * @param sleeptimer New sleep timer value.
-     */
-    void setSleepTimer(const Timer::Info *sleeptimer);
-
-    /**
-     * Set page directory address.
-     *
-     * @param addr New page directory address.
-     */
-    void setPageDirectory(Address addr);
-
-    /**
-     * Sets the address of the user stack.
-     *
-     * @param addr New stack address.
-     */
-    void setUserStack(Address addr);
-
-    /**
-     * Set the kernel stack address.
-     *
-     * @param addr New kernel stack address.
-     */
-    void setKernelStack(Address addr);
-
-    /**
      * Compare two processes.
+     *
      * @param p Process to compare with.
+     *
      * @return True if equal, false otherwise.
      */
     bool operator == (Process *proc);
 
-    /**
-     * Prevent process from sleeping.
-     *
-     * @return Result code
-     */
-    Result wakeup();
-
-    /**
-     * Stops the process for executing until woken up
-     *
-     * @param timer Timer on which the process must be woken up (if expired), or ZERO for no limit
-     * @return Result code
-     */
-    Result sleep(Timer::Info *timer = 0);
+  protected:
 
     /**
      * Initialize the Process.
@@ -241,6 +168,60 @@ class Process
      */
     virtual void execute(Process *previous) = 0;
 
+    /**
+     * Prevent process from sleeping.
+     *
+     * @param ignorePendingSleep True to ignore any (just) pending sleep of this Process
+     *
+     * @return Result code
+     */
+    Result wakeup(bool ignorePendingSleep = false);
+
+    /**
+     * Stops the process for executing until woken up
+     *
+     * @param timer Timer on which the process must be woken up (if expired), or ZERO for no limit
+     * @param ignoreWakeups True to enter Sleep state regardless of pending wakeups
+     *
+     * @return Result code
+     */
+    Result sleep(const Timer::Info *timer, bool ignoreWakeups);
+
+    /**
+     * Let Process wait for other Process to terminate.
+     *
+     * @param id Process ID to wait for
+     *
+     * @return Result code
+     */
+    Result wait(ProcessID id);
+
+    /**
+     * Raise kernel event
+     *
+     * @return Result code
+     */
+    Result raiseEvent(struct ProcessEvent *event);
+
+    /**
+     * Get sleep timer.
+     *
+     * @return Sleep timer value.
+     */
+    const Timer::Info & getSleepTimer() const;
+
+    /**
+     * Set parent process ID.
+     */
+    void setParent(ProcessID id);
+
+    /**
+     * Set wait result
+     *
+     * @param result Exit code of the other process
+     */
+    virtual void setWaitResult(uint result);
+
   protected:
 
     /** Process Identifier */
@@ -255,6 +236,9 @@ class Process
     /** Waits for exit of this Process. */
     ProcessID m_waitId;
 
+    /** Wait exit result of the other Process. */
+    uint m_waitResult;
+
     /** Privilege level */
     bool m_privileged;
 
@@ -266,18 +250,6 @@ class Process
 
     /** MMU memory context */
     MemoryContext *m_memoryContext;
-
-    /** Page directory. */
-    Address m_pageDirectory;
-
-    /** User stack address. */
-    Address m_userStack;
-
-    /** Current kernel stack address (changes during execution). */
-    Address m_kernelStack;
-
-    /** Base kernel stack (fixed) */
-    Address m_kernelStackBase;
 
     /** Number of wakeups received */
     Size m_wakeups;

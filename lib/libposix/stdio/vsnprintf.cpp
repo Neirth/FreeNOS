@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,8 +26,8 @@ int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args)
     int ch, length = -1, i;
     unsigned int written = 0;
     String s;
-    
-    /* Loop formatted message. */
+
+    // Loop formatted message
     while ((ch = *fmt++) && written < size)
     {
         if (ch != '%')
@@ -38,12 +38,12 @@ int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args)
         else
         {
             switch_again:
-            
+
             switch (*fmt)
             {
-                /* Length modifier. */
+                // Length modifier
                 case '0' ... '9':
-            
+
                     for (i = 0; i < 19 && *fmt >= '0' && *fmt <= '9'; i++)
                     {
                         buf[i]   = *fmt++;
@@ -51,8 +51,8 @@ int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args)
                     }
                     length = atoi(buf);
                     goto switch_again;
-        
-                /* Integer. */    
+
+                // Integer
                 case 'u':
                     s.setUnsigned(va_arg(args, unsigned), Number::Dec, buf);
                     ptr = buf;
@@ -62,30 +62,30 @@ int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args)
                     itoa(buf, 10, va_arg(args, int));
                     ptr = buf;
                     goto string;
-        
-                /* Long integer. */
+
+                // Long integer
                 case 'l':
                     itoa(buf, 10, va_arg(args, long));
                     ptr = buf;
                     goto string;
-        
-                /* Hexadecimal. */
+
+                // Hexadecimal
                 case 'x':
-                    itoa(buf, 16, va_arg(args, int));
+                    s.setUnsigned(va_arg(args, unsigned), Number::Hex, buf);
                     ptr = buf;
                     goto string;
-        
-                /* Character. */
+
+                // Character
                 case 'c':
                     buf[0] = va_arg(args, int);
                     buf[1] = ZERO;
                     ptr    = buf;
                     goto string;
-        
-                /* String. */
+
+                // String
                 case 's':
                     ptr = va_arg(args, char *);
-        
+
                     string:
                     while( ((length == -1 && *ptr) ||
                             (length > 0 && length--)) && written++ < size)
@@ -98,8 +98,8 @@ int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args)
                             *buffer++ = ' ';
                     }
                     break;
-    
-                /* Unsupported. */
+
+                // Unsupported
                 default:
                     *buffer++ = ch;
                     written++;
@@ -109,7 +109,8 @@ int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args)
             length = -1;
         }
     }
-    /* Null terminate. */
+
+    // Null terminate
     if (written < size)
         *buffer = 0;
     return (written);

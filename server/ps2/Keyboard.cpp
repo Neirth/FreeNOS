@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -63,30 +63,28 @@ Error Keyboard::read(IOBuffer & buffer, Size size, Size offset)
 {
     Error ret = EAGAIN;
 
-    /* Do we have any new key events? */
+    // Do we have any new key events?
     if (pending)
     {
-	pending = false;
-    
-	/*
-         * Read byte from the keyboard.
-         */
+        pending = false;
+
+        // Read byte from the keyboard.
         u8 keycode = ReadByte(PS2_PORT);
 
-        /* Update shift state. */
+        // Update shift state
         if (keycode == 0x2a || keycode == 0xaa)
         {
-    	    shiftState ^= 1;
-	}
-        /* Don't do anything on release. */
-	else if (!(keycode & PS2_RELEASE) &&
-	          (keymap[keycode & 0x7f][shiftState]))
-	{
-	    /* Write to buffer. */
-	    buffer.write((void *) &keymap[keycode & 0x7f][shiftState], 1);
-    	    ret = 1;
-	}
-        /* Re-enable interrupt */
+            shiftState ^= 1;
+        }
+        // Don't do anything on release
+        else if (!(keycode & PS2_RELEASE) &&
+            (keymap[keycode & 0x7f][shiftState]))
+        {
+            // Write to buffer
+            buffer.write((void *) &keymap[keycode & 0x7f][shiftState], 1);
+            ret = 1;
+        }
+        // Re-enable interrupt
         ProcessCtl(SELF, EnableIRQ, PS2_IRQ);
     }
     return ret;

@@ -22,10 +22,17 @@
 #include "Macros.h"
 #include "String.h"
 #include "HashTable.h"
-#include "HashIterator.h"
 #include "Vector.h"
 #include "Argument.h"
 #include "ArgumentContainer.h"
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
 
 /**
  * Generic command-line argument parser.
@@ -45,6 +52,8 @@ class ArgumentParser
         AlreadyExists
     };
 
+  public:
+
     /**
      * Constructor
      */
@@ -60,7 +69,14 @@ class ArgumentParser
      *
      * @return Program usage string reference.
      */
-    String & getUsage();
+    String getUsage() const;
+
+    /**
+     * Retrieve program name.
+     *
+     * @return Program name
+     */
+    const String & name() const;
 
     /**
      * Set program name.
@@ -74,10 +90,14 @@ class ArgumentParser
      *
      * @param desc Program description string.
      */
-    void setDescription(const char *desc);
+    void setDescription(const String & desciption);
 
     /**
      * Register a flag Argument
+     *
+     * @param arg Argument identifier
+     * @param name Argument name
+     * @param description Argument single line description
      *
      * @return Result code.
      */
@@ -88,11 +108,15 @@ class ArgumentParser
     /**
      * Register a positional argument.
      *
+     * @param name Argument name
+     * @param description Argument single line description
+     * @param count Maximum number to set for this positional argument
+     *
      * @return Result code.
      */
     Result registerPositional(const char *name,
                               const char *description,
-                              Size count=1);
+                              Size count = 1);
 
     /**
      * Parse input arguments.
@@ -103,6 +127,7 @@ class ArgumentParser
      * @param argc Input argument count.
      * @param argv Input argument values.
      * @param output Filled with parsed arguments on output.
+     *
      * @return Result code.
      */
     Result parse(int argc,
@@ -111,8 +136,11 @@ class ArgumentParser
 
   private:
 
-    /** Contains all registered flag arguments. */
+    /** Contains all registered flag arguments by name. */
     HashTable<String, Argument *> m_flags;
+
+    /** Contains all registered flag arguments by single character identifier. */
+    HashTable<String, Argument *> m_flagsId;
 
     /** Contains all registered positional arguments. */
     Vector<Argument *> m_positionals;
@@ -122,9 +150,11 @@ class ArgumentParser
 
     /** Program description */
     String m_description;
-
-    /** Program usage */
-    String m_usage;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_ARGUMENTPARSER_H */

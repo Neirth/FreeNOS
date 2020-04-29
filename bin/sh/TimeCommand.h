@@ -22,6 +22,14 @@
 #include "ShellCommand.h"
 
 /**
+ * @addtogroup bin
+ * @{
+ *
+ * @addtogroup sh
+ * @{
+ */
+
+/**
  * Measure the execution time of a program.
  */
 class TimeCommand : public ShellCommand
@@ -42,5 +50,10 @@ class TimeCommand : public ShellCommand
      */
     virtual int execute(Size nparams, char **params);
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __BIN_SH_TIMECOMMAND */

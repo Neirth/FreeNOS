@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,23 +20,24 @@
 #include "IntelCore.h"
 #include "IntelPaging.h"
 
-//
-// SplitAllocator: physical allocator which defines two regions: low and high.
-//                 it can allocate from either low or high memory, returning physical addresses, aligned e.g. on PAGESIZE.
-//
-// MemoryMap:      defines the virtual memory layout, defines which regions belong to the kernel,
-//                 which belong to the user.
-//
-
 IntelPaging::IntelPaging(MemoryMap *map, SplitAllocator *alloc)
     : MemoryContext(map, alloc)
+    , m_pageDirectory(0)
+    , m_pageDirectoryAddr(0)
+    , m_pageDirectoryAllocated(false)
 {
     IntelCore core;
+    Allocator::Arguments alloc_args;
+
+    alloc_args.address = 0;
+    alloc_args.size = sizeof(IntelPageDirectory);
+    alloc_args.alignment = sizeof(IntelPageDirectory); // TODO: i think its needed? or maybe PAGESIZE?
 
     // Allocate page directory from low physical memory.
-    if (alloc->allocateLow(sizeof(IntelPageDirectory),
-                          &m_pageDirectoryAddr) == Allocator::Success)
+    if (alloc->allocateLow(alloc_args) == Allocator::Success)
     {
+        m_pageDirectoryAllocated = true;
+        m_pageDirectoryAddr = alloc_args.address;
         m_pageDirectory = (IntelPageDirectory *) alloc->toVirtual(m_pageDirectoryAddr);
 
         // Initialize the page directory
@@ -64,20 +65,22 @@ IntelPaging::IntelPaging(MemoryMap *map, SplitAllocator *alloc)
 
 IntelPaging::IntelPaging(MemoryMap *map, Address pageDirectory, SplitAllocator *alloc)
     : MemoryContext(map, alloc)
+    , m_pageDirectory((IntelPageDirectory *) alloc->toVirtual(pageDirectory))
+    , m_pageDirectoryAddr(pageDirectory)
+    , m_pageDirectoryAllocated(false)
 {
-    m_pageDirectory     = (IntelPageDirectory *) alloc->toVirtual(pageDirectory);
-    m_pageDirectoryAddr = pageDirectory;
 }
 
 IntelPaging::~IntelPaging()
 {
-    // TODO: release physical memory for this context?
+    if (m_pageDirectoryAllocated)
+    {
+        m_alloc->release(m_pageDirectoryAddr);
+    }
 }
 
 MemoryContext::Result IntelPaging::activate()
 {
-    // TODO: perhaps activate paging here, and perform kernel mapping (move it from IntelBoot.S)
-    // That way it is also more similar to the ARM implementation.
     IntelCore core;
     core.writeCR3(m_pageDirectoryAddr);
     m_current = this;
@@ -88,8 +91,8 @@ MemoryContext::Result IntelPaging::map(Address virt, Address phys, Memory::Acces
 {
     MemoryContext::Result r = m_pageDirectory->map(virt, phys, acc, m_alloc);
 
-    // TODO: make TLB flushing conditional? (only if the context is currently activated)
-    if (r == Success)
+    // Flush TLB entry
+    if (r == Success && m_current == this)
         tlb_flush(virt);
 
     return r;
@@ -99,19 +102,29 @@ MemoryContext::Result IntelPaging::unmap(Address virt)
 {
     MemoryContext::Result r = m_pageDirectory->unmap(virt, m_alloc);
 
-    // TODO: make TLB flushing conditional? (only if the context is currently activated)
-    if (r == Success)
+    // Flush TLB entry
+    if (r == Success && m_current == this)
         tlb_flush(virt);
 
     return r;
 }
 
-MemoryContext::Result IntelPaging::lookup(Address virt, Address *phys)
+MemoryContext::Result IntelPaging::lookup(Address virt, Address *phys) const
 {
     return m_pageDirectory->translate(virt, phys, m_alloc);
 }
 
-MemoryContext::Result IntelPaging::access(Address virt, Memory::Access *access)
+MemoryContext::Result IntelPaging::access(Address virt, Memory::Access *access) const
 {
     return m_pageDirectory->access(virt, access, m_alloc);
+}
+
+MemoryContext::Result IntelPaging::releaseRegion(MemoryMap::Region region, bool tablesOnly)
+{
+    return m_pageDirectory->releaseRange(m_map->range(region), m_alloc, tablesOnly);
+}
+
+MemoryContext::Result IntelPaging::releaseRange(Memory::Range *range, bool tablesOnly)
+{
+    return m_pageDirectory->releaseRange(*range, m_alloc, tablesOnly);
 }

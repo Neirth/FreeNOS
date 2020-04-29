@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,25 +21,31 @@
 #include <Types.h>
 #include <BootImage.h>
 
-/**   
- * @defgroup x86kernel kernel (x86)  
- * @{   
+/**
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernel_intel
+ * @{
  */
 
-/**  
- * @group Intel Kernel Traps
+/**
+ * @name Intel Kernel Traps
  *
+ * Intel specific software interrupts.
  * These functions are called by the user program to
- * invoke the kernel APIs.
+ * invoke the kernel APIs, also known as system calls.
  *
- * @{  
+ * @{
  */
 
-/** 
+/**
  * Perform a kernel trap with 1 argument.
- * @param num Unique number of the handler to execute. 
- * @param arg1 First argument becomes ECX. 
- * @return An integer. 
+ *
+ * @param num Unique number of the handler to execute.
+ * @param arg1 First argument becomes ECX.
+ *
+ * @return An integer.
  */
 inline ulong trapKernel1(ulong num, ulong arg1)
 {
@@ -48,12 +54,14 @@ inline ulong trapKernel1(ulong num, ulong arg1)
     return ret;
 }
 
-/** 
+/**
  * Perform a kernel trap with 2 arguments.
- * @param num Unique number of the handler to execute. 
- * @param arg1 First argument becomes ECX. 
+ *
+ * @param num Unique number of the handler to execute.
+ * @param arg1 First argument becomes ECX.
  * @param arg2 Second argument becomes EBX.
- * @return An integer. 
+ *
+ * @return An integer.
  */
 inline ulong trapKernel2(ulong num, ulong arg1, ulong arg2)
 {
@@ -62,13 +70,15 @@ inline ulong trapKernel2(ulong num, ulong arg1, ulong arg2)
     return ret;
 }
 
-/** 
- * Perform a kernel trap with 3 arguments. 
- * @param num Unique number of the handler to execute. 
- * @param arg1 First argument becomes ECX. 
- * @param arg2 Second argument becomes EBX. 
- * @param arg3 Third argument becomes EDX. 
- * @return An integer. 
+/**
+ * Perform a kernel trap with 3 arguments.
+ *
+ * @param num Unique number of the handler to execute.
+ * @param arg1 First argument becomes ECX.
+ * @param arg2 Second argument becomes EBX.
+ * @param arg3 Third argument becomes EDX.
+ *
+ * @return An integer.
  */
 inline ulong trapKernel3(ulong num, ulong arg1, ulong arg2, ulong arg3)
 {
@@ -78,14 +88,16 @@ inline ulong trapKernel3(ulong num, ulong arg1, ulong arg2, ulong arg3)
     return ret;
 }
 
-/** 
- * Perform a kernel trap with 4 arguments. 
- * @param num Unique number of the handler to execute. 
- * @param arg1 First argument becomes ECX. 
- * @param arg2 Second argument becomes EBX. 
- * @param arg3 Third argument becomes EDX. 
+/**
+ * Perform a kernel trap with 4 arguments.
+ *
+ * @param num Unique number of the handler to execute.
+ * @param arg1 First argument becomes ECX.
+ * @param arg2 Second argument becomes EBX.
+ * @param arg3 Third argument becomes EDX.
  * @param arg4 Fourth argument becomes ESI.
- * @return An integer. 
+ *
+ * @return An integer.
  */
 inline ulong trapKernel4(ulong num, ulong arg1, ulong arg2, ulong arg3,
              ulong arg4)
@@ -96,15 +108,17 @@ inline ulong trapKernel4(ulong num, ulong arg1, ulong arg2, ulong arg3,
     return ret;
 }
 
-/** 
- * Perform a kernel trap with 5 arguments. 
- * @param num Unique number of the handler to execute. 
- * @param arg1 First argument becomes ECX. 
- * @param arg2 Second argument becomes EBX. 
- * @param arg3 Third argument becomes EDX. 
+/**
+ * Perform a kernel trap with 5 arguments.
+ *
+ * @param num Unique number of the handler to execute.
+ * @param arg1 First argument becomes ECX.
+ * @param arg2 Second argument becomes EBX.
+ * @param arg3 Third argument becomes EDX.
  * @param arg4 Fourth argument becomes ESI.
  * @param arg5 Fifth argument becomes EDI.
- * @return An integer. 
+ *
+ * @return An integer.
  */
 inline ulong trapKernel5(ulong num, ulong arg1, ulong arg2, ulong arg3,
              ulong arg4, ulong arg5)
@@ -117,6 +131,8 @@ inline ulong trapKernel5(ulong num, ulong arg1, ulong arg2, ulong arg3,
 
 /**
  * @}
+ * @}
+ * @}
  */
 
 #include <FreeNOS/Kernel.h>
@@ -126,9 +142,16 @@ inline ulong trapKernel5(ulong num, ulong arg1, ulong arg2, ulong arg3,
 #include <Timer.h>
 
 /**
- * We remap IRQ's to interrupt vectors 32-47.
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernel_intel
+ * @{
  */
-// TODO: needed by ProcessCtl.cpp. Should avoid this.
+
+/**
+ * Remap IRQs to interrupt vectors 32-47.
+ */
 #define IRQ(vector) \
     (vector) + 32
 
@@ -144,35 +167,53 @@ class IntelKernel : public Kernel
      */
     IntelKernel(CoreInfo *info);
 
+    /**
+     * Enable or disable an hardware interrupt (IRQ).
+     *
+     * @param irq IRQ number.
+     * @param enabled True to enable, and false to disable.
+     */
+    virtual void enableIRQ(u32 irq, bool enabled);
+
   private:
 
-    /** 
-     * Called when the CPU detects a fault. 
-     * @param state Contains CPU registers, interrupt vector and error code. 
-     * @param param Not used. 
+    /**
+     * Called when the CPU detects a fault.
+     *
+     * @param state Contains CPU registers, interrupt vector and error code.
+     * @param param Not used.
+     * @param vector Not used.
      */
-    static void exception(CPUState *state, ulong param);
-        
-    /** 
-     * Default interrupt handler. 
-     * @param state Contains CPU registers, interrupt vector and error code. 
-     * @param param Not used. 
+    static void exception(CPUState *state, ulong param, ulong vector);
+
+    /**
+     * Default interrupt handler.
+     *
+     * @param state Contains CPU registers, interrupt vector and error code.
+     * @param param Not used.
+     * @param vector Not used.
      */
-    static void interrupt(CPUState *state, ulong param);
+    static void interrupt(CPUState *state, ulong param, ulong vector);
 
     /**
      * Kernel trap handler (system calls).
+     *
      * @param state Contains the arguments for the APIHandler, in CPU registers.
      * @param param Not used.
+     * @param vector Not used.
      */
-    static void trap(CPUState *state, ulong param);
-        
-    /** 
-     * i8253 system clock interrupt handler. 
-     * @param state CPU registers on time of interrupt. 
+    static void trap(CPUState *state, ulong param, ulong vector);
+
+    /**
+     * i8253 system clock interrupt handler.
+     *
+     * @param state CPU registers on time of interrupt.
      * @param param Not used.
+     * @param vector Not used.
      */
-    static void clocktick(CPUState *state, ulong param);
+    static void clocktick(CPUState *state, ulong param, ulong vector);
+
+  private:
 
     /** PIT timer instance */
     IntelPIT m_pit;
@@ -185,6 +226,7 @@ class IntelKernel : public Kernel
 };
 
 /**
+ * @}
  * @}
  */
 

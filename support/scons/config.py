@@ -15,26 +15,13 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
 import os.path
 import shutil
 import datetime
 import platform
 from SCons.Script import *
 from autoconf import *
-
-# Then a command:
-# scons defconfig SUBCONF=raspberry_model_bplus ARCH=arm SYSTEM=rpi
-# which copies raspberry_model_bplus.conf to build.conf
-# scons defconfig ARCH=arm SYSTEM=rpi
-# which copies config/arm/rpi/build.conf to build.conf
-#
-# Or if only for the host environment:
-# scons HOST:CC=gcc-4.4 HOST:CCFLAGS='-Wall'
-#
-# Any driver or server can then just do:
-# #include <FreeNOS/Config.h>
-# #ifdef MY_SETTING
-# #endif
 
 class ConfDict(dict):
 
@@ -46,12 +33,12 @@ class ConfDict(dict):
         self.locked = val
         self.cmdPrefix = prefix
 
-    #
-    # This function overrides assignment
-    # to ensure variables from the command line are taken
-    # instead of from the .conf files.
-    #
     def __setitem__(self, name, value):
+        """
+        This function overrides variable assignment
+        Ensures variables from the command line are taken first
+        instead of from the .conf files.
+        """
         global cmd_items
 
         if self.locked and (self.cmdPrefix + name) in cmd_items:
@@ -82,6 +69,7 @@ def initialize(target, host, params):
     for key in params:
 	if not key.startswith('HOST:'):
 	    set_value(local_dict, key, params[key])
+
     local_dict.lock(True)
     apply_file('build.conf', target)
 
@@ -100,7 +88,7 @@ def initialize(target, host, params):
     set_default_variables(host)
 
 def escape(obj):
-    return str(obj).replace('"', '\\"')
+    return str(obj).replace('"', '\\"').strip()
 
 def write_header(env, filename = None):
 
@@ -115,7 +103,6 @@ def write_header(env, filename = None):
             except Exception as e:
                 pass
 
-            # TODO: violates the BUILDROOT
             try:
                 os.makedirs('build/host/include')
                 os.symlink('.', 'build/host/include/FreeNOS')
@@ -129,8 +116,8 @@ def write_header(env, filename = None):
     name, ext = os.path.splitext(filename)
     name = name.replace('/', '_')
     
-    out.write('#ifndef __' + name.upper() + '_H\n')
-    out.write('#define __' + name.upper() + '_H\n\n')
+    out.write('#ifndef __' + name.upper().replace('-', '_') + '_H\n')
+    out.write('#define __' + name.upper().replace('-', '_') + '_H\n\n')
     out.write('#define VERSION_GET_CODE(a,b,c) (((a) << 16) + ((b) << 8) + (c))\n')
     out.write('#define DATETIME  __DATE__ " " __TIME__\n')
     out.write('#define COPYRIGHT "Copyright (C) ' + escape(datetime.datetime.today().year) + ' Niek Linnenbank\\r\\n" \\\n' + \
@@ -215,6 +202,8 @@ def set_value(env, key, value):
         env[key] = True
     elif value in ('False', 'false'):
         env[key] = False
+    elif value.startswith('[') and value.endswith(']'):
+        env[key] = eval(value)
     else:
         try:
             env[key] = int(value)
@@ -281,6 +270,6 @@ def eval_string(string, replace_dict = None):
 	    var_name = substr[idx+2:]
 
 	    if var_name in replace_dict:
-		final_string += replace_dict[var_name]
+		final_string += str(replace_dict[var_name])
 
     return final_string

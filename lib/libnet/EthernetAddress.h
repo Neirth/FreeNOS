@@ -23,6 +23,14 @@
 #include "Ethernet.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Ethernet address file.
  */
 class EthernetAddress : public File
@@ -64,5 +72,10 @@ class EthernetAddress : public File
     /** Ethernet object pointer */
     Ethernet *m_eth;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_ETHERNETADDRESS_H */

@@ -29,12 +29,12 @@ IntelACPI::Result IntelACPI::initialize()
     RootSystemDescriptor1 *rsd1 = ZERO;
     RootSystemDescriptor2 *rsd2 = ZERO;
     Address addr = m_bios.getBase();
-    
+
     // Look for the Multiprocessor configuration
     for (uint i = 0; i < RSDSize - sizeof(Address); i += sizeof(Address))
     {
         rsd1 = (RootSystemDescriptor1 *)(addr + i);
-    
+
         if (rsd1->signature[0] == RootSystemSignature1 &&
             rsd1->signature[1] == RootSystemSignature2)
         {
@@ -44,7 +44,7 @@ IntelACPI::Result IntelACPI::initialize()
             break;
         }
     }
-    // TODO: validate checksum
+
     // Check if the ACPI tables are found
     if (!rsd1)
         return NotFound;
@@ -96,7 +96,7 @@ IntelACPI::Result IntelACPI::scanAPIC(MultipleAPICTable *madt)
 
 IntelACPI::Result IntelACPI::discover()
 {
-    SystemDescriptorHeader *hdr = (SystemDescriptorHeader *) m_rootIO.getBase();    
+    SystemDescriptorHeader *hdr = (SystemDescriptorHeader *) m_rootIO.getBase();
     m_cores.clear();
 
     // Detect the Root/ExtendedSystemTable

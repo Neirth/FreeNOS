@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,17 +22,25 @@
 #include "ShellCommand.h"
 
 /**
+ * @addtogroup bin
+ * @{
+ *
+ * @addtogroup sh
+ * @{
+ */
+
+/**
  * Write data to a file.
  */
 class WriteCommand : public ShellCommand
 {
   public:
-    
+
     /**
      * Constructor function.
      */
     WriteCommand();
-    
+
     /**
      * Executes the command.
      *
@@ -42,5 +50,10 @@ class WriteCommand : public ShellCommand
      */
     virtual int execute(Size nparams, char **params);
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __SH_WRITECOMMAND */

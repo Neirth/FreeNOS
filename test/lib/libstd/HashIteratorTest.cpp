@@ -40,7 +40,7 @@ TestCase(HashIteratorCurrent)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     List<String> keys;
 
@@ -88,7 +88,7 @@ TestCase(HashIteratorNext)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     List<String> keys;
     
@@ -129,7 +129,7 @@ TestCase(HashIteratorRemoveFirst)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     List<String> keys;
     
@@ -178,7 +178,7 @@ TestCase(HashIteratorRemoveLast)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     List<String> keys;
     
@@ -235,7 +235,7 @@ TestCase(HashIteratorRemoveSingle)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     Size position = size/2;
     
@@ -284,13 +284,12 @@ TestCase(HashIteratorRemoveSingle)
     return OK;
 }
 
-
 TestCase(HashIteratorRemoveAll)
 {
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     
     // Generate unique keys
@@ -323,10 +322,10 @@ TestCase(HashIteratorReset)
     HashTable<String, int> h;
     TestChar<char *> strings(8, 32);
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<Size> sizes(128, 256);
+    TestInt<Size> sizes(32, 128);
     Size size = sizes.random();
     Size rounds = sizes.random();
-    
+
     // Generate unique keys
     strings.unique(size);
 
@@ -334,7 +333,7 @@ TestCase(HashIteratorReset)
     for (Size i = 0; i < size; i++)
         testAssert(h.insert(strings.get(i), ints.random()));
 
-    // Perform a random number of iteration rounds
+    // Perform a number of iteration rounds
     for (Size i = 0; i < rounds; i++)
     {
         // Iterate the list via hasCurrent() and current()

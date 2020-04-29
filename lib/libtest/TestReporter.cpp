@@ -26,7 +26,8 @@ TestReporter::TestReporter(int argc, char **argv)
     m_fail = 0;
     m_skip = 0;
     m_report = true;
-    m_showStatistics = true;
+    m_statistics = true;
+    m_multiline = false;
 }
 
 TestReporter::~TestReporter()
@@ -55,7 +56,12 @@ void TestReporter::setReport(bool value)
 
 void TestReporter::setStatistics(bool value)
 {
-    m_showStatistics = value;
+    m_statistics = value;
+}
+
+void TestReporter::setMultiline(bool multiline)
+{
+    m_multiline = multiline;
 }
 
 void TestReporter::prepare(TestInstance & test)
@@ -81,12 +87,12 @@ void TestReporter::collect(TestInstance & test, TestResult & result)
 
 void TestReporter::begin(List<TestInstance *> & tests)
 {
-    if (m_showStatistics)
+    if (m_report)
         reportBegin(tests);
 }
 
 void TestReporter::finish(List<TestInstance *> & tests)
 {
-    if (m_showStatistics)
+    if (m_statistics)
         reportFinish(tests);
 }

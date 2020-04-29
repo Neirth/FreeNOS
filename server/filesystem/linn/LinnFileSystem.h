@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,7 +30,10 @@
 #include "LinnGroup.h"
 
 /**
- * @defgroup linn LinnFS (Linnenbank Filesystem) 
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup linnfs
  * @{
  */
 
@@ -46,7 +49,7 @@
 #define LINN_MIN_BLOCK_SIZE 1024
 
 /** Maximum blocksize. */
-#define	LINN_MAX_BLOCK_SIZE 4096
+#define LINN_MAX_BLOCK_SIZE 4096
 
 /**
  * @}
@@ -68,87 +71,114 @@
  */
 class LinnFileSystem : public FileSystem
 {
-    public:
-    
-	/**
-	 * Class constructor function.
-	 * @param path Path to which we are mounted.
-	 * @param storage Storage provider.
-	 */
-	LinnFileSystem(const char *path, Storage *storage);
+  public:
 
-	/**
-	 * Retrieve the superblock pointer.
-	 * @return Pointer to the superblock for this filesystem.
-	 * @see LinnSuperBlock
-	 */
-	LinnSuperBlock * getSuperBlock()
-	{
-	    return &super;
-	}
+    /**
+     * Class constructor function.
+     *
+     * @param path Path to which we are mounted.
+     * @param storage Storage provider.
+     */
+    LinnFileSystem(const char *path, Storage *storage);
 
-	/**
-	 * Get the underlying Storage object.
-	 * @return Storage pointer.
-	 * @see Storage
-	 */
-	Storage * getStorage()
-	{
-	    return storage;
-	}
+    /**
+     * Retrieve the superblock pointer.
+     *
+     * @return Pointer to the superblock for this filesystem.
+     *
+     * @see LinnSuperBlock
+     */
+    LinnSuperBlock * getSuperBlock()
+    {
+        return &super;
+    }
 
-	/**
-	 * Read an inode from the filesystem.
-	 * @param inodeNum Inode number.
-	 * @return Pointer to an LinnInode on success, ZERO on failure.
-	 * @see LinnInode
-	 */
-	LinnInode * getInode(u32 inodeNum);
+    /**
+     * Get the underlying Storage object.
+     *
+     * @return Storage pointer.
+     *
+     * @see Storage
+     */
+    Storage * getStorage()
+    {
+        return storage;
+    }
 
-	/**
-	 * Read a group descriptor from the filesystem.
-	 * @param groupNum Group descriptor number.
-	 * @return Pointer to an LinnGroup on success, ZERO on failure.
-	 * @see LinnGroup
-	 */
-	LinnGroup * getGroup(u32 groupNum);
+    /**
+     * Read an inode from the filesystem.
+     *
+     * @param inodeNum Inode number.
+     *
+     * @return Pointer to an LinnInode on success, ZERO on failure.
+     *
+     * @see LinnInode
+     */
+    LinnInode * getInode(u32 inodeNum);
 
-	/**
-	 * Read a group descriptor from the filesystem, given an inode number.
-	 * @param inodeNum Find the corresponding group via this inode number.
-	 * @return Pointer to an LinnGroup on success, ZERO on failure.
-	 * @see LinnGroup
-	 * @see LinnInode
-	 */
-	LinnGroup * getGroupByInode(u32 inodeNum);
+    /**
+     * Read a group descriptor from the filesystem.
+     *
+     * @param groupNum Group descriptor number.
+     *
+     * @return Pointer to an LinnGroup on success, ZERO on failure.
+     *
+     * @see LinnGroup
+     */
+    LinnGroup * getGroup(u32 groupNum);
 
-	/**
-	 * Calculates the offset inside storage for a given block.
-	 * @param inode LinnInode pointer.
-	 * @param blk Calculate the offset for this block.
-	 * @return Offset in bytes in storage.
-	 * @see LinnInode
-	 */
-	u64 getOffset(LinnInode *inode, u32 blk);
+    /**
+     * Read a group descriptor from the filesystem, given an inode number.
+     *
+     * @param inodeNum Find the corresponding group via this inode number.
+     *
+     * @return Pointer to an LinnGroup on success, ZERO on failure.
+     *
+     * @see LinnGroup
+     * @see LinnInode
+     */
+    LinnGroup * getGroupByInode(u32 inodeNum);
 
-    private:
+    /**
+     * Calculates the offset inside storage for a given block.
+     *
+     * @param inode LinnInode pointer.
+     * @param blk Calculate the offset for this block.
+     *
+     * @return Offset in bytes in storage.
+     *
+     * @see LinnInode
+     */
+    u64 getOffset(LinnInode *inode, u32 blk);
 
-	/** Provides storage. */
-	Storage *storage;
-	
-	/** Describes the filesystem. */
-	LinnSuperBlock super;
-	
-	/** Group descriptors. */
-	Vector<LinnGroup *> *groups;
+  private:
 
-	/** Inode cache. */
-	HashTable<u32, LinnInode *> inodes;
+    /**
+     * Callback handler for unsupported operations
+     *
+     * @param msg FileSystemMessage pointer
+     */
+    void notSupportedHandler(FileSystemMessage *msg);
+
+  private:
+
+    /** Provides storage. */
+    Storage *storage;
+
+    /** Describes the filesystem. */
+    LinnSuperBlock super;
+
+    /** Group descriptors. */
+    Vector<LinnGroup *> *groups;
+
+    /** Inode cache. */
+    HashTable<u32, LinnInode *> inodes;
 };
 
 #endif /* __HOST__ */
 
 /**
+ * @}
  * @}
  */
 

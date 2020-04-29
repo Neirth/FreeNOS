@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,15 +21,14 @@
 #include "VMShare.h"
 #include "ProcessID.h"
 
-Error VMShareHandler(ProcessID procID, API::Operation op, ProcessShares::MemoryShare *share)
+API::Result VMShareHandler(ProcessID procID, API::Operation op, ProcessShares::MemoryShare *share)
 {
-    // TODO: use the share.range.physicalAddress as identifier? its unique.
     ProcessManager *procs = Kernel::instance->getProcessManager();
     Process *proc = ZERO;
     Error ret = API::Success;
 
     DEBUG("");
-    
+
     // Find the given process
     if (procID == SELF)
     {
@@ -38,7 +37,7 @@ Error VMShareHandler(ProcessID procID, API::Operation op, ProcessShares::MemoryS
         else
             proc = procs->current();
     }
-    else if (!(proc = procs->get(procID)) && op != API::Delete)
+    else if (op != API::Delete && !(proc = procs->get(procID)))
     {
         return API::NotFound;
     }
@@ -55,6 +54,7 @@ Error VMShareHandler(ProcessID procID, API::Operation op, ProcessShares::MemoryS
             }
             break;
         }
+
         case API::Read:
             if (procs->current()->getShares().readShare(share) != ProcessShares::Success)
             {

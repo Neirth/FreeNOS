@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,12 +21,20 @@
 #include <FreeNOS/Process.h>
 
 /**
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernel_arm
+ * @{
+ */
+
+/**
  * ARM specific process implementation.
  */
 class ARMProcess : public Process
 {
   public:
-    
+
     /**
      * Constructor function.
      *
@@ -35,11 +43,32 @@ class ARMProcess : public Process
      * @param privileged If true, the process has unlimited access to hardware.
      */
     ARMProcess(ProcessID id, Address entry, bool privileged, const MemoryMap &map);
-    
+
     /**
      * Destructor function.
      */
     virtual ~ARMProcess();
+
+    /**
+     * Overwrite the saved CPU registers for this task
+     *
+     * @param cpuState Pointer to newly saved CPU registers
+     */
+    void setCpuState(const CPUState *cpuState);
+
+    /**
+     * Retrieve saved CPU state.
+     *
+     * @return Saved CPUState for this task.
+     */
+    const CPUState * cpuState() const;
+
+    /**
+     * Set wait result.
+     *
+     * @param result Exit status of the other process
+     */
+    virtual void setWaitResult(uint result);
 
     /**
      * Initialize the Process.
@@ -58,6 +87,8 @@ class ARMProcess : public Process
 
   private:
 
+    /** Contains all the CPU registers for this task */
+    CPUState m_cpuState;
 };
 
 
@@ -65,5 +96,10 @@ namespace Arch
 {
     typedef ARMProcess Process;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __ARM_ARMPROCESS_H */

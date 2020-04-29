@@ -18,10 +18,17 @@
 #include "Argument.h"
 
 Argument::Argument(const char *name)
+    : m_id(0)
+    , m_name(name)
+    , m_count(0)
 {
-    m_name  = name;
-    m_id    = 0;
-    m_count = 0;
+}
+
+Argument::Argument(const String & name)
+    : m_id(0)
+    , m_name(name)
+    , m_count(0)
+{
 }
 
 char Argument::getIdentifier() const

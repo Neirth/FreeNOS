@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,25 +20,37 @@
 #include "Runtime.h"
 #include "errno.h"
 #include "fcntl.h"
+#include "unistd.h"
 #include "sys/stat.h"
 
 int open(const char *path, int oflag, ...)
 {
     FileSystemMessage msg;
     ProcessID mnt = findMount(path);
-
-    // TODO: perhaps we need the 'Index' class now, in libstd.
-    Vector<FileDescriptor> *fds = getFiles();
+    FileDescriptor *files = getFiles();
     FileStat st;
-    
+    char fullpath[PATH_MAX];
+
+    // Relative or absolute?
+    if (path[0] != '/')
+    {
+        char cwd[PATH_MAX];
+
+        // What's the current working dir?
+        getcwd(cwd, PATH_MAX);
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", cwd, path);
+    }
+    else
+        strlcpy(fullpath, path, sizeof(fullpath));
+
     // Fill message
     msg.type   = ChannelMessage::Request;
     msg.action = StatFile;
-    msg.path   = (char *) path;
+    msg.path   = fullpath;
     msg.stat   = &st;
 
     // Ask the FileSystem for the file.
-    if (mnt)
+    if (mnt && files != NULL)
     {
         ChannelClient::instance->syncSendReceive(&msg, mnt);
 
@@ -50,22 +62,22 @@ int open(const char *path, int oflag, ...)
             msg.type = ChannelMessage::Request;
             ChannelClient::instance->syncSendReceive(&msg, mnt);
         }
-    
+
         // Set errno
         errno = msg.result;
 
         if (msg.result == ESUCCESS)
         {
             // Insert into file descriptor table
-            for (Size i = 0; i < fds->size(); i++)
+            for (Size i = 0; i < FILE_DESCRIPTOR_MAX; i++)
             {
-                if (!(*fds)[i].open)
+                if (!files[i].open)
                 {
-                    (*fds)[i].open  = true;
-                    strlcpy((*fds)[i].path, path, PATH_MAX);
-                    (*fds)[i].mount = mnt;
-                    (*fds)[i].identifier = 0;
-                    (*fds)[i].position = 0;
+                    files[i].open  = true;
+                    files[i].mount = mnt;
+                    files[i].identifier = 0;
+                    files[i].position = 0;
+                    strlcpy(files[i].path, fullpath, PATH_MAX);
                     return i;
                 }
             }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,6 +21,14 @@
 #include "Types.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
  * Objects which can be compared to each other.
  */
 template <class T> class Comparable
@@ -36,22 +44,28 @@ template <class T> class Comparable
      * Test if an object is equal to an other object.
      *
      * @param t Object instance.
+     *
      * @return True if equal, false otherwise.
      */
-    virtual bool equals(const T &t) const
-    {
-        return compareTo(t) == 0;
-    }
-    
+    virtual bool equals(const T &t) const = 0;
+
     /**
      * Compares this Comparable to the given Comparable.
-     * This function checks whether this Comparable is equal to, less, or greater then the given Comparable.
+     *
+     * This function checks whether this Comparable is equal to,
+     * less, or greater then the given Comparable.
      *
      * @param c The Comparable to compare us to.
+     *
      * @return an int < 0, 0, > 0 if we are respectively less then,
      *         equal to or greater then the given Comparable.
      */
     virtual int compareTo(const T &t) const = 0;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_COMPARABLE_H */

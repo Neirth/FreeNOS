@@ -50,8 +50,6 @@ BroadcomGPIO::Result BroadcomGPIO::setAltFunction(Size pin, uint function)
     //    010 = GPIO Pin X takes alternate function 5
     //
     uint shift = (pin % 10) * 3;
-#warning dont use set(). use a mask instead.
-#warning dont add pin/10. we must be 4-byte aligned when writing (32-bit)
     m_io.set(FunctionSelect0 + (pin / 10),
              function << shift);
     return Success;

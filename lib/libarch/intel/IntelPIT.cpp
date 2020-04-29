@@ -17,7 +17,8 @@
 
 #include "IntelPIT.h"
 
-IntelPIT::IntelPIT() : Timer()
+IntelPIT::IntelPIT()
+    : Timer()
 {
     m_int = InterruptNumber;
 }

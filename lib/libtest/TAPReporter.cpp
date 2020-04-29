@@ -28,7 +28,12 @@ TAPReporter::TAPReporter(int argc, char **argv)
 
 void TAPReporter::reportBegin(List<TestInstance *> & tests)
 {
-    printf("1..%d # Start %s\r\n", tests.count(), m_argv[0]);
+    if (!m_multiline)
+        printf("1..%d # Start %s\r\n", tests.count(), m_argv[0]);
+
+#ifdef __HOST__
+    fflush(stdout);
+#endif /* __HOST__ */
 }
 
 void TAPReporter::reportBefore(TestInstance & test)
@@ -37,20 +42,47 @@ void TAPReporter::reportBefore(TestInstance & test)
 
 void TAPReporter::reportAfter(TestInstance & test, TestResult & result)
 {
-    switch (result.getResult())
+    if (!m_multiline)
     {
-        case TestResult::Success: printf("ok %d %s\r\n", m_count, *test.getName()); break;
-        case TestResult::Failure: printf("not ok %d %s %s\r\n", m_count, *test.getName(), *result.getDescription()); break;
-        case TestResult::Skipped: printf("ok %d %s # SKIP\r\n", m_count, *test.getName()); break;
+        switch (result.getResult())
+        {
+            case TestResult::Success: printf("ok %d %s\r\n", m_count, *test.getName()); break;
+            case TestResult::Failure: printf("not ok %d %s %s\r\n", m_count, *test.getName(), *result.getDescription()); break;
+            case TestResult::Skipped: printf("ok %d %s # SKIP\r\n", m_count, *test.getName()); break;
+        }
+        m_count++;
     }
-    m_count++;
-}
-
-void TAPReporter::reportFinish(List<TestInstance *> & tests)
-{
-    printf("# Finish %s\r\n", m_argv[0]);
+    else
+    {
+        switch (result.getResult())
+        {
+            case TestResult::Success: printf("# Finish %s OK\r\n", *test.getName()); break;
+            case TestResult::Failure: printf("# Finish %s FAIL\r\n", *test.getName()); break;
+            case TestResult::Skipped: printf("# Finish %s SKIP\r\n", *test.getName()); break;
+        }
+    }
 
 #ifdef __HOST__
     fflush(stdout);
 #endif /* __HOST__ */
+}
+
+void TAPReporter::reportFinish(List<TestInstance *> & tests)
+{
+    if (m_multiline)
+    {
+        printf("# Completed ");
+
+        if (m_fail)
+            printf("FAIL ");
+        else
+            printf("OK ");
+
+        printf("(%d passed %d failed %d skipped %d total)\r\n",
+                m_ok, m_fail, m_skip, (m_ok + m_fail + m_skip));
+
+#ifdef __HOST__
+        fflush(stdout);
+#endif /* __HOST__ */
+    }
 }

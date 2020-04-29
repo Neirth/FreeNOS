@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,12 +22,23 @@
 #include "Memory.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ */
+
+/**
  * Generic I/O functions.
  */
 class IO
 {
   public:
 
+    /**
+     * Result codes
+     */
     enum Result
     {
         Success,
@@ -76,10 +87,15 @@ class IO
   protected:
 
     /** I/O base offset is added to each I/O address. */
-    uint m_base;
+    volatile uint m_base;
 
     /** Memory range for performing I/O mappings. */
     Memory::Range m_range;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_IO_H */

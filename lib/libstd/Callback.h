@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,9 +20,26 @@
 
 #include "Types.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
+ * Represents a callback function
+ */
 class CallbackFunction
 {
   public:
+
+    /**
+     * Execute the callback
+     *
+     * @param parameter Optional parameter to pass to the function
+     */
     virtual void execute(void *parameter) = 0;
 };
 
@@ -40,6 +57,9 @@ template <class Base, class ParamType> class Callback : public CallbackFunction
 
     /**
      * Constructor
+     *
+     * @param object Object pointer
+     * @param func Callback function
      */
     Callback(Base *object, Function func)
     {
@@ -47,6 +67,11 @@ template <class Base, class ParamType> class Callback : public CallbackFunction
         m_function = func;
     }
 
+    /**
+     * Invoke the callback function on the object
+     *
+     * @param parameter Optional parameter to pass
+     */
     virtual void execute(void *parameter)
     {
         executeOnObject((ParamType *) parameter);
@@ -64,6 +89,7 @@ template <class Base, class ParamType> class Callback : public CallbackFunction
         (m_object->*m_function)(parameter);
     }
 
+  private:
 
     /** Object instance */
     Base *m_object;
@@ -71,5 +97,10 @@ template <class Base, class ParamType> class Callback : public CallbackFunction
     /** Function pointer */
     Function m_function;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_CALLBACK_H */

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,27 +20,49 @@
 
 #include <FreeNOS/System.h>
 
-/**  
- * @defgroup kernelapi kernel (API) 
- * @{  
+/**
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernelapi
+ * @{
  */
 
 /**
  * Prototype for user applications. Copies virtual memory between two processes.
+ *
  * @param proc Remote process.
  * @param how Read or Write.
  * @param ours Virtual address of the buffer of this process.
  * @param theirs Virtual address of the remote process' buffer.
  * @param sz Amount of memory to copy.
- * @return Total number of bytes copied on success and error code on failure.
+ *
+ * @return Total number of bytes copied on success and API::ErrorCode on failure.
  */
-inline Error VMCopy(ProcessID proc, API::Operation how, Address ours,
-                         Address theirs, Size sz)
+inline API::Result VMCopy(ProcessID proc, API::Operation how, Address ours,
+                          Address theirs, Size sz)
 {
     return trapKernel5(API::VMCopyNumber, proc, how, ours, theirs, sz);
 }
 
-extern Error VMCopyHandler(ProcessID proc, API::Operation how, Address ours, Address theirs, Size sz);
+/**
+ * @}
+ */
+
+#ifdef __KERNEL__
+
+/**
+ * @addtogroup kernelapi_handler
+ * @{
+ */
+
+extern API::Result VMCopyHandler(ProcessID proc, API::Operation how, Address ours, Address theirs, Size sz);
+
+/**
+ * @}
+ */
+
+#endif /* __KERNEL__ */
 
 /**
  * @}

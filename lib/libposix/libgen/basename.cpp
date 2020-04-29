@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,13 +21,11 @@
 char * basename(char *path)
 {
     char *str = path;
-    
-    /*
-     * Point to the last component, if any.
-     */
+
+    // Point to the last component, if any
     if ((str = strrchr(path, '/')))
     {
-	str++;
+        str++;
     }
     return str;
 }

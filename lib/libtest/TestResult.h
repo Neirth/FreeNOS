@@ -21,7 +21,15 @@
 #include <String.h>
 
 /**
- * @group TestResult macros
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
+ * @name TestResult macros
  * @{
  */
 
@@ -49,6 +57,8 @@ class TestResult
         Failure,
         Skipped
     };
+
+  public:
 
     /**
      * Constructor
@@ -88,5 +98,10 @@ class TestResult
     /** Text describing the result. */
     String m_description;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTRESULT_H */

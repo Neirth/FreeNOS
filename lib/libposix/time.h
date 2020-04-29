@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,10 +21,13 @@
 #include <Macros.h>
 #include "sys/types.h"
 
-/**                                                                                                                                                                                                     
- * @defgroup libposix libposix (POSIX.1-2008)
+/**
+ * @addtogroup lib
  * @{
- */ 
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
 /**
  * The <time.h> header shall declare the timespec structure.
@@ -33,15 +36,30 @@ struct timespec
 {
     /** Seconds. */
     time_t tv_sec;
-    
+
     /** Nanoseconds. */
     long tv_nsec;
 };
 
-extern unsigned long mktime(const unsigned int year, const unsigned int month,
-                            const unsigned int day, const unsigned int hour,
-                            const unsigned int min, const unsigned int sec);
 /**
+ * Convert given time values to UNIX timestamp (seconds since epoch)
+ *
+ * @param year Year value
+ * @param month Month value
+ * @param day Day value
+ * @param hour Hour value (0-23)
+ * @param min Minute value (0-59)
+ * @param sec Second value (0-59)
+ *
+ * @return Converted timestamp in seconds since epoch (UNIX time)
+ *
+ * @note This code is based on the linux source in kernel/time.c
+ */
+extern C unsigned long mktime(const unsigned int year, const unsigned int month,
+                              const unsigned int day, const unsigned int hour,
+                              const unsigned int min, const unsigned int sec);
+/**
+ * @}
  * @}
  */
 

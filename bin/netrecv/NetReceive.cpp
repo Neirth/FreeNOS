@@ -50,51 +50,20 @@
 NetReceive::NetReceive(int argc, char **argv)
     : POSIXApplication(argc, argv)
 {
-    m_socket = 0;
-
-    m_parser.setDescription("receive network packets");
-    m_parser.registerPositional("DEVICE", "device name of network adapter");
-    m_parser.registerPositional("ARGS", "optional key=value arguments", 0);
-    m_parser.registerFlag('a', "arp", "receive ARP packet(s)");
+    parser().setDescription("receive network packets");
+    parser().registerPositional("DEVICE", "device name of network adapter");
+    parser().registerPositional("ARGS", "optional key=value arguments", 0);
+    parser().registerFlag('a', "arp", "receive ARP packet(s)");
 }
 
 NetReceive::~NetReceive()
 {
 }
 
-NetReceive::Result NetReceive::initialize()
-{
-    DEBUG("");
-
-    for (HashIterator<String, Argument *> it(m_arguments.getFlags());
-         it.hasCurrent(); it++)
-    {
-        printf("key = '%s' value = '%s'\n",
-                *it.key(), *it.current()->getName());
-    }
-        
-    for (Size i = 0; i < m_arguments.getPositionals().count(); i++)
-    {
-        printf("pos[%d]: %s = %s\n", i, *m_arguments.getPositionals()[i]->getName(),
-                                        *m_arguments.getPositionals()[i]->getValue());
-    }
-
-    //const String *dev = m_arguments.get("device");
-    //if (dev)
-    //    DEBUG("sending on device: " << **dev);
-
-    IPV4::Address ipAddr = (192 << 24) | (168 << 16) | (1 << 8) | (123);
-    Ethernet::Address etherAddr;
-
-    receiveArp();
-
-    return Success;
-}
-
 NetReceive::Result NetReceive::exec()
 {
     DEBUG("");
-    return Success;
+    return receiveArp();
 }
 
 NetReceive::Result NetReceive::receiveArp()
@@ -144,7 +113,7 @@ NetReceive::Result NetReceive::receivePacket(u8 *packet, Size size)
     DEBUG("");
 
     // Receive on physical device
-    const char *device = *m_arguments.getPositionals()[0]->getValue();
+    const char *device = *arguments().getPositionals()[0]->getValue();
     int fd = open(device, O_RDWR);
     int result;
 

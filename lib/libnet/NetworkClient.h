@@ -23,6 +23,14 @@
 #include "Ethernet.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Networking Client implementation.
  *
  * Maintains also the network state of each TCP/UDP socket, creates the
@@ -81,6 +89,8 @@ class NetworkClient
         NotFound
     };
 
+  public:
+
     /**
      * Constructor
      *
@@ -95,6 +105,8 @@ class NetworkClient
 
     /**
      * Perform initialization.
+     *
+     * @return Result code
      */
     Result initialize();
 
@@ -103,6 +115,7 @@ class NetworkClient
      *
      * @param type Type of the socket to create
      * @param socket Outputs a pointer to NetworkSocket
+     *
      * @return Result code
      */
     Result createSocket(SocketType type, int *socket);
@@ -113,16 +126,27 @@ class NetworkClient
      * @param sock Socket index
      * @param addr Address of the host to connect to
      * @param port Port of the host to connect to (or ZERO to ignore)
+     *
      * @return Result code
      */
     Result connectSocket(int sock, IPV4::Address addr, u16 port = 0);
 
+    /**
+     * Bind socket to address/port.
+     *
+     * @param sock Socket index
+     * @param addr Address of the address to bind to
+     * @param port Port to bind to
+     *
+     * @return Result code
+     */
     Result bindSocket(int sock, IPV4::Address addr = 0, u16 port = 0);
 
     /**
      * Close the socket.
      *
      * @param socket Network socket to close
+     *
      * @return Result code
      */
     Result close(int sock);
@@ -135,8 +159,15 @@ class NetworkClient
     Result writeSocketInfo(int sock, IPV4::Address addr,
                            u16 port, SocketAction action);
 
+  private:
+
     /** Network device name */
     String m_deviceName;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_NETWORKCLIENT_H */

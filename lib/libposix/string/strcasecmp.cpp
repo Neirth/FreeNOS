@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Coen Bijlsma
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,11 +20,10 @@
 
 int strcasecmp(const char *dest, const char *src )
 {
-    
     while ( *dest && *src && (tolower((int)*dest) == tolower((int)*src)) )
     {
-	dest++;
-	src++;
+        dest++;
+        src++;
     }
     return (tolower((int)*dest) - tolower((int)*src));
 }

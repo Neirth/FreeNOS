@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,20 +23,10 @@
 #include <Log.h>
 #include "ProcessCtl.h"
 
-void interruptNotify(CPUState *st, Process *p)
-{
-    ProcessEvent event;
-
-    event.type   = InterruptEvent;
-    event.number = IRQ_REG(st);
-
-    p->raiseEvent(&event);
-}
-
-Error ProcessCtlHandler(ProcessID procID,
-                        ProcessOperation action,
-                        Address addr,
-                        Address output)
+API::Result ProcessCtlHandler(ProcessID procID,
+                              ProcessOperation action,
+                              Address addr,
+                              Address output)
 {
     Process *proc = ZERO;
     ProcessInfo *info = (ProcessInfo *) addr;
@@ -45,8 +35,6 @@ Error ProcessCtlHandler(ProcessID procID,
     Arch::MemoryMap map;
 
     DEBUG("#" << procs->current()->getID() << " " << action << " -> " << procID << " (" << addr << ")");
-
-    // TODO: Verify memory address
 
     // Does the target process exist?
     if(action != GetPID && action != Spawn)
@@ -61,9 +49,13 @@ Error ProcessCtlHandler(ProcessID procID,
     {
     case Spawn:
         proc = procs->create(addr, map);
-        proc->setParent(procs->current()->getID());
+        if (!proc)
+        {
+            ERROR("failed to create process");
+            return API::IOError;
+        }
         return proc->getID();
-    
+
     case KillPID:
         procs->remove(proc, addr); // Addr contains the exit status
         procs->schedule();
@@ -81,11 +73,19 @@ Error ProcessCtlHandler(ProcessID procID,
 
     case Resume:
         // increment wakeup counter and set process ready
-        proc->wakeup();
+        if (procs->wakeup(proc) != ProcessManager::Success)
+        {
+            ERROR("failed to wakeup process ID " << proc->getID());
+            return API::IOError;
+        }
         break;
 
     case WatchIRQ:
-        Kernel::instance->hookIntVector(IRQ(addr), (InterruptHandler *)interruptNotify, (ulong)proc);
+        if (procs->registerInterruptNotify(proc, IRQ(addr)) != ProcessManager::Success)
+        {
+            ERROR("failed to register IRQ #" << IRQ(addr) << " to process ID " << proc->getID());
+            return API::IOError;
+        }
         break;
 
     case EnableIRQ:
@@ -95,50 +95,49 @@ Error ProcessCtlHandler(ProcessID procID,
     case DisableIRQ:
         Kernel::instance->enableIRQ(addr, false);
         break;
-    
+
     case InfoPID:
         info->id    = proc->getID();
         info->state = proc->getState();
-        info->userStack     = proc->getUserStack();
-        info->kernelStack   = proc->getKernelStack();
-        info->pageDirectory = proc->getPageDirectory();
         info->parent = proc->getParent();
         break;
 
     case WaitPID:
-        procs->current()->setWait(proc->getID());
-        procs->current()->setState(Process::Waiting);
+        if (procs->wait(proc) != ProcessManager::Success)
+        {
+            ERROR("failed to wait for Process ID " << proc->getID());
+            return API::IOError;
+        }
         procs->schedule();
-        return procs->current()->getWait(); // contains the exit status of the other process
+
+        // contains the exit status of the other process.
+        // Note that only the Intel code has kernel stacks.
+        // For ARM, the kernel continues executing here even after
+        // the schedule() is done. For ARM, the actual wait result is
+        // injected directly in the saved CPU registers.
+        return procs->current()->getWaitResult();
 
     case InfoTimer:
         if (!(timer = Kernel::instance->getTimer()))
             return API::NotFound;
-        
-        timer->getCurrent((Timer::Info *) addr); // TODO: check access...
+
+        timer->getCurrent((Timer::Info *) addr);
         break;
 
-    /*    
     case WaitTimer:
-        procs->current()->setSleepTimer((const Timer::Info *)addr); // TODO: check access...
-        procs->current()->setState(Process::Sleeping);
+        // Process is only allowed to continue execution after the sleep timer expires
+        if (procs->sleep((const Timer::Info *)addr, true) != ProcessManager::Success)
+        {
+            ERROR("sleep failed on process ID " << procs->current()->getID());
+            return API::IOError;
+        }
         procs->schedule();
-        // TODO: set a Timer::Info field for the process. Then when scheduling, the process
-        // will only be allowed to run until after the Timer::Info time has arrived (for sleep).
         break;
-     */
 
     case EnterSleep:
-        // only sleeps the process if no pending wakeups
-        if (procs->current()->sleep((Timer::Info *)addr) == Process::Success)
+        // Only sleeps the process if no pending wakeups
+        if (procs->sleep((const Timer::Info *)addr) == ProcessManager::Success)
             procs->schedule();
-
-        if (output && ((timer = Kernel::instance->getTimer())))
-            timer->getCurrent((Timer::Info *) output); // TODO: check access...
-        break;
-
-    case SetStack:
-        proc->setUserStack(addr);
         break;
     }
     return API::Success;
@@ -161,7 +160,6 @@ Log & operator << (Log &log, ProcessOperation op)
         case EnterSleep: log.append("EnterSleep"); break;
         case Schedule:  log.append("Schedule"); break;
         case Resume:    log.append("Resume"); break;
-        case SetStack:  log.append("SetStack"); break;
         default:        log.append("???"); break;
     }
     return log;

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,6 +23,15 @@
 #include "File.h"
 #include "FileSystemPath.h"
 #include <stdio.h>
+#include <string.h>
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
 
 /** @brief Maximum length of a filename. */
 #define DIRENT_LEN      64
@@ -34,10 +43,10 @@ typedef struct Dirent
 {
     /** Name of the file. */
     char name[DIRENT_LEN];
-    
+
     /** Type of file. */
     FileType type;
-    
+
     /**
      * Compares this Dirent with another Dirent instance.
      * @param dir Instance to compare with.
@@ -63,7 +72,7 @@ Dirent;
 class Directory : public File
 {
   public:
-    
+
     /**
      * Constructor
      */
@@ -73,7 +82,7 @@ class Directory : public File
      * Destructor
      */
     virtual ~Directory();
-    
+
     /**
      * Read directory entries.
      *
@@ -84,8 +93,9 @@ class Directory : public File
      * implement their version of read().
      *
      * @param buffer Input/Output buffer to output bytes to.
-     * @param size Number of bytes to read, at maximum. 
-     * @param offset Offset inside the file to start reading. 
+     * @param size Number of bytes to read, at maximum.
+     * @param offset Offset inside the file to start reading.
+     *
      * @return Number of bytes read on success, Error on failure.
      *
      * @see FileSystem
@@ -103,6 +113,7 @@ class Directory : public File
      * and returns a pointer to it, if found.
      *
      * @param name Name of the directory entry to lookup.
+     *
      * @return Pointer to a File on success, ZERO otherwise.
      *
      * @see File
@@ -142,24 +153,27 @@ class Directory : public File
      */
     void remove(const char *name);
 
-    /** 
-     * Clears the internal list of entries. 
+    /**
+     * Clears the internal list of entries.
      */
     void clear();
 
   private:
 
-    /** 
-     * Retrieve a directory entry by it's name. 
+    /**
+     * Retrieve a directory entry by it's name.
      *
-     * @param name Name of the entry to get. 
-     * @return Direct pointer on success, ZERO otherwise. 
+     * @param name Name of the entry to get.
+     *
+     * @return Direct pointer on success, ZERO otherwise.
      */
     Dirent * get(const char *name);
 
+  private:
+
     /**
      * List of directory entries.
-     * 
+     *
      * This List should only be used for pseudo filesystems,
      * which use the default implementations of read(), insert() and remove().
      *
@@ -170,5 +184,10 @@ class Directory : public File
      */
     List<Dirent *> entries;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBFS_DIRECTORY_H */

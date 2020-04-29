@@ -22,6 +22,6 @@ env.UseServers(['log', 'filesystem', 'core'])
 env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libarch', 'libexec', 'libfs', 'libipc' ])
 
 if env['ARCH'] == 'arm':
-    env.TargetProgram('server', [ 'Main.cpp', 'PL011.cpp' ])
+    env.TargetProgram('server', [ 'Main.cpp', 'PL011.cpp', 'NS16550.cpp' ])
 else:
     env.TargetProgram('server', [ 'Main.cpp', 'i8250.cpp' ])

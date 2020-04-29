@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,20 +21,29 @@
 
 #include <Vector.h>
 #include <Macros.h>
+#include <Queue.h>
 #include "Process.h"
 
-class Timer;
-
 /**
- * @defgroup kernel kernel (generic)
+ * @addtogroup kernel
  * @{
  */
 
 /**
- * Responsible for deciding which Process may execute on the CPU(s).
+ * Responsible for deciding which Process may execute on the local Core.
  */
 class Scheduler
 {
+  public:
+
+    /**
+     * Result code
+     */
+    enum Result
+    {
+        Success,
+        InvalidArgument
+    };
 
   public:
 
@@ -44,24 +53,43 @@ class Scheduler
     Scheduler();
 
     /**
-     * Set timer to use
+     * Get number of processes on the schedule
      *
-     * @param timer Timer instance
+     * @return Number of processes on the schedule
      */
-    void setTimer(Timer *timer);
+    Size count() const;
+
+    /**
+     * Add a Process to the run schedule.
+     *
+     * @param proc Process pointer
+     * @param ignoreState True to not check for the Process state prior to dequeue.
+     *
+     * @return Result code
+     */
+    Result enqueue(Process *proc, bool ignoreState = false);
+
+    /**
+     * Remove a Process from the run schedule.
+     *
+     * @param proc Process pointer
+     * @param ignoreState True to not check for the Process state prior to dequeue.
+     *
+     * @return Result code
+     */
+    Result dequeue(Process *proc, bool ignoreState = false);
 
     /**
      * Select the next process to run.
+     *
+     * @return Process pointer or NULL if no matching process found
      */
-    virtual Process * select(Vector<Process *> *procs, Process *idle);
+    Process * select();
 
   private:
 
-    /** Contains last used index for scheduling */
-    Size m_index;
-
-    /** Points to the Timer to use for sleep timeouts */
-    Timer *m_timer;
+    /** Contains processes ready to run */
+    Queue<Process *, MAX_PROCS> m_queue;
 };
 
 /**

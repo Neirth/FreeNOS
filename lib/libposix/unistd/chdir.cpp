@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,28 +30,17 @@ int chdir(const char *filepath)
     FileSystemPath fspath;
     struct stat st;
 
-    /* First stat the file. */
-    if (stat(filepath, &st) != 0)
-    {
-        return -1;
-    }
-    /* Must be a directory. */
-    if (!S_ISDIR(st.st_mode))
-    {
-        errno = ENOTDIR;
-        return -1;
-    }
-    /* What's the current working dir? */
+    // What's the current working dir?
     getcwd(cwd, PATH_MAX);
-    
-    /* Relative or absolute? */
+
+    // Relative or absolute?
     if (filepath[0] != '/')
     {
         snprintf(buf, sizeof(buf), "%s/%s", cwd, filepath);
         fspath.parse(buf);
         memset(buf, 0, sizeof(buf));
-    
-        /* Process '..' */
+
+        // Process '..'
         for (ListIterator<String *> i(fspath.split()); i.hasCurrent(); i++)
         {
             if ((**i.current())[0] != '.')
@@ -64,7 +53,8 @@ int chdir(const char *filepath)
                 lst.remove(last);
             }
         }
-        /* Construct final path. */
+
+        // Construct final path
         for (ListIterator<String *> i(&lst); i.hasCurrent(); i++)
         {
             strcat(buf, "/");
@@ -74,17 +64,31 @@ int chdir(const char *filepath)
     }
     else
         path = (char *) filepath;
-    
-    /* Fall back to slash? */
+
+    // Fall back to slash?
     if (!path[0])
     {
         strcpy(buf, "/");
         path = buf;
     }
+
+    // Stat the file
+    if (stat(path, &st) != 0)
+    {
+        return -1;
+    }
+
+    // Must be a directory
+    if (!S_ISDIR(st.st_mode))
+    {
+        errno = ENOTDIR;
+        return -1;
+    }
+
     // Set current directory
     (*getCurrentDirectory()) = path;
 
-    /* Done. */
+    // Done
     errno = ZERO;
     return 0;
 }

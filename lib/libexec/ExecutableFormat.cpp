@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,17 +19,19 @@
 #include "ExecutableFormat.h"
 #include "ELF.h"
 
-ExecutableFormat::ExecutableFormat(u8 *image, Size size)
+ExecutableFormat::ExecutableFormat(const u8 *image, Size size)
+    : m_image(image)
+    , m_size(size)
 {
-    m_image = image;
-    m_size  = size;
 }
 
 ExecutableFormat::~ExecutableFormat()
 {
 }
 
-ExecutableFormat::Result ExecutableFormat::find(u8 *image, Size size, ExecutableFormat **fmt)
+ExecutableFormat::Result ExecutableFormat::find(const u8 *image,
+                                                Size size,
+                                                ExecutableFormat **fmt)
 {
     return ELF::detect(image, size, fmt);
 }

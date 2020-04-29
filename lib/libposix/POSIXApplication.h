@@ -21,6 +21,14 @@
 #include <Application.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
+ * @{
+ */
+
+/**
  * POSIX-compatible application
  */
 class POSIXApplication : public Application
@@ -29,6 +37,9 @@ class POSIXApplication : public Application
 
     /**
      * Class constructor.
+     *
+     * @param argc Argument count
+     * @param argv Argument values
      */
     POSIXApplication(int argc, char **argv);
 
@@ -43,16 +54,15 @@ class POSIXApplication : public Application
      * Print text to output.
      *
      * @param string Text to print to program output.
+     *
      * @return Result code.
      */
-    virtual Result output(const char *string);
-
-    /**
-     * Terminate program.
-     *
-     * @param code Termination code.
-     */
-    virtual void exit(int code);
+    virtual Result output(const char *string) const;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBPOSIX_POSIXAPPLICATION_H */

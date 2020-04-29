@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -42,8 +42,8 @@ int MPI_Recv(void *buf,
 
     for (int i = 0; i < count; i++)
     {
-        // TODO: replace with ChannelClient::syncReceiveFrom
-        while (ch->read(&msg) != Channel::Success);
+        while (ch->read(&msg) != Channel::Success)
+            ;
         *(((int *) buf) + i) = msg.integer;
     }
     return MPI_SUCCESS;

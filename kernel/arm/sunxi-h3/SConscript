@@ -1,0 +1,67 @@
+#
+# Copyright (C) 2019 Niek Linnenbank
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+Import('build_env')
+
+env = build_env.Clone()
+
+for item in env['LINKUSER']:
+    env['LINKFLAGS'].remove(item)
+
+env.Append(LINKFLAGS = env['LINKKERN'])
+env.Append(CPPFLAGS = '-D__KERNEL__')
+
+env.UseLibraries(['liballoc', 'libstd', 'libarch', 'libipc', 'libfs', 'libposix'])
+env.UseServers(['core', 'serial'])
+
+env.TargetProgram('kernel', [ Glob('*.cpp'),
+                              Glob('#' + env['BUILDROOT'] + '/kernel/*.cpp'),
+                              Glob('#' + env['BUILDROOT'] + '/kernel/API/*.cpp'),
+                              Glob('#' + env['BUILDROOT'] + '/kernel/arm/*.cpp'),
+                              Glob('#' + env['BUILDROOT'] + '/kernel/arm/*.S'),
+                              '#server/serial/NS16550.cpp'
+                              ],
+                   False)
+
+#
+# Embed the boot.img in the kernel
+#
+env.Command('kernel.bootimg', 'kernel', env['OBJCOPY'] + ' ' +
+            '--update-section .bootimg=' + env['BUILDROOT'] + '/boot.img ' + 
+            env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel')
+
+#
+# Provide binary kernel image to write to the SD card.
+#
+env.Command('kernel.img', 'kernel.bootimg', env['OBJCOPY'] + ' -O binary ' +
+            env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel ' +
+            env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel.img')
+
+#
+# Qemu targets
+#
+env.Targets(qemu = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                   '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic')
+
+env.Targets(qemu_debug = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                         '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic -s -S')
+
+env.Targets(qemu_debugs = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                          '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic -s -S -d int,cpu_reset')
+
+env.AutoTester(qemu_test = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                           '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic')

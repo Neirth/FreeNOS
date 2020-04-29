@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,8 +19,6 @@
 #include <Assert.h>
 #include "Support.h"
 #include "Kernel.h"
-
-// TODO: #warning FIX asserts plz
 
 extern C void constructors()
 {

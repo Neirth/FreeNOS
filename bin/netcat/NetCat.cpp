@@ -32,20 +32,19 @@
 
 NetCat::NetCat(int argc, char **argv)
     : POSIXApplication(argc, argv)
+    , m_client(0)
+    , m_socket(0)
+    , m_lineLen(0)
+    , m_host(0)
+    , m_port(0)
 {
-    m_socket = 0;
-    m_client = 0;
-    m_lineLen = 0;
-    m_host = 0;
-    m_port = 0;
-
-    m_parser.setDescription("network send/receive");
-    m_parser.registerPositional("DEVICE", "device name of network adapter");
-    m_parser.registerPositional("HOST", "host address");
-    m_parser.registerPositional("PORT", "host port");
-    m_parser.registerFlag('u', "udp", "use UDP for transport");
-    m_parser.registerFlag('t', "tcp", "use TCP for transport");
-    m_parser.registerFlag('l', "listen", "listen mode");
+    parser().setDescription("network send/receive");
+    parser().registerPositional("DEVICE", "device name of network adapter");
+    parser().registerPositional("HOST", "host address");
+    parser().registerPositional("PORT", "host port");
+    parser().registerFlag('u', "udp", "use UDP for transport");
+    parser().registerFlag('t', "tcp", "use TCP for transport");
+    parser().registerFlag('l', "listen", "listen mode");
 }
 
 NetCat::~NetCat()
@@ -57,13 +56,13 @@ NetCat::Result NetCat::initialize()
     DEBUG("");
 
     // Create a network client
-    m_client = new NetworkClient(m_arguments.get("DEVICE"));
+    m_client = new NetworkClient(arguments().get("DEVICE"));
 
     // Initialize networking client
     if (m_client->initialize() != NetworkClient::Success)
     {
         ERROR("failed to initialize network client for device: "
-               << m_arguments.get("DEVICE"));
+               << arguments().get("DEVICE"));
         return IOError;
     }
     // Create an UDP socket
@@ -73,16 +72,16 @@ NetCat::Result NetCat::initialize()
         return IOError;
     }
     // Convert to IPV4 address
-    if (!(m_host = IPV4::toAddress(m_arguments.get("HOST"))))
+    if (!(m_host = IPV4::toAddress(arguments().get("HOST"))))
     {
-        ERROR("failed to convert to IPV4 address: " << m_arguments.get("HOST"));
+        ERROR("failed to convert to IPV4 address: " << arguments().get("HOST"));
         return IOError;
     }
     // Convert to port
-    m_port = atoi(m_arguments.get("PORT"));
+    m_port = atoi(arguments().get("PORT"));
 
     // Bind to a local port.
-    if (m_client->bindSocket(m_socket, 0, m_arguments.get("listen") ? m_port : 0))
+    if (m_client->bindSocket(m_socket, 0, arguments().get("listen") ? m_port : 0))
     {
         ERROR("failed to bind socket");
         return IOError;
@@ -95,11 +94,11 @@ NetCat::Result NetCat::exec()
 {
     DEBUG("");
 
-    DEBUG("sending on device: " << m_arguments.get("DEVICE"));
-    DEBUG("sending to host: " << m_arguments.get("HOST") <<
-          " on port " << m_arguments.get("PORT"));
+    DEBUG("sending on device: " << arguments().get("DEVICE"));
+    DEBUG("sending to host: " << arguments().get("HOST") <<
+          " on port " << arguments().get("PORT"));
 
-    if (m_arguments.get("listen"))
+    if (arguments().get("listen"))
     {
         // Keep receiving from UDP
         while (1)
@@ -128,7 +127,6 @@ NetCat::Result NetCat::printLine()
     return Success;
 }
 
-// TODO: replace with fgets() or something from libfs
 NetCat::Result NetCat::readLine()
 {
     DEBUG("");
@@ -166,6 +164,7 @@ NetCat::Result NetCat::readLine()
                 break;
         }
     }
+
     // Done
     m_lineBuf[m_lineLen++] = '\r';
     m_lineBuf[m_lineLen++] = '\n';

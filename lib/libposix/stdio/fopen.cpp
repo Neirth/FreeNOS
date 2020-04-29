@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,20 +26,21 @@ FILE * fopen(const char *filename,
 {
     FILE *f;
 
-    /* Handle the file stream request. */
+    // Handle the file stream request
     switch (*mode)
     {
-	/* Read. */
-	case 'r':
-	    f = (FILE *) malloc(sizeof(FILE));
-	    f->fd = open(filename, ZERO);
-	    return f;
+        // Read
+        case 'r':
+            f = (FILE *) malloc(sizeof(FILE));
+            f->fd = open(filename, ZERO);
+            return f;
 
-	/* Unsupported. */	
-	default:
-	    break;
+        // Unsupported
+        default:
+            break;
     }
-    /* Sorry, not available yet! */
+
+    // Sorry, not available yet!
     errno = ENOTSUP;
     return (FILE *) NULL;
 }

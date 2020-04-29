@@ -23,7 +23,10 @@
 #include "stddef.h"
 
 /**
- * @defgroup libc libc (ISO C99)
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
  * @{
  */
 
@@ -48,6 +51,7 @@
  * compiled into the program.
  *
  * @param exp Boolean expression.
+ *
  * @return The assert() macro shall not return a value.
  */
 #ifdef NDEBUG
@@ -58,11 +62,12 @@
     { \
         printf("[%s:%d]: *** Assertion `%s' failed ***\n", \
                 __FILE__, __LINE__, #exp); \
-	exit(1); \
+        exit(1); \
     }
 #endif
 
 /**
+ * @}
  * @}
  */
 

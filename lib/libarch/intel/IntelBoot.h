@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,7 +19,13 @@
 #define __LIBARCH_INTEL_BOOT_H
 
 /**
- * @defgroup kernel kernel (generic)
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
  * @{
  */
 
@@ -35,10 +41,27 @@
 /** The magic number passed by a Multiboot-compliant boot loader.  */
 #define MULTIBOOT_BOOTLOADER_MAGIC      0x2BADB002
 
+/**
+ * @}
+ * @}
+ * @}
+ */
+
 /* Do not include in assembler source. */
 #ifndef __ASSEMBLER__
 
 #include <Types.h>
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
 
 /**
  * The symbol table for a.out.
@@ -51,7 +74,7 @@ typedef struct AoutSymbolTable
     u32 reserved;
 }
 AoutSymbolTable;
-        
+
 /**
  * The section header table for ELF.
  */
@@ -62,7 +85,7 @@ typedef struct ElfSectionHeaderTable
     u32 address;
     u32 shndx;
 }
-ElfSectionHeaderTable;          
+ElfSectionHeaderTable;
 
 /**
  * The Multiboot information.
@@ -100,8 +123,9 @@ typedef struct MultibootModule
 MultibootModule;
 
 /**
- * The memory map. Be careful that the offset 0 is base_addr_low
- * but no size.
+ * The MultiBoot memory map.
+ *
+ * @note Be careful that the offset 0 is base_addr_low but no size.
  */
 typedef struct MultibootMemoryMap
 {
@@ -144,6 +168,8 @@ extern C void multibootEntry();
 extern C void multibootToCoreInfo(MultibootInfo *info);
 
 /**
+ * @}
+ * @}
  * @}
  */
 

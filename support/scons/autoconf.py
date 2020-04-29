@@ -55,9 +55,8 @@ def CheckCCFlags(env):
 	# Setup a temporary environment.
         conf = Configure(env.Clone(),
     			 custom_tests = { 'TryCompileC' : TryCompileC })
-        conf.env.Replace(CCFLAGS   = flag)
-        conf.env.Replace(LINKFLAGS = flag)
-        conf.env.Replace(TRYFLAG   = flag)
+        conf.env['CCFLAGS'].append(flag)
+        conf.env.Replace(TRYFLAG = flag)
 
 	# Try to link a dummy program.
 	result = conf.TryCompileC()
@@ -106,9 +105,8 @@ def CheckCXXFlags(env):
 	# Setup a temporary environment.
         conf = Configure(env.Clone(),
     			 custom_tests = { 'TryCompileCXX' : TryCompileCXX })
-        conf.env.Replace(CXXFLAGS  = flag)
-        conf.env.Replace(LINKFLAGS = flag)
-        conf.env.Replace(TRYFLAG   = flag)
+        conf.env['CXXFLAGS'].append(flag)
+        conf.env.Replace(TRYFLAG = flag)
 
 	# Try to link a dummy program.
 	result = conf.TryCompileCXX()

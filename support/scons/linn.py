@@ -23,9 +23,21 @@ def linnfs_generate(target, source, env):
     """
     Generate an LinnFS filesystem image.
     """
-    rootfs_path = env.Dir(env['ROOTFS']).srcnode().path
+    for f in source:
+        if os.access(str(f), os.X_OK):
+            strip_cmd = env['STRIP'] + ' ' + str(f)
+            r = os.system(strip_cmd)
+            if r != 0:
+                print("WARNING: failed to strip `" + str(f) + "': command `" + strip_cmd + "' failed: exit code " + str(r>>8))
+                break
 
-    os.system("build/host/server/filesystem/linn/create '" + str(target[0]) + "' -s -n 16384 -d '" + rootfs_path + "'")
+    rootfs_path = env.Dir(env['ROOTFS']).srcnode().path
+    linn_cmd = "build/host/server/filesystem/linn/create '" + str(target[0]) + \
+               "' -n 32768 -d '" + rootfs_path + "'"
+
+    r = os.system(linn_cmd)
+    if r != 0:
+        raise Exception("failed to build LinnFS image `" + str(target[0]) + "': command `" + linn_cmd + "' failed: exit code " + str(r >> 8))
 
 #
 # Prints out a user friendly command-line string.

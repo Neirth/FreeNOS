@@ -19,17 +19,13 @@ ENTRY(multibootEntry)
 TARGET("elf32-i386")
 OUTPUT_FORMAT("elf32-i386")
 
-phys = 0x00100000;
-virt = 0x00100000;
-
 SECTIONS
 {
     . = 0x00100000;
     kernelStart = .;
 
-    .text virt : AT(phys)
+    .text :
     {
-        code = .;
         *(.boot)
         *(.text)
         *(*.text)
@@ -40,9 +36,8 @@ SECTIONS
         . = ALIGN(4096);
     }
 
-    .data : AT (phys + (data - code))
+    .data :
     {
-        data = .;
         *(.data)
         *(.note.gnu.build-id)
 
@@ -72,11 +67,12 @@ SECTIONS
         . = ALIGN(4096);
     }
 
-    .bss : AT(phys + (bss - code))
+    .bss :
     {
-        bss = .;
+        __bss_start = .;
         *(.bss)
         *(.bss.*)
+        __bss_end = .;
         *(COMMON)
 
         . += 4;

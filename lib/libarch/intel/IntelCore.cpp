@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,7 +19,11 @@
 #include <String.h>
 #include "IntelCore.h"
 
-void IntelCore::logException(CPUState *state)
+#pragma clang optimize off
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
+
+void IntelCore::logException(CPUState *state) const
 {
     String s;
 
@@ -83,7 +87,6 @@ void IntelCore::logException(CPUState *state)
 
         case INTEL_PAGEFAULT:
             ERROR("Page Fault Exception");
-            // TODO: modify Log() to accept a String.
             s << "Error " << state->error << " at " << Number::Hex << readCR2();
             ERROR(*s);
             break;
@@ -115,7 +118,7 @@ void IntelCore::logException(CPUState *state)
     logState(state);
 }
 
-void IntelCore::logState(CPUState *state)
+void IntelCore::logState(CPUState *state) const
 {
     logRegister("eip", state->irq.eip);
     logRegister("eax", state->regs.eax);
@@ -128,7 +131,7 @@ void IntelCore::logState(CPUState *state)
     logRegister("esp", state->regs.esp0);
 }
 
-void IntelCore::logRegister(const char *name, u32 reg)
+void IntelCore::logRegister(const char *name, u32 reg) const
 {
     String s;
     s << Number::Hex << name << " = " << reg << Number::Dec << " (" << reg << ")";
@@ -136,23 +139,23 @@ void IntelCore::logRegister(const char *name, u32 reg)
     ERROR(*s);
 }
 
-u32 IntelCore::readCR2()
+volatile u32 IntelCore::readCR2() const
 {
-    u32 cr2;
+    volatile u32 cr2;
     asm volatile("mov %%cr2, %%eax\n"
                  "mov %%eax, %0\n" : "=r" (cr2));
     return cr2;
 }
 
-u32 IntelCore::readCR3()
+volatile u32 IntelCore::readCR3() const
 {
-    u32 cr3;
+    volatile u32 cr3;
     asm volatile("mov %%cr3, %%eax\n"
                  "mov %%eax, %0\n" : "=r" (cr3));
     return cr3;
 }
 
-void IntelCore::writeCR3(u32 cr3)
+void IntelCore::writeCR3(u32 cr3) const
 {
     asm volatile("mov %0, %%eax\n"
                  "mov %%eax, %%cr3" :: "r" (cr3));

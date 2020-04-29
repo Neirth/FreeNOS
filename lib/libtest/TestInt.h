@@ -19,6 +19,15 @@
 #define __LIBTEST_TESTINT_H
 
 #include "TestData.h"
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
 /**
  * Generate test data for integers.
  */
@@ -39,6 +48,7 @@ template <class T> class TestInt : public TestData<T>
      * Get random test value(s).
      *
      * @param count Number or values to generate.
+     *
      * @return The last generated T value.
      */
     virtual T random(Size count = 1);
@@ -47,6 +57,7 @@ template <class T> class TestInt : public TestData<T>
      * Get unique random test value(s).
      *
      * @param count Number of unique values to generate.
+     *
      * @return The last generated T value.
      */
     virtual T unique(Size count = 1);
@@ -143,5 +154,10 @@ template<> uint TestInt<uint>::unique(Size count)
     // Success
     return m_values[offset + count - 1];
 }
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTINT_H */

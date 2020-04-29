@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,10 +21,13 @@
 #include <Macros.h>
 #include "types.h"
 
-/**                                                                                                                                                                                                     
- * @defgroup libposix libposix (POSIX.1-2008)
+/**
+ * @addtogroup lib
  * @{
- */ 
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
 /**
  * Time value information.
@@ -45,7 +48,7 @@ struct timezone
 {
     /** minutes west of Greenwich */
     int tz_minuteswest;
-    
+
     /** type of DST correction */
     int tz_dsttime;
 };
@@ -55,6 +58,7 @@ struct timezone
  *
  * @param tv Timeval struct object pointer.
  * @param tz Timezone struct object pointer.
+ *
  * @return Zero on success and -1 on error.
  */
 extern C int gettimeofday(struct timeval *tv, struct timezone *tz);
@@ -64,11 +68,13 @@ extern C int gettimeofday(struct timeval *tv, struct timezone *tz);
  *
  * @param t1 First timeval struct.
  * @param t2 Second timeval struct.
+ *
  * @return Zero on success or -1 on failure.
  */
 extern C int printtimediff(struct timeval *t1, struct timeval *t2);
 
 /**
+ * @}
  * @}
  */
 

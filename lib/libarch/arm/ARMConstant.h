@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,13 +10,24 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __LIBARCH_ARM_CONSTANT_H
 #define __LIBARCH_ARM_CONSTANT_H
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_arm
+ * @{
+ */
 
 /**
  * ARM CPU Constants
@@ -88,9 +99,9 @@
 /** ARM uses 4K pages. */
 #define PAGESIZE        4096
 
-/** Number of entries in the first-level page table.
+/**
+ * Number of entries in the first-level page table.
  *
- * Variable??? Depends on TTBCR, which sets the size of TTBR0.
  * TTBR0 is the first-level page table for the application.
  * TTBR1 is always 16KB, the first-level page table of the kernel/OS.
  */
@@ -116,6 +127,9 @@
 #define MEMALIGN        4
 
 /**
+ * @}
+ * @}
+ * @}
  * @}
  */
 

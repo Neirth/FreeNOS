@@ -29,6 +29,14 @@ class ICMPSocket;
 class ARP;
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Internet Control Message Protocol (ICMP)
  */
 class ICMP : public NetworkProtocol
@@ -59,6 +67,8 @@ class ICMP : public NetworkProtocol
     }
     Header;
 
+  public:
+
     /**
      * Constructor
      */
@@ -77,6 +87,8 @@ class ICMP : public NetworkProtocol
 
     /**
      * Perform initialization.
+     *
+     * @return Error code
      */
     virtual Error initialize();
 
@@ -96,6 +108,8 @@ class ICMP : public NetworkProtocol
 
     /**
      * Send packet
+     *
+     * @return Error code
      */
     Error sendPacket(IPV4::Address ip, Header *header);
 
@@ -115,5 +129,10 @@ class ICMP : public NetworkProtocol
 
     ::IPV4 *m_ipv4;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_ICMP_H */

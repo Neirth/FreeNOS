@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,7 @@ void * memset(void *dest, int ch, size_t count)
 
     for(temp = (char *) dest; count != 0; count--)
     {
-	*temp++ = ch;
+        *temp++ = ch;
     }
     return (dest);
 }

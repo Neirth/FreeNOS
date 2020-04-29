@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,13 +18,14 @@
 #include <FreeNOS/System.h>
 #include <Types.h>
 #include <Macros.h>
-#include <Vector.h>
+#include <Array.h>
 #include <ChannelClient.h>
 #include <PageAllocator.h>
 #include <PoolAllocator.h>
 #include <FileSystemMount.h>
 #include <FileSystemMessage.h>
 #include <MemoryMap.h>
+#include <Core.h>
 #include "FileDescriptor.h"
 #include "stdlib.h"
 #include "string.h"
@@ -41,14 +42,13 @@ extern void (*CTOR_LIST)();
 extern void (*DTOR_LIST)();
 
 /** FileSystem mounts table */
-FileSystemMount mounts[FILESYSTEM_MAXMOUNTS];
+static FileSystemMount mounts[FILESYSTEM_MAXMOUNTS];
 
-/** Vector of FileDescriptors. */
-// TODO: inefficient for memory usage. Replace this with an Index (array of data pointers).
-Vector<FileDescriptor> files;
+/** Table with FileDescriptors. */
+static FileDescriptor *files = (FileDescriptor *) NULL;
 
 /** Current Directory String */
-String currentDirectory;
+String *currentDirectory = (String *) NULL;
 
 void * __dso_handle = 0;
 
@@ -98,36 +98,26 @@ void runDestructors()
 
 void setupHeap()
 {
-    Allocator *parent;
-    PoolAllocator *pool;
-    Address heapAddr;
-    Size parentSize;
-
-    // TODO: inefficient. needs another kernel call. Make forkexec() have zero kernel calls and/or IPC until main() for
-    // maximum efficiency.
-    // TODO: ProcessCtl(SELF, InfoPID, &info);
-    // map = info.map....
+    PageAllocator *pageAlloc;
+    PoolAllocator *poolAlloc;
     Arch::MemoryMap map;
+    Memory::Range heap = map.range(MemoryMap::UserHeap);
 
-    PageAllocator alloc( map.range(MemoryMap::UserHeap).virt,
-                         map.range(MemoryMap::UserHeap).size );
-
-    // Pre-allocate 4 pages
-    Size sz = PAGESIZE * 4;
-    Address addr;
-    alloc.allocate(&sz, &addr);
+    // Allocate one page to store the allocators themselves
+    Memory::Range range;
+    range.size   = PAGESIZE;
+    range.access = Memory::User | Memory::Readable | Memory::Writable;
+    range.virt   = heap.virt;
+    range.phys   = ZERO;
+    VMCtl(SELF, Map, &range);
 
     // Allocate instance copy on vm pages itself
-    heapAddr   = alloc.base();
-    parent     = new (heapAddr) PageAllocator(&alloc);
-    parentSize = sizeof(PageAllocator);
+    pageAlloc = new (heap.virt) PageAllocator(heap.virt, heap.size);
+    poolAlloc = new (heap.virt + sizeof(PageAllocator)) PoolAllocator();
+    poolAlloc->setParent(pageAlloc);
 
-    // Make a pool
-    pool = new (heapAddr + parentSize) PoolAllocator();
-    pool->setParent(parent);
-    
     // Set default allocator
-    Allocator::setDefault(pool);
+    Allocator::setDefault(poolAlloc);
 }
 
 void setupRandomizer()
@@ -151,51 +141,31 @@ void setupMappings()
 {
     // Fill the mounts table
     memset(mounts, 0, sizeof(FileSystemMount) * FILESYSTEM_MAXMOUNTS);
-    strlcpy(mounts[0].path, "/mount", PATH_MAX);
+    strlcpy(mounts[0].path, "/sys", PATH_MAX);
     strlcpy(mounts[1].path, "/", PATH_MAX);
-    mounts[0].procID  = MOUNTFS_PID;
+    mounts[0].procID  = SYSFS_PID;
     mounts[0].options = ZERO;
     mounts[1].procID  = ROOTFS_PID;
     mounts[1].options = ZERO;
 
-    // Set currentDirectory
-    currentDirectory = "/";
+    // Map user program arguments
+    Arch::MemoryMap map;
+    Memory::Range argRange = map.range(MemoryMap::UserArgs);
 
-    // Load FileDescriptors.
-    for (Size i = 0; i < FILE_DESCRIPTOR_MAX; i++)
+    // First page is the argc+argv (skip here)
+    // Second page is the current working directory
+    currentDirectory = new String((char *) argRange.virt + PAGESIZE, false);
+
+    // Third page and above contain the file descriptors table
+    files = (FileDescriptor *) (argRange.virt + (PAGESIZE * 2));
+
+    // Inherit file descriptors table from parent (if any).
+    // Without a parent, just clear the file descriptors
+    if (getppid() == 0)
     {
-        FileDescriptor fd;
-        fd.open = false;
-
-        files.insert(fd);
+        memset(files, 0, argRange.size - (PAGESIZE * 2));
+        (*currentDirectory) = "/";
     }
-#warning Solve this, by passing the file descriptor, procinfo, etc as a parameter to entry(), constructed by the kernel
-#warning If there was a parent, it would have passed the file descriptor table, argc/argv, memorymap, etc as an argument to ProcessCtl()
-
-    // TODO: perhaps we can "bundle" the GetMounts() and ReadProcess() calls, so that
-    // we do not need to send IPC message twice in this part (for mounts and getppid())
-
-    // TODO: this is inefficient. It should take only one IPC request to retrieve these things from our parent. Or better, avoid it.
-
-    // Get our parent ID
-    ProcessID ppid = getppid();
-
-    // Skip processes with no parent (e.g. from the BootImage)
-    if (!ppid)
-        return;
-
-    // Inherit file descriptors, current directory, and more.
-    FileSystemMessage msg;
-    msg.from   = SELF;
-
-    // NOTE: we "abuse" the FileSystemMessage for ipc with our parent...
-    ChannelClient::instance->syncReceiveFrom(&msg, ppid);
-
-    // Copy the file descriptors
-    VMCopy(ppid, API::Read, (Address) files.vector(), (Address) msg.path, files.size() * sizeof(FileDescriptor));
-
-    // Dummy reply, to tell our parent we received the fds.... very inefficient.
-    ChannelClient::instance->syncSendTo(&msg, ppid);
 }
 
 ProcessID findMount(const char *path)
@@ -204,7 +174,7 @@ ProcessID findMount(const char *path)
     Size length = 0, len;
     char tmp[PATH_MAX];
 
-    /* Is the path relative? */
+    // Is the path relative?
     if (path[0] != '/')
     {
         getcwd(tmp, sizeof(tmp));
@@ -212,18 +182,16 @@ ProcessID findMount(const char *path)
     }
     else
         strlcpy(tmp, path, PATH_MAX);
-        
-    /* Find the longest match. */
+
+    // Find the longest match
     for (Size i = 0; i < FILESYSTEM_MAXMOUNTS; i++)
     {
         if (mounts[i].path[0])
         {
             len = strlen(mounts[i].path);
-    
-            /*
-             * Only choose this mount, if it matches,
-             * and is longer than the last match.
-             */
+
+            // Only choose this mount, if it matches,
+            // and is longer than the last match.
             if (strncmp(tmp, mounts[i].path, len) == 0 && len > length)
             {
                 length = len;
@@ -231,80 +199,55 @@ ProcessID findMount(const char *path)
             }
         }
     }
+
     // All done
     return m ? m->procID : ZERO;
 }
 
 void refreshMounts(const char *path)
 {
-    char tmp[PATH_MAX], number[16];
-    int fd;
-    struct dirent *dent;
-    DIR *d;
+    FileSystemMessage msg;
     pid_t pid = getpid();
 
-    // Skip for rootfs and mountfs
-    if (pid == ROOTFS_PID || pid == MOUNTFS_PID)
+    // Skip for rootfs and sysfs
+    if (pid == ROOTFS_PID || pid == SYSFS_PID)
         return;
 
     // Clear mounts table
-    if (!path)
-    {
-        path = "/mount";
-        MemoryBlock::set(&mounts[2], 0, sizeof(FileSystemMount) * (FILESYSTEM_MAXMOUNTS-2));
-    }
+    MemoryBlock::set(&mounts[2], 0, sizeof(FileSystemMount) * (FILESYSTEM_MAXMOUNTS-2));
 
-    // Attempt to open the directory
-    if (!(d = opendir(path)))
-        return;
-
-    // walk the /mounts recursively and refill the mounts table (starting from index 2)
-    while ((dent = readdir(d)))
-    {
-        snprintf(tmp, sizeof(tmp), "/mount/%s", dent->d_name);
-
-        switch (dent->d_type)
-        {
-            case DT_DIR:
-                if (dent->d_name[0] != '.')
-                    refreshMounts(tmp);
-                break;
-
-            case DT_REG:
-                fd = open(tmp, O_RDONLY);
-                if (fd >= 0)
-                {
-                    MemoryBlock::set(number, 0, sizeof(number));
-
-                    if (read(fd, number, sizeof(number)) > 0)
-                    {
-                        pid_t pid = atoi(number);
-
-                        // Append to the mounts table
-                        for (Size i = 0; i < FILESYSTEM_MAXMOUNTS; i++)
-                        {
-                            if (!mounts[i].path[0])
-                            {
-                                mounts[i].procID = pid;
-                                strlcpy(mounts[i].path, tmp+6, PATH_MAX);
-                                break;
-                            }
-                        }
-                    }
-                    close(fd);
-                }
-                break;
-
-            default:
-                break;
-        }
-    }
-    closedir(d);
+    // Re-read the mounts table from SysFS.
+    msg.type   = ChannelMessage::Request;
+    msg.action = ReadFile;
+    msg.path   = "/sys/mounts";
+    msg.buffer = (char *) &mounts;
+    msg.size   = sizeof(FileSystemMount) * FILESYSTEM_MAXMOUNTS;
+    msg.offset = 0;
+    msg.from   = SELF;
+    ChannelClient::instance->syncSendReceive(&msg, SYSFS_PID);
 }
 
 ProcessID findMount(int fildes)
 {
-    return files.get(fildes) ? files.get(fildes)->mount : ZERO;
+    if (files != NULL)
+        return files[fildes].open ? files[fildes].mount : ZERO;
+    else
+        return ZERO;
+}
+
+void waitMount(const char *path)
+{
+    FileSystemMessage msg;
+
+    // Send a write containing the requested path to the 'mountwait' file on SysFS
+    msg.type   = ChannelMessage::Request;
+    msg.action = WriteFile;
+    msg.path   = "/sys/mountwait";
+    msg.buffer = (char *) path;
+    msg.size   = strlen(path);
+    msg.offset = 0;
+    msg.from   = SELF;
+    ChannelClient::instance->syncSendReceive(&msg, SYSFS_PID);
 }
 
 FileSystemMount * getMounts()
@@ -312,51 +255,51 @@ FileSystemMount * getMounts()
     return mounts;
 }
 
-Vector<FileDescriptor> * getFiles()
+FileDescriptor * getFiles(void)
 {
-    return &files;
+    return files;
 }
 
 String * getCurrentDirectory()
 {
-    return &currentDirectory;
+    return currentDirectory;
 }
 
-extern C void SECTION(".entry") _entry() 
+extern C void SECTION(".entry") _entry()
 {
     int ret, argc;
     char *arguments;
     char **argv;
     SystemInformation info;
+    Arch::MemoryMap map;
 
-    /* Clear BSS */
-    extern Address __bss_start, __bss_end;
-    Address bss_size = &__bss_end - &__bss_start;
-    MemoryBlock::set(&__bss_start, 0, bss_size);
+    // Clear BSS
+    clearBSS();
 
-    /* Setup the heap, C++ constructors and default mounts. */
+    // Setup the heap, C++ constructors and default mounts
     setupHeap();
     runConstructors();
     setupChannels();
     setupMappings();
     setupRandomizer();
 
-    /* Allocate buffer for arguments. */
+    // Allocate buffer for arguments
     argc = 0;
     argv = (char **) new char[ARGV_COUNT];
-    arguments = (char *) ARGV_ADDR;
+    arguments = (char *) map.range(MemoryMap::UserArgs).virt;
 
-    /* Fill in arguments list. */
+    // Fill in arguments list
     while (argc < ARGV_COUNT && *arguments)
     {
         argv[argc] = arguments;
         arguments += ARGV_SIZE;
         argc++;
     }
-    /* Pass control to the program. */
+
+    // Pass control to the program
     ret = main(argc, argv);
 
-    /* Terminate execution. */
+    // Terminate execution
     runDestructors();
     exit(ret);
 }

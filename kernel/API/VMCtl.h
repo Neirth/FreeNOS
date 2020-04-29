@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,9 +20,12 @@
 
 #include <FreeNOS/System.h>
 
-/**  
- * @defgroup kernelapi kernel (API) 
- * @{  
+/**
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernelapi
+ * @{
  */
 
 /**
@@ -35,7 +38,7 @@ typedef enum MemoryOperation
     Release,
     LookupVirtual,
     Access,
-    RemoveMem,
+    ReserveMem,
     AddMem,
     CacheClean
 }
@@ -43,18 +46,37 @@ MemoryOperation;
 
 /**
  * Prototype for user applications. Examines and modifies virtual memory pages.
+ *
  * @param procID Remote process.
  * @param op Determines which operation to perform.
  * @param range Describes the memory pages to operate on.
- * @return Zero on success or error code on failure.
+ *
+ * @return API::Success on success and other API::ErrorCode on failure.
  */
-inline Error VMCtl(ProcessID procID, MemoryOperation op,
-                   Memory::Range *range = ZERO)
+inline API::Result VMCtl(ProcessID procID, MemoryOperation op,
+                         Memory::Range *range = ZERO)
 {
     return trapKernel3(API::VMCtlNumber, procID, op, (Address) range);
 }
 
-extern Error VMCtlHandler(ProcessID procID, MemoryOperation op, Memory::Range *range);
+/**
+ * @}
+ */
+
+#ifdef __KERNEL__
+
+/**
+ * @addtogroup kernelapi_handler
+ * @{
+ */
+
+extern API::Result VMCtlHandler(ProcessID procID, MemoryOperation op, Memory::Range *range);
+
+/**
+ * @}
+ */
+
+#endif /* __KERNEL__ */
 
 /**
  * @}

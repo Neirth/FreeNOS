@@ -23,6 +23,11 @@
 #include <POSIXApplication.h>
 
 /**
+ * @addtogroup bin
+ * @{
+ */
+
+/**
  * Network interface control application.
  */
 class NetCtl : public POSIXApplication
@@ -60,5 +65,9 @@ class NetCtl : public POSIXApplication
     Result showDevice(const char *deviceName);
 
 };
+
+/**
+ * @}
+ */
 
 #endif /* __BIN_NETCTL_H */

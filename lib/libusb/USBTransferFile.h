@@ -22,6 +22,14 @@
 #include "USBController.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
+/**
  * USB transfer file for USBController (/usb/transfer)
  */
 class USBTransferFile : public File
@@ -39,6 +47,7 @@ class USBTransferFile : public File
      * @param buffer Input/Output buffer to input bytes from.
      * @param size Number of bytes to write, at maximum.
      * @param offset Offset inside the file to start writing.
+     *
      * @return Number of bytes written on success, Error on failure.
      */
     virtual Error write(IOBuffer & buffer, Size size, Size offset);
@@ -48,5 +57,10 @@ class USBTransferFile : public File
     /** Pointer to the USB controller for doing actual transfers */
     USBController *m_controller;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USBTRANSFERFILE_H */

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,8 +22,14 @@
 #include <Macros.h>
 #include <Types.h>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnew-returns-null"
+
 /**
- * @defgroup liballoc liballoc
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup liballoc
  * @{
  */
 
@@ -54,6 +60,28 @@ class Allocator
     };
 
     /**
+     * Allocator input/output arguments
+     */
+    typedef struct Arguments
+    {
+        /** Output parameter which contains the address allocated on success. */
+        Address address;
+
+        /**
+         * Amount of memory in bytes.
+         * On input this member specified the number of bytes to allocate.
+         * On output, represents the actual amount of allocated memory in bytes.
+         */
+        Size size;
+
+        /** Alignment of the required memory or use ZERO for default alignment. */
+        Size alignment;
+
+    } Arguments;
+
+  public:
+
+    /**
      * Class constructor.
      */
     Allocator();
@@ -65,12 +93,14 @@ class Allocator
 
     /**
      * Makes the given Allocator the default.
+     *
      * @param alloc Instance of an Allocator.
-     */ 
+     */
     static void setDefault(Allocator *alloc);
 
     /**
      * Retrieve the currently default Allocator.
+     *
      * @return Allocator pointer.
      */
     static Allocator *getDefault();
@@ -89,6 +119,7 @@ class Allocator
      * address must be aligned to the given size.
      *
      * @param size Alignment size
+     *
      * @return Result code
      */
     Result setAlignment(Size size);
@@ -99,6 +130,7 @@ class Allocator
      * The allocation base will be added to each allocation.
      *
      * @param addr Allocation base address.
+     *
      * @return Result code
      */
     Result setBase(Address addr);
@@ -108,31 +140,29 @@ class Allocator
      *
      * @return Size of memory owned by the Allocator.
      */
-    virtual Size size() = 0;
+    virtual Size size() const = 0;
 
     /**
      * Get memory available.
      *
      * @return Size of memory available by the Allocator.
      */
-    virtual Size available() = 0;
+    virtual Size available() const = 0;
 
     /**
      * Allocate memory.
      *
-     * @param size Amount of memory in bytes to allocate on input.
-     *             On output, the amount of memory in bytes actually allocated.
-     * @param addr Output parameter which contains the address
-     *             allocated on success.
-     * @param align Alignment of the required memory or use ZERO for default.
+     * @param args Allocator arguments containing the requested size, address and alignment.
+     *
      * @return Result value.
      */
-    virtual Result allocate(Size *size, Address *addr, Size align = ZERO) = 0;
+    virtual Result allocate(Arguments & args) = 0;
 
     /**
      * Release memory.
      *
      * @param addr Points to memory previously returned by allocate().
+     *
      * @return Result value.
      *
      * @see allocate
@@ -146,12 +176,15 @@ class Allocator
      *
      * Any alignment corrections on the input address will result
      * in an address which is higher than the input address.
-     * 
+     *
      * @param addr Input address which need to be aligned.
      * @param boundary Boundary size to align the address for.
+     *
      * @return Aligned Address.
      */
-    Address aligned(Address addr, Size boundary);
+    Address aligned(Address addr, Size boundary) const;
+
+  protected:
 
     /** Our parent Allocator, if any. */
     Allocator *m_parent;
@@ -161,7 +194,7 @@ class Allocator
 
     /** Allocation base address */
     Address m_base;
-    
+
   private:
 
     /** Points to the default Allocator for new()/delete(). */
@@ -177,34 +210,45 @@ class Allocator
 
 /**
  * Allocate new memory.
+ *
  * @param sz Amount of memory to allocate.
  */
 inline void * operator new(__SIZE_TYPE__ sz)
 {
-    Address addr;
+    Allocator::Arguments alloc_args;
 
-    if (Allocator::getDefault()->allocate((Size *) &sz, &addr) == Allocator::Success)
-        return (void *) addr;
+    alloc_args.size = sz;
+    alloc_args.address = 0;
+    alloc_args.alignment = 0;
+
+    if (Allocator::getDefault()->allocate(alloc_args) == Allocator::Success)
+        return (void *) alloc_args.address;
     else
         return (void *) NULL;
 }
 
 /**
  * Allocate memory for an array.
+ *
  * @param sz Amount of memory to allocate.
  */
 inline void * operator new[](__SIZE_TYPE__ sz)
 {
-    Address addr;
+    Allocator::Arguments alloc_args;
 
-    if (Allocator::getDefault()->allocate((Size *) &sz, &addr) == Allocator::Success)
-        return (void *) addr;
+    alloc_args.size = sz;
+    alloc_args.address = 0;
+    alloc_args.alignment = 0;
+
+    if (Allocator::getDefault()->allocate(alloc_args) == Allocator::Success)
+        return (void *) alloc_args.address;
     else
         return (void *) NULL;
 }
 
 /**
  * Free memory back to the current Allocator.
+ *
  * @param mem Points to memory to release.
  */
 inline void operator delete (void *mem)
@@ -214,6 +258,7 @@ inline void operator delete (void *mem)
 
 /**
  * Uses the Heap class to free memory, with the delete[] operator.
+ *
  * @param mem Points to memory to release.
  */
 inline void operator delete[] (void *mem)
@@ -222,16 +267,8 @@ inline void operator delete[] (void *mem)
 }
 
 /**
- * @}
- */
-
-/**
- * @name Absolute memory allocation.
- * @{
- */
-
-/**
  * Let the new() operator return the given memory address.
+ *
  * @param sz Size to allocate (ignored).
  * @param addr Memory address to return.
  */
@@ -247,6 +284,7 @@ inline void * operator new(__SIZE_TYPE__ sz, Address addr)
 #endif /* __HOST__ */
 
 /**
+ * @}
  * @}
  */
 

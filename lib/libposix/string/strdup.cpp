@@ -1,8 +1,8 @@
-/*	$OpenBSD: strdup.c,v 1.6 2005/08/08 08:05:37 espie Exp $	*/
+/* $OpenBSD: strdup.c,v 1.6 2005/08/08 08:05:37 espie Exp $ */
 
 /*
  * Copyright (c) 1988, 1993
- *	The Regents of the University of California.  All rights reserved.
+ *    The Regents of the University of California.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,13 +36,14 @@
 
 char *strdup(const char *str)
 {
-	size_t siz;
-	char *copy;
+    size_t siz;
+    char *copy;
 
-	siz = strlen(str) + 1;
-	if ( (copy = (char *) malloc(siz)) == NULL)
-		return (char *) NULL;
-	(void)memcpy(copy, str, siz);
+    siz = strlen(str) + 1;
+    if ( (copy = (char *) malloc(siz)) == NULL)
+        return (char *) NULL;
 
-	return(copy);
+    (void)memcpy(copy, str, siz);
+
+    return(copy);
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -20,7 +20,15 @@
 
 #include "Memory.h"
 
-#define MEMORYMAP_MAX_REGIONS 7
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ */
+
+#define MEMORYMAP_MAX_REGIONS 8
 
 /**
  * Describes virtual memory map layout
@@ -48,6 +56,7 @@ class MemoryMap
         UserStack,     /**<< User stack */
         UserPrivate,   /**<< User private dynamic memory mappings */
         UserShare,     /**<< User shared dynamic memory mappings */
+        UserArgs       /**<< Used for copying program arguments and file descriptors */
     }
     Region;
 
@@ -65,12 +74,16 @@ class MemoryMap
      * Get memory range for the given region.
      *
      * @param region Memory region.
+     *
      * @return Memory::Range object
      */
-    Memory::Range range(Region region);
+    Memory::Range range(Region region) const;
 
     /**
      * Set memory range for the given region.
+     *
+     * @param region Identifier of the memory region to set
+     * @param range New memory range value for the memory region
      */
     void setRange(Region region, Memory::Range range);
 
@@ -79,5 +92,10 @@ class MemoryMap
     /** Memory ranges. */
     Memory::Range m_regions[MEMORYMAP_MAX_REGIONS];
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_MEMORYMAP_H */

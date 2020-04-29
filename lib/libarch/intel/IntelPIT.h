@@ -24,6 +24,17 @@
 #include "IntelIO.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
+
+/**
  * Intel 8254 Programmable Interrupt Timer (PIT).
  */
 class IntelPIT : public Timer
@@ -86,6 +97,7 @@ class IntelPIT : public Timer
      * the interrupts generated.
      *
      * @param hertz Number of interrupt triggers per second (in hertz)
+     *
      * @return Result code.
      */
     virtual Result setFrequency(Size hertz);
@@ -103,12 +115,21 @@ class IntelPIT : public Timer
      * Set Control register.
      *
      * @param flags New flags to set in the Control register.
+     *
      * @return Result code.
      */
     Result setControl(ControlFlags flags);
 
+  private:
+
     /** I/O instance */
     IntelIO m_io;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_INTEL_PIT_H */

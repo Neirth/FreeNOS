@@ -77,5 +77,13 @@ SECTIONS
     }
     . = ALIGN(4096); /* align to page size */
     __bss_end = .;
+
+    __bootimg = .;
+    .bootimg :
+    {
+        KEEP (*(.bootimg))
+        LONG(0)
+    }
+
     __end = .;
 }

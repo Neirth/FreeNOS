@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -35,17 +35,19 @@ class Timer;
 struct CPUState;
 
 /**
- * Function which is called when the CPU is interrupted. 
- *
- * @param state State of the CPU on the moment the interrupt occurred. 
- * @param param Optional parameter for the handler. 
+ * @addtogroup kernel
+ * @{
  */
 
-// TODO: move this to libarch's IntController? The IntController
-// could take care of invocing a certain ISR when interrupt is raised.
+/**
+ * Function which is called when the CPU is interrupted.
+ *
+ * @param state State of the CPU on the moment the interrupt occurred.
+ * @param param Optional first parameter for the handler.
+ * @param vector Optional IRQ vector value. Used by some architectures.
+ */
+typedef void InterruptHandler(struct CPUState *state, ulong param, ulong vector);
 
-typedef void InterruptHandler(struct CPUState *state, ulong param);
-    
 /**
  * Interrupt hook class.
  */
@@ -53,6 +55,7 @@ typedef struct InterruptHook
 {
     /**
      * Constructor function.
+     *
      * @param h Handler function for the hook.
      * @param p Parameter to pass.
      */
@@ -62,6 +65,7 @@ typedef struct InterruptHook
 
     /**
      * Comparision operator.
+     *
      * @param i InterruptHook pointer.
      * @return True if equal, false otherwise.
      */
@@ -77,11 +81,6 @@ typedef struct InterruptHook
     ulong param;
 }
 InterruptHook;
-
-/** 
- * @defgroup kernel kernel (generic)
- * @{ 
- */
 
 /**
  * FreeNOS kernel implementation.
@@ -166,13 +165,13 @@ class Kernel : public Singleton<Kernel>
      */
     int run();
 
-    /** 
-     * Enable or disable an hardware interrupt (IRQ). 
+    /**
+     * Enable or disable an hardware interrupt (IRQ).
      *
-     * @param irq IRQ number. 
-     * @param enabled True to enable, and false to disable. 
+     * @param irq IRQ number.
+     * @param enabled True to enable, and false to disable.
      */
-    void enableIRQ(u32 irq, bool enabled);
+    virtual void enableIRQ(u32 irq, bool enabled);
 
     /**
      * Hooks a function to an hardware interrupt.

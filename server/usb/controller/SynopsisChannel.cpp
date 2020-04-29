@@ -60,12 +60,6 @@ SynopsisChannel::Result SynopsisChannel::interrupt()
     DEBUG("chanid =" << m_id << " intr = " << val);
 
     // Print interrupt flags
-#if 0
-    if (val & TransferCompleted)  DEBUG("completed");
-    if (val & ChannelHalted)      DEBUG("halted");
-    if (val & ACKResponse)        DEBUG("ACK");
-#endif
-
     if (val & StallResponse)    { ERROR("stalled");        m_usb->state = USBMessage::Failure; }
     if (val & NAKResponse)      { ERROR("no acknowledge"); m_usb->state = USBMessage::Failure; }
     if (val & NYETResponse)     { ERROR("NYET");           m_usb->state = USBMessage::Failure; }
@@ -96,7 +90,7 @@ SynopsisChannel::Result SynopsisChannel::interrupt()
             m_state = Active;
             m_usb->state = USBMessage::Status;
             break;
-    
+
         case USBMessage::Status:
             m_usb->state = USBMessage::Success;
 
@@ -210,7 +204,7 @@ SynopsisChannel::Result SynopsisChannel::transfer(const FileSystemMessage *msg,
 
         // The packet id is is associated with the endpoint. For non-control
         // transfers the next packet id is saved from the previous transfer.
-        packetId = (PacketId) m_usb->packetId; //nextPacketId; //(PacketId) ((m_io->read(m_base + ChannelTransfer) >> 29) & 0x3);
+        packetId = (PacketId) m_usb->packetId;
     }
 
     // Calculate packet count
@@ -218,7 +212,8 @@ SynopsisChannel::Result SynopsisChannel::transfer(const FileSystemMessage *msg,
     if (!packetCount)
         packetCount = 1;
 
-    DEBUG("chanid = " << m_id << " packets = " << packetCount << " maxpacketsize = " << usb->maxPacketSize << " dir = " << (int)dir << " pid = " << (int)packetId);
+    DEBUG("chanid = " << m_id << " packets = " << packetCount << " maxpacketsize = "
+           << usb->maxPacketSize << " dir = " << (int)dir << " pid = " << (int)packetId);
 
     // Program channel registers.
     m_io->write(m_base + Characteristics, (usb->endpointId << 11) |
@@ -229,7 +224,6 @@ SynopsisChannel::Result SynopsisChannel::transfer(const FileSystemMessage *msg,
                                           (usb->deviceId << 22) );
 
     // SplitControl is needed for Full & Low speed devices only
-    //m_io->write(m_base + SplitControl, usb->portAddress | (usb->hubAddress << 7) | (1 << 31));
     m_io->write(m_base + SplitControl, 0);
 
     // Setup DMA

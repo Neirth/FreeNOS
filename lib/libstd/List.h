@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,6 +21,14 @@
 #include "Macros.h"
 #include "Assert.h"
 #include "Sequence.h"
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
 
 /**
  * Simple linked list template class.
@@ -67,6 +75,8 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Copy constructor.
+     *
+     * @param lst List instance to copy from
      */
     List(const List<T> & lst)
     {
@@ -81,7 +91,7 @@ template <class T> class List : public Sequence<T>
     /**
      * Class destructor.
      */
-    ~List()
+    virtual ~List()
     {
         Node *node = m_head;
 
@@ -154,6 +164,7 @@ template <class T> class List : public Sequence<T>
      *
      * @param t Item to remove.
      * @param single True to remove only one item, false to remove all matching items.
+     *
      * @return Number of items removed from the list.
      */
     virtual int remove(T t)
@@ -182,6 +193,8 @@ template <class T> class List : public Sequence<T>
      * Removes the given node from the list.
      *
      * @param node The Node to remove.
+     *
+     * @return True on success, false otherwise
      */
     virtual int remove(Node *node)
     {
@@ -206,6 +219,7 @@ template <class T> class List : public Sequence<T>
      * Check whether an element is on the List.
      *
      * @param t The element to find.
+     *
      * @return true if the element is on the List, false otherwise.
      */
     virtual bool contains(const T t) const
@@ -277,9 +291,10 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Get the first value in the list.
-     * Assumes that the list is not empty.
      *
      * @return First value on the list.
+     *
+     * @note Assumes that the list is not empty.
      */
     T first()
     {
@@ -288,9 +303,10 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Get the first value as constant.
-     * Assumes that the list is not empty.
      *
      * @return First value on the list.
+     *
+     * @note Assumes that the list is not empty.
      */
     const T first() const
     {
@@ -299,9 +315,10 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Get the last value on the list.
-     * Assumes that the list is not empty.
      *
      * @return Last value on the list.
+     *
+     * @note Assumes that the list is not empty.
      */
     T last()
     {
@@ -310,9 +327,10 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Get the last value on the list as constant.
-     * Assumes that the list is not empty.
      *
      * @return Last value on the list.
+     *
+     * @note Assumes that the list is not empty.
      */
     const T last() const
     {
@@ -323,6 +341,7 @@ template <class T> class List : public Sequence<T>
      * Get a pointer to the item at the given position.
      *
      * @param position Index in the list
+     *
      * @return Pointer to the item or ZERO if not available.
      */
     virtual const T * get(Size position) const
@@ -343,10 +362,12 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Get a reference to the item at the given position.
-     * Assumes that the item is available.
      *
      * @param position Index in the list.
+     *
      * @return Reference to the item at the given position.
+     *
+     * @note Assumes that the item is available.
      */
     virtual const T & at(Size position) const
     {
@@ -362,6 +383,7 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Check if the List is empty.
+     *
      * @return true if empty, false if not.
      */
     virtual bool isEmpty() const
@@ -371,6 +393,7 @@ template <class T> class List : public Sequence<T>
 
     /**
      * Get the size of the list.
+     *
      * @return Size of the list.
      */
     Size size() const
@@ -438,5 +461,10 @@ template <class T> class List : public Sequence<T>
     /** Number of items currently in the List. */
     Size m_count;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_LIST_H */

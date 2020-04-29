@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,14 @@
 #define __LIB_LIBFS_DEVICESERVER_H
 
 #include "FileSystem.h"
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
 
 /** Maximum number of devices handled simultaneously by a DeviceServer. */
 #define DEVICE_MAX 32
@@ -39,7 +47,7 @@ class DeviceServer : public FileSystem
 
     /**
      * Constructor
-     */    
+     */
     DeviceServer(const char *path);
 
     /**
@@ -49,6 +57,8 @@ class DeviceServer : public FileSystem
 
     /**
      * Initialize DeviceServer.
+     *
+     * @return Error code
      */
     virtual Error initialize();
 
@@ -107,5 +117,10 @@ class DeviceServer : public FileSystem
      */
     Vector<List<Device *> *> m_interrupts;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIB_LIBFS_DEVICESERVER_H */

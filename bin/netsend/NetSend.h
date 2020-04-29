@@ -23,6 +23,11 @@
 #include <POSIXApplication.h>
 
 /**
+ * @addtogroup bin
+ * @{
+ */
+
+/**
  * Network send application.
  */
 class NetSend : public POSIXApplication
@@ -40,11 +45,6 @@ class NetSend : public POSIXApplication
     virtual ~NetSend();
 
     /**
-     * Initialize the application.
-     */
-    virtual Result initialize();
-
-    /**
      * Execute the application event loop.
      */
     virtual Result exec();
@@ -55,9 +55,10 @@ class NetSend : public POSIXApplication
      * Send ARP request.
      */
     Result arpRequest(IPV4::Address ipAddr, Ethernet::Address *ethAddr);
-
-    /** Socket */
-    int m_socket;
 };
+
+/**
+ * @}
+ */
 
 #endif /* __BIN_NETSEND_H */

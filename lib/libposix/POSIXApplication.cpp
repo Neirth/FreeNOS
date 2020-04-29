@@ -24,20 +24,15 @@
 POSIXApplication::POSIXApplication(int argc, char **argv)
     : Application(argc, argv)
 {
-    m_version = VERSION;
+    setVersion(VERSION);
 }
 
 POSIXApplication::~POSIXApplication()
 {
 }
 
-POSIXApplication::Result POSIXApplication::output(const char *string)
+POSIXApplication::Result POSIXApplication::output(const char *string) const
 {
     printf("%s", string);
     return Success;
-}
-
-void POSIXApplication::exit(int code)
-{
-    ::exit(code);
 }

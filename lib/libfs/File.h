@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,13 +28,22 @@
 #include <errno.h>
 
 /**
- * @brief Abstracts a file present on a FileSystem.
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
+ * Represents a file present on a FileSystem.
+ *
  * @see FileSystem
  */
 class File
 {
   public:
-    
+
     /**
      * Constructor function.
      *
@@ -51,40 +60,18 @@ class File
 
     /**
      * Retrieve our filetype.
+     *
      * @return FileType object.
      */
-    FileType getType();
+    FileType getType() const;
 
-    /**
-     * Get the number of times we are opened by a process.
-     * @return Open count.
-     * @see openCount
-     */
-    Size getOpenCount();
-
-    /**
-     * Attempt to open a file.
-     * @param msg Describes the open request.
-     * @param pid Process Identity to serve us from. May be changed
-     *            to redirect to other servers.
-     * @param ident Identity to be filled in the FileDescriptor.
-     * @return Error code status.
-     */
-    virtual Error open(ProcessID *pid, Address *ident);
-
-    /**
-     * @brief Attempt to close a file.
-     *
-     * @return Error code status.
-     */
-    virtual Error close();
-    
     /**
      * @brief Read bytes from the file.
      *
      * @param buffer Input/Output buffer to output bytes to.
      * @param size Number of bytes to read, at maximum.
      * @param offset Offset inside the file to start reading.
+     *
      * @return Number of bytes read on success, Error on failure.
      */
     virtual Error read(IOBuffer & buffer, Size size, Size offset);
@@ -95,17 +82,20 @@ class File
      * @param buffer Input/Output buffer to input bytes from.
      * @param size Number of bytes to write, at maximum.
      * @param offset Offset inside the file to start writing.
+     *
      * @return Number of bytes written on success, Error on failure.
      */
     virtual Error write(IOBuffer & buffer, Size size, Size offset);
-    
+
     /**
      * Retrieve file statistics.
      *
      * @param st Buffer to write statistics to.
+     *
+     * @return Error code
      */
     virtual Error status(FileSystemMessage *msg);
-    
+
   protected:
 
     /** Type of this file. */
@@ -117,9 +107,6 @@ class File
     /** Size of the file, in bytes. */
     Size m_size;
 
-    /** Number of times the File has been opened by a process. */
-    Size m_openCount;
-
     /** Owner of the file. */
     UserID m_uid;
 
@@ -129,5 +116,10 @@ class File
     /** Device major/minor ID. */
     DeviceID m_deviceId;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIB_LIBFS_FILE_H */

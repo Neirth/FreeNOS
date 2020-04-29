@@ -22,6 +22,14 @@
 #include <Index.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Networking packet queue implementation.
  */
 class NetworkQueue
@@ -46,6 +54,8 @@ class NetworkQueue
         }
     }
     Packet;
+
+  public:
 
     /**
      * Constructor
@@ -105,5 +115,10 @@ class NetworkQueue
      */
     Size m_packetHeader;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_NETWORKQUEUE_H */

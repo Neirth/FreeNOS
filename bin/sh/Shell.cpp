@@ -30,11 +30,20 @@
 #include <dirent.h>
 #include <sys/utsname.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <Runtime.h>
 
-Shell::Shell()
+/** Maximum number of supported command arguments. */
+#define MAX_ARGV 16
+
+Shell::Shell(int argc, char **argv)
+    : POSIXApplication(argc, argv)
 {
+    parser().setDescription("System command shell interpreter");
+    parser().registerPositional("FILE", "File(s) containing shell commands to execute", 0);
+
     registerCommand(new ChangeDirCommand());
     registerCommand(new ExitCommand());
     registerCommand(new StdioCommand());
@@ -43,28 +52,110 @@ Shell::Shell()
     registerCommand(new TimeCommand());
 }
 
-int Shell::run()
+Shell::~Shell()
+{
+}
+
+Shell::Result Shell::exec()
+{
+    const Vector<Argument *> & positionals = arguments().getPositionals();
+    FILE *fp;
+    struct stat st;
+    char *contents;
+
+    // Refresh mount points
+    refreshMounts(0);
+
+    // Check if shell script was given as argument
+    if (positionals.count() > 0)
+    {
+        // Execute commands in each file
+        for (Size i = 0; i < positionals.count(); i++)
+        {
+            const char *file = *(positionals[i]->getValue());
+
+            // Query the file size
+            if (stat(file, &st) != 0)
+            {
+                ERROR("failed to stat() `" << file << "': " << strerror(errno));
+                continue;
+            }
+
+            // Open file
+            if ((fp = fopen(file, "r")) == NULL)
+            {
+                ERROR("failed to fopen() `" << file << "': " << strerror(errno));
+                continue;
+            }
+
+            // Allocate buffer storage
+            contents = new char[st.st_size + 1];
+
+            // Read the entire file into memory
+            if (fread(contents, st.st_size, 1, fp) != (size_t) st.st_size)
+            {
+                ERROR("failed to fread() `" << file << "': " << strerror(errno));
+                fclose(fp);
+                continue;
+            }
+            // Null terminate
+            contents[st.st_size] = 0;
+
+            // Parse it into lines
+            String contentString(contents);
+            List<String> lines = contentString.split('\n');
+    
+            // Execute each command
+            for (ListIterator<String> i(lines); i.hasCurrent(); i++)
+            {
+                executeInput((char *) *i.current());
+            }
+
+            // Cleanup
+            delete contents;
+            fclose(fp);
+        }
+    }
+    // Run an interactive Shell
+    else
+    {
+        // Show the user where to get help
+        printf( "\r\n"
+                "Entering interactive Shell. Type 'help' for the command list.\r\n"
+                "\r\n");
+
+        // Begin loop
+        return runInteractive();
+    }
+
+    // Done
+    return Success;
+}
+
+Shell::Result Shell::runInteractive()
 {
     char *cmdStr;
 
-    /* Read commands. */    
+    // Read commands
     while (true)
     {
-	/* Print the prompt. */
-	prompt();
-	
-	/* Wait for a command string. */
-	cmdStr = getInput();
-	
-	/* Enough input? */
-	if (strlen(cmdStr) == 0)
-	{
-	    continue;
-	}
-	/* Execute the command. */
-	executeInput(cmdStr);
+        // Print the prompt
+        prompt();
+        
+        // Wait for a command string
+        cmdStr = getInput();
+        
+        // Enough input?
+        if (strlen(cmdStr) == 0)
+        {
+            continue;
+        }
+        // Execute the command
+        executeInput(cmdStr);
     }
-    return EXIT_SUCCESS;
+
+    // Done (never reached)
+    return Success;
 }
 
 int Shell::executeInput(char *command)
@@ -76,22 +167,25 @@ int Shell::executeInput(char *command)
     int pid, status;
     bool background;
 
-    /* Valid argument? */
+    // Valid argument?
     if (!strlen(command))
     {
         return EXIT_SUCCESS;
     }
-    /* Attempt to extract arguments. */
+
+    DEBUG("command = '" << command << "'");
+
+    // Attempt to extract arguments
     argc = parse(command, argv, MAX_ARGV, &background);
 
-    /* Ignore comments */
+    // Ignore comments
     if (argv[0][0] == '#')
         return EXIT_SUCCESS;
 
-    /* Do we have a matching ShellCommand? */
+    // Do we have a matching ShellCommand?
     if (!(cmd = getCommand(argv[0])))
     {
-        /* If not, try to execute it as a file directly. */
+        // If not, try to execute it as a file directly
         if ((pid = forkexec(argv[0], (const char **) argv)) != -1)
         {
             if (!background)
@@ -101,7 +195,8 @@ int Shell::executeInput(char *command)
             } else
                 return EXIT_SUCCESS;
         }
-        /* Try to find it on the livecd filesystem. (temporary hardcoded PATH) */
+
+        // Try to find it on the filesystem. (temporary hardcoded PATH)
         else if (snprintf(tmp, sizeof(tmp), "/bin/%s", argv[0]) &&
                 (pid = forkexec(tmp, (const char **) argv)) != -1)
         {
@@ -113,21 +208,21 @@ int Shell::executeInput(char *command)
                 return EXIT_SUCCESS;
         }
         else
-            printf("forkexec '%s' failed: %s\r\n", argv[0],
-                    strerror(errno));
+        {
+            ERROR("forkexec `" << argv[0] << "' failed: " << strerror(errno));
+        }
     }
-    /* Enough arguments given? */
+    // Enough arguments given?
     else if (argc - 1 < cmd->getMinimumParams())
     {
-        printf("%s: not enough arguments (%u required)\r\n",
-                cmd->getName(), cmd->getMinimumParams());
+        ERROR(cmd->getName() << ": not enough arguments (" << cmd->getMinimumParams() << " required)");
     }
-    /* Execute it. */
+    // Execute it
     else
     {
         return cmd->execute(argc - 1, argv + 1);
     }
-    /* Not successful. */
+    // Not successful
     return EXIT_FAILURE;
 }
 
@@ -136,34 +231,37 @@ char * Shell::getInput()
     static char line[1024];
     Size total = 0;
 
-    /* Read a line. */
-    while (total < sizeof(line))
+    // Read a line
+    while (total < sizeof(line) - 1)
     {
-        /* Read a character. */
-	read(0, line + total, 1);
-	
-	/* Process character. */
-	switch (line[total])
-	{
-	    case '\r':
-	    case '\n':
-	    	printf("\r\n");
-		line[total] = ZERO;
-		return line;
+        // Read a character
+        read(0, line + total, 1);
 
-	    case '\b':
-		if (total > 0)
-		{
-		    total--;
-		    printf("\b \b");
-		}
-		break;
-	    
-	    default:
-		printf("%c", line[total]);
-		total++;
-		break;
-	}
+        // Process character
+        switch (line[total])
+        {
+            // Enter
+            case '\r':
+            case '\n':
+                printf("\r\n");
+                line[total] = ZERO;
+                return line;
+
+            // Backspace
+            case '\b':
+            case 0x7F:
+                if (total > 0)
+                {
+                    total--;
+                    printf("\b \b");
+                }
+                break;
+
+            default:
+                printf("%c", line[total]);
+                total++;
+                break;
+        }
     }
     line[total] = ZERO;
     return line;
@@ -173,15 +271,15 @@ void Shell::prompt()
 {
     char host[128], cwd[128];
     
-    /* Retrieve current hostname. */
+    // Retrieve current hostname
     gethostname(host, sizeof(host));
     
-    /* Retrieve current working directory. */
+    // Retrieve current working directory
     getcwd(cwd, sizeof(cwd));
     
-    /* Print out the prompt. */
+    // Print out the prompt
     printf(WHITE "(" GREEN "%s" WHITE ") " BLUE "%s" WHITE " # ",
-	   host, cwd);
+           host, cwd);
 }
 
 HashTable<String, ShellCommand *> & Shell::getCommands()

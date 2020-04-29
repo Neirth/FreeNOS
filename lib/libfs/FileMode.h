@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,14 @@
 
 #include <Types.h>
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
 /** Number of bits required for all FileModes. */
 #define FILEMODE_BITS 9
 
@@ -28,7 +36,9 @@
 
 /**
  * Converts an (host system's) POSIX struct st into a FileMode.
+ *
  * @param st struct st pointer.
+ *
  * @return FileMode value.
  */
 #define FILEMODE_FROM_ST(st) \
@@ -62,5 +72,10 @@ FileMode;
 
 /** Multiple FileMode values combined. */
 typedef u16 FileModes;
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __FILESYSTEM_FILEMODE_H */

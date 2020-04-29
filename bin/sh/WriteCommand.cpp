@@ -18,9 +18,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <String.h>
+#include <Log.h>
 #include "WriteCommand.h"
 
 WriteCommand::WriteCommand()
@@ -37,9 +39,8 @@ int WriteCommand::execute(Size nparams, char **params)
     // Attempt to open the file first
     if ((fd = open(params[0], O_WRONLY)) < 0)
     {
-        printf("Failed to open '%s': %s\r\n",
-                params[0], strerror(errno));
-        return errno;
+        ERROR("failed to open `" << params[0] << "': " << strerror(errno));
+        return EXIT_FAILURE;
     }
     // Fill write buffer
     for (Size i = 1; i < nparams; i++)
@@ -48,15 +49,15 @@ int WriteCommand::execute(Size nparams, char **params)
         buf << " ";
     }
     // Append newline
-    buf << "\r\n";
+    buf << "\n";
 
     // Write buffer to the file
     if (write(fd, *buf, buf.length()) < 0)
     {
-        printf("Failed to write '%s': %s\r\n",
-                params[0], strerror(errno));
-        return errno;
+        ERROR("failed to write `" << params[0] << "': " << strerror(errno));
+        return EXIT_FAILURE;
     }
+
     // Close the file
     close(fd);
     return 0;

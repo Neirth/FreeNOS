@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,19 +27,18 @@
 extern C int kernel_main(CoreInfo *info)
 {
     // Initialize heap at 3MB offset
-    // TODO: fix this
-    Kernel::heap( MegaByte(3),
-                  MegaByte(1) );
+    coreInfo.heapAddress = MegaByte(3);
+    coreInfo.heapSize    = MegaByte(1);
+    Kernel::heap(coreInfo.heapAddress, coreInfo.heapSize);
 
     // Start kernel debug serial console
-    // TODO: can I re-use the user-land driver here somehow????
     if (info->coreId == 0)
     {
         IntelSerial *serial = new IntelSerial(0x3f8);
         serial->setMinimumLogLevel(Log::Notice);
     }
 
-    // TODO: put this in the boot.S, or maybe hide it in the support library? maybe a _run_main() or something.
+    // Run all constructors first
     constructors();
 
     // Create and run the kernel

@@ -23,6 +23,11 @@
 #include <POSIXApplication.h>
 
 /**
+ * @addtogroup bin
+ * @{
+ */
+
+/**
  * Network receive application.
  */
 class NetReceive : public POSIXApplication
@@ -40,11 +45,6 @@ class NetReceive : public POSIXApplication
     virtual ~NetReceive();
 
     /**
-     * Initialize the application.
-     */
-    virtual Result initialize();
-
-    /**
      * Execute the application event loop.
      */
     virtual Result exec();
@@ -53,9 +53,10 @@ class NetReceive : public POSIXApplication
 
     Result receiveArp();
     Result receivePacket(u8 *packet, Size size);
-
-    /** Socket */
-    int m_socket;
 };
+
+/**
+ * @}
+ */
 
 #endif /* __BIN_NETRECEIVE_H */

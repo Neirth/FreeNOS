@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Coen Bijlsma
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,14 +18,17 @@
 #ifndef __TIME_TIME_H
 #define __TIME_TIME_H
 
-/**     
- * @defgroup time Time (System Time Device)   
- * @{     
- */
-
 #include <Macros.h>
 #include <Types.h>
 #include <Device.h>
+
+/**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup time
+ * @{
+ */
 
 /** @brief The base I/O port of the CMOS. */
 #define RTC_PORT(x) (0x70 + (x))
@@ -50,7 +53,7 @@
 
 /**
  * @brief Offset in the CMOS for the current year.
- * 
+ *
  * A one digit value means before 2000, and a two-digit value,
  * i.e. >= 100, is after the year 2000.
  */
@@ -98,25 +101,28 @@ class Time : public Device
 
     /**
      * @brief Initializes the time class.
+     *
      * @return Error status code.
      */
     virtual Error initialize();
 
-    /** 
+    /**
      * @brief Read the system time.
+     *
      * @param buffer Buffer to save the read bytes.
      * @param size Number of bytes to read.
      * @param offset Offset in the file to read.
-     * @return Number of bytes on success and ZERO on failure. 
+     *
+     * @return Number of bytes on success and ZERO on failure.
      */
     virtual Error read(IOBuffer & buffer, Size size, Size offset);
 
   private:
-    
+
     /**
      * @brief Returns the value stored at the given address
      *        from the CMOS.
-     * 
+     *
      * @param addr The address to read from the CMOS
      * @return The value at the given address.
      *
@@ -128,13 +134,16 @@ class Time : public Device
 
     /**
      * @brief Convert from binary coded decimal to binary form.
+     *
      * @param val The value to convert.
+     *
      * @return A binary integer.
-     */        
+     */
     unsigned bcd2bin(unsigned char val);
 };
 
 /**
+ * @}
  * @}
  */
 

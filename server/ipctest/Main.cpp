@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,20 +17,13 @@
 
 #include <KernelLog.h>
 #include <stdlib.h>
+#include "IPCTestServer.h"
 
 int main(int argc, char **argv)
 {
     KernelLog log;
-    log.setMinimumLogLevel(Log::Debug);
+    log.setMinimumLogLevel(Log::Notice);
 
-#if 0
-    ChannelServer server;
-    if (server.initialize() != ChannelServer::Success)
-    {
-        ERROR("failed to initialize");
-        return EXIT_FAILURE;
-    }
+    IPCTestServer server;
     return server.run();
-#endif
-    return 0;
 }

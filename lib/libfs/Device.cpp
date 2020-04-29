@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,7 +26,7 @@ Device::~Device()
 {
 }
 
-String & Device::getIdentifier()
+const String & Device::getIdentifier() const
 {
     return m_identifier;
 }
@@ -38,6 +38,5 @@ Error Device::initialize()
 
 Error Device::interrupt(Size vector)
 {
-#warning why success?
     return ESUCCESS;
 }

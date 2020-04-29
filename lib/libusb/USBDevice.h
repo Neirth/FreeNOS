@@ -29,6 +29,14 @@
 #include "USBMessage.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
+/**
  * USB device class.
  */
 class USBDevice : public Device
@@ -56,38 +64,52 @@ class USBDevice : public Device
 
     /**
      * Get device descriptor.
+     *
+     * @return Result code
      */
     Error getDeviceDescriptor(USBDescriptor::Device *desc,
                               Size size = sizeof(USBDescriptor::Device));
 
     /**
      * Get configuration descriptor.
+     *
+     * @return Result code
      */
     Error getConfigDescriptor(USBDescriptor::Configuration *desc,
                               Size size = sizeof(USBDescriptor::Configuration));
 
     /**
      * Get interface descriptor.
+     *
+     * @return Result code
      */
     Error getInterfaceDescriptor(USBDescriptor::Interface *desc);
 
     /**
      * Get endpoint descriptor.
+     *
+     * @return Result code
      */
     Error getEndpointDescriptor(u8 endpointId, USBDescriptor::Endpoint *desc);
 
     /**
      * Set device address.
+     *
+     * @return Result code
      */
     Error setAddress(u8 address);
 
     /**
      * Activate a configuration.
+     *
+     * @return Result code
      */
     Error setConfiguration(u8 configId);
 
     /**
      * Send a control message.
+     *
+     * @return Result code
      */
     Error controlMessage(u8 request,
                          const USBTransfer::Direction direction,
@@ -100,6 +122,8 @@ class USBDevice : public Device
 
     /**
      * Start a synchronous USB transfer.
+     *
+     * @return Result code
      */
     Error transfer(const USBTransfer::Type type,
                    const USBTransfer::Direction direction,
@@ -110,6 +134,8 @@ class USBDevice : public Device
 
     /**
      * Start an asynchronous USB transfer
+     *
+     * @return Result code
      */
     Error beginTransfer(const USBTransfer::Type type,
                         const USBTransfer::Direction direction,
@@ -121,13 +147,19 @@ class USBDevice : public Device
 
     /**
      * Complete asynchronous USB transfer
+     *
+     * @return Result code
      */
     Error finishTransfer(FileSystemMessage *msg);
 
     /**
      * Submit a USB transfer to the Host controller.
+     *
+     * @return Result code
      */
     Error submit(USBMessage & msg);
+
+  protected:
 
     /** USB device identifier. */
     Address m_id;
@@ -164,5 +196,10 @@ class USBDevice : public Device
      */
     Array<u8, 128> m_endpointsPacketId;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USBDEVICE_H */

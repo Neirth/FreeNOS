@@ -25,6 +25,14 @@
 #include "IPV4.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Networking server.
  */
 class NetworkServer : public DeviceServer
@@ -46,5 +54,10 @@ class NetworkServer : public DeviceServer
      */
     virtual Error initialize();
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_NETWORKSERVER_H */

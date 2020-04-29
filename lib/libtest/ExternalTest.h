@@ -20,19 +20,49 @@
 
 #include "TestInstance.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
+ * Represents external test program
+ */
 class ExternalTest : public TestInstance
 {
   public:
 
+    /**
+     * Class constructor
+     *
+     * @param name Test progran name
+     * @param argc Program argument count
+     * @param argv Program argument values
+     */
     ExternalTest(const char *name, int argc, char **argv);
 
+    /**
+     * Run the external test
+     *
+     * @return TestResult
+     */
     virtual TestResult run();
 
   private:
 
+    /** Program argument count */
     int m_argc;
-    char ** m_argv;
 
+    /** Program argument values */
+    char ** m_argv;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_EXTERNALTEST_H */

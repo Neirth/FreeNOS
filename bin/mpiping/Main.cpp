@@ -19,11 +19,10 @@
 #include <stdlib.h>
 #include <mpi.h>
 
-#define PONG 0xaabbccdd
-
 int main(int argc, char **argv)
 {
     int id, buf, cores;
+    const int pong = 0xaabbccdd;
     MPI_Status status;
 
     if (MPI_Init(&argc, &argv) != MPI_SUCCESS)
@@ -55,7 +54,7 @@ int main(int argc, char **argv)
                         argv[0], i);
                 return EXIT_FAILURE;
             }
-            if (buf == PONG)
+            if (buf == pong)
                 printf("%s: pong from core%d\n", argv[0], i);
             else
                 printf("%s: invalid message %d from core%d\n", argv[0], buf, i);
@@ -63,7 +62,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        buf = PONG;
+        buf = pong;
 
         if (MPI_Send(&buf, 1, MPI_INT, 0, 0, MPI_COMM_WORLD) != MPI_SUCCESS)
         {

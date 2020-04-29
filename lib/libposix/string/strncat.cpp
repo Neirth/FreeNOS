@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,7 +22,7 @@ char * strncat(char *dest, const char *src, size_t n)
     char *s = dest;
 
     while (*s)
-	s++;
+        s++;
 
     strncpy(s, src, n);
     return dest;

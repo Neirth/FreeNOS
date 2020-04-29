@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -40,15 +40,15 @@ PseudoFile::PseudoFile(const char *str)
 PseudoFile::PseudoFile(const char *format, ...)
 {
     va_list args;
-    
+
     // Allocate buffer
     m_buffer = new char[512];
-    
+
     // Format the input
     va_start(args, format);
     m_size = vsnprintf(m_buffer, 512, format, args);
     va_end(args);
-    
+
     // Set members
     m_access = OwnerRW;
 }

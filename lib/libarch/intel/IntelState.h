@@ -22,6 +22,17 @@
 #include <Macros.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
+
+/**
  * Switch Core Stack.
  *
  * This function only needs to save the current Kernel state,
@@ -63,5 +74,11 @@ extern C void interruptHandler();
  * @see interruptHandler
  */
 extern C void (*interruptRun)(CPUState state);
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_INTEL_STATE_H */

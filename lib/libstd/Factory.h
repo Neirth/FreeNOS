@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,6 +19,14 @@
 #define __LIBSTD_FACTORY_H
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
  * Abstract Factory design pattern.
  */
 template <class T> class Factory
@@ -27,6 +35,7 @@ template <class T> class Factory
 
     /**
      * Create an instance of T.
+     *
      * @return Pointer to T.
      */
     static T * create()
@@ -34,5 +43,10 @@ template <class T> class Factory
         return new T();
     }
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_FACTORY_H */

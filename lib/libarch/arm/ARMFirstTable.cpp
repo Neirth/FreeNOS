@@ -96,13 +96,15 @@
 
 /**
  * Entry inside the page directory of a given virtual address.
+ *
  * @param vaddr Virtual Address.
+ *
  * @return Index of the corresponding page directory entry.
  */
 #define DIRENTRY(vaddr) \
     ((vaddr) >> DIRSHIFT)
 
-ARMSecondTable * ARMFirstTable::getSecondTable(Address virt, SplitAllocator *alloc)
+ARMSecondTable * ARMFirstTable::getSecondTable(Address virt, SplitAllocator *alloc) const
 {
     u32 entry = m_tables[ DIRENTRY(virt) ];
 
@@ -119,8 +121,8 @@ MemoryContext::Result ARMFirstTable::map(Address virt,
                                          SplitAllocator *alloc)
 {
     ARMSecondTable *table = getSecondTable(virt, alloc);
-    Address addr;
     Arch::Cache cache;
+    Allocator::Arguments alloc_args;
 
     // Input addresses must be aligned on pagesize boundary
     if ((phys & ~PAGEMASK) || (virt & ~PAGEMASK))
@@ -133,19 +135,21 @@ MemoryContext::Result ARMFirstTable::map(Address virt,
         if (m_tables[ DIRENTRY(virt) ] & PAGE1_SECTION)
             return MemoryContext::AlreadyExists;
 
-        // TODO: Wasting some of the 4KB page, because a page table is only 1KB for ARM.
         // Allocate a new page table
-        if (alloc->allocateLow(sizeof(ARMSecondTable), &addr) != Allocator::Success)
+        alloc_args.address = 0;
+        alloc_args.size = sizeof(ARMSecondTable);
+        alloc_args.alignment = PAGESIZE;
+
+        if (alloc->allocateLow(alloc_args) != Allocator::Success)
             return MemoryContext::OutOfMemory;
 
-        MemoryBlock::set(alloc->toVirtual(addr), 0, PAGESIZE); //sizeof(ARMSecondTable));
+        MemoryBlock::set(alloc->toVirtual(alloc_args.address), 0, PAGESIZE);
 
         // Assign to the page directory. Do not assign permission flags (only for direct sections).
-        m_tables[ DIRENTRY(virt) ] = addr | PAGE1_TABLE;
+        m_tables[ DIRENTRY(virt) ] = alloc_args.address | PAGE1_TABLE;
         cache.cleanData(&m_tables[DIRENTRY(virt)]);
         table = getSecondTable(virt, alloc);
     }
-    // TODO: (re)check for MemoryAccess ?
     return table->map(virt, phys, access);
 }
 
@@ -191,7 +195,9 @@ MemoryContext::Result ARMFirstTable::unmap(Address virt, SplitAllocator *alloc)
         return table->unmap(virt);
 }
 
-MemoryContext::Result ARMFirstTable::translate(Address virt, Address *phys, SplitAllocator *alloc)
+MemoryContext::Result ARMFirstTable::translate(Address virt,
+                                               Address *phys,
+                                               SplitAllocator *alloc) const
 {
     ARMSecondTable *table = getSecondTable(virt, alloc);
     if (!table)
@@ -200,17 +206,18 @@ MemoryContext::Result ARMFirstTable::translate(Address virt, Address *phys, Spli
         return table->translate(virt, phys);
 }
 
-MemoryContext::Result ARMFirstTable::access(Address virt, Memory::Access *access, SplitAllocator *alloc)
+MemoryContext::Result ARMFirstTable::access(Address virt,
+                                            Memory::Access *access,
+                                            SplitAllocator *alloc) const
 {
     ARMSecondTable *table = getSecondTable(virt, alloc);
     if (!table)
         return MemoryContext::InvalidAddress;
     else
-    // TODO: we also need to look at the page directory flags? (not only of the tables)
         return table->access(virt, access);
 }
 
-u32 ARMFirstTable::flags(Memory::Access access)
+u32 ARMFirstTable::flags(Memory::Access access) const
 {
     u32 f = PAGE1_AP_SYS;
 
@@ -225,4 +232,34 @@ u32 ARMFirstTable::flags(Memory::Access access)
     else                                f |= PAGE1_CACHE_WRITEBACK;
 
     return f;
+}
+
+MemoryContext::Result ARMFirstTable::releaseRange(Memory::Range range,
+                                                  SplitAllocator *alloc,
+                                                  bool tablesOnly)
+{
+    Address phys;
+
+    // Walk the page directory within the specified range
+    for (Size i = 0; i < range.size; i += MegaByte(1))
+    {
+        ARMSecondTable *table = getSecondTable(range.virt + i, alloc);
+        if (table)
+        {
+            // Release mapped pages
+            if (!tablesOnly)
+            {
+                for (Size j = 0; j < MegaByte(1); j += PAGESIZE)
+                {
+                    if (table->translate(range.virt + i + j, &phys) == MemoryContext::Success)
+                    {
+                        alloc->release(phys);
+                    }
+                }
+            }
+            // Release page table
+            alloc->release(m_tables[ DIRENTRY(range.virt + i) ] & PAGEMASK);
+        }
+    }
+    return MemoryContext::Success;
 }

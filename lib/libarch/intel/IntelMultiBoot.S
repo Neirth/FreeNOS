@@ -55,8 +55,13 @@ multibootEntry:
     movl $(stack + STACK_SIZE), %esp
     movl %esp, %ebp
 
-    /* Copy multiboot info to CoreInfo. */
+    /* Save multiboot info on the stack (for multibootToCoreInfo) */
     push %ebx
+
+    /* Clear the BSS and then copy multiboot info to CoreInfo.
+     * Note that for the secondary processors, the BSS is automatically
+     * cleared to zero when copying the kernel itself with the CoreServer. */
+    call clearBSS
     call multibootToCoreInfo
 
     /* Jump to bootEntry32 */

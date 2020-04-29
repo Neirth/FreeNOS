@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -47,7 +47,7 @@ ChannelClient::Result ChannelClient::initialize()
     return Success;
 }
 
-ChannelClient::Result ChannelClient::connect(ProcessID pid)
+ChannelClient::Result ChannelClient::connect(ProcessID pid, Size messageSize)
 {
     Address prodAddr, consAddr;
     SystemInformation info;
@@ -58,7 +58,7 @@ ChannelClient::Result ChannelClient::connect(ProcessID pid)
     {
         return OutOfMemory;
     }
-    cons->setMessageSize(sizeof(FileSystemMessage));
+    cons->setMessageSize(messageSize);
     cons->setMode(Channel::Consumer);
 
     // Allocate producer
@@ -68,7 +68,7 @@ ChannelClient::Result ChannelClient::connect(ProcessID pid)
         delete cons;
         return OutOfMemory;
     }
-    prod->setMessageSize(sizeof(FileSystemMessage));
+    prod->setMessageSize(messageSize);
     prod->setMode(Channel::Producer);
 
     // Call VMShare to create shared memory mapping for MemoryChannel.
@@ -162,7 +162,7 @@ ChannelClient::Result ChannelClient::sendRequest(ProcessID pid,
     if (!req || req->active)
     {
         req = new Request;
-        req->message = new FileSystemMessage;
+        req->message = (ChannelMessage *) new u8[ch->getMessageSize()];
         identifier   = m_requests.insert(*req);
     }
     // Fill request object
@@ -218,7 +218,7 @@ Channel * ChannelClient::findConsumer(ProcessID pid)
     // Try to connect
     if ((r = connect(pid)) != Success)
         return ZERO;
-    
+
     return m_registry->getConsumer(pid);
 }
 
@@ -232,7 +232,7 @@ Channel * ChannelClient::findProducer(ProcessID pid)
     // Try to connect
     if ((r = connect(pid)) != Success)
         return ZERO;
-    
+
     return m_registry->getProducer(pid);
 }
 
@@ -242,7 +242,6 @@ ChannelClient::Result ChannelClient::syncReceiveFrom(void *buffer, ProcessID pid
     if (!ch)
         return NotFound;
 
-    // TODO: for inter-core communication, the wakeup call becomes an IPI!
     while (ch->read(buffer) != Channel::Success)
         ProcessCtl(SELF, EnterSleep, 0);
 

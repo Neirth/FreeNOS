@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +22,14 @@
 #include "IOBuffer.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
  * Encapsulates a pending FileSystemMessage.
  */
 class FileSystemRequest
@@ -40,11 +48,15 @@ class FileSystemRequest
 
     /**
      * Get message.
+     *
+     * @return FileSystemMessage pointer
      */
     FileSystemMessage * getMessage();
 
     /**
      * Get IOBuffer.
+     *
+     * @return IOBuffer reference
      */
     IOBuffer & getBuffer();
 
@@ -56,5 +68,10 @@ class FileSystemRequest
     /** Wrapper for doing I/O on the FileSystemMessage buffer. */
     IOBuffer *m_ioBuffer;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __FILESYSTEM_FILE_SYSTEM_REQUEST_H */

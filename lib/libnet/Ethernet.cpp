@@ -109,10 +109,12 @@ Error Ethernet::process(NetworkQueue::Packet *pkt, Size offset)
         case Ethernet::ARP:
             if (m_arp)
                 return m_arp->process(pkt, offset + sizeof(Ethernet::Header));
+            break;
 
         case Ethernet::IPV4:
             if (m_ipv4)
                 return m_ipv4->process(pkt, offset + sizeof(Ethernet::Header));
+            break;
 
         default:
             DEBUG("dropped unknown ethernet type: " << (int) ether->type);

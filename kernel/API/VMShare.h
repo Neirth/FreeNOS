@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,9 +20,12 @@
 
 #include <FreeNOS/System.h>
 
-/**  
- * @defgroup kernelapi kernel (API) 
- * @{  
+/**
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernelapi
+ * @{
  */
 
 /**
@@ -32,14 +35,32 @@
  * @param pid Remote process.
  * @param parameter Parameter for the operation.
  * @param size Size parameter for the operation.
- * @return Zero on success or error code on failure.
+ *
+ * @return API::Success on success and other API::ErrorCode on failure.
  */
-inline Error VMShare(ProcessID pid, API::Operation op, ProcessShares::MemoryShare *share)
+inline API::Result VMShare(ProcessID pid, API::Operation op, ProcessShares::MemoryShare *share)
 {
     return trapKernel3(API::VMShareNumber, pid, op, (Address) share);
 }
 
-extern Error VMShareHandler(ProcessID pid, API::Operation op, ProcessShares::MemoryShare *share);
+/**
+ * @}
+ */
+
+#ifdef __KERNEL__
+
+/**
+ * @addtogroup kernelapi_handler
+ * @{
+ */
+
+extern API::Result VMShareHandler(ProcessID pid, API::Operation op, ProcessShares::MemoryShare *share);
+
+/**
+ * @}
+ */
+
+#endif /* __KERNEL__ */
 
 /**
  * @}

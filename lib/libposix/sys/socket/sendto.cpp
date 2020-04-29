@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -31,7 +31,6 @@ extern C int sendto(int sockfd, const void *buf, size_t len, int flags,
     if (len > sizeof(packet) - addrlen)
         return ERANGE;
 
-    // TODO: inefficient. and move to NetworkClient.
     info.address = addr->addr;
     info.port = addr->port;
 

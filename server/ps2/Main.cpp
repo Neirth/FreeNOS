@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,15 +26,13 @@ int main(int argc, char **argv)
     DeviceServer server("/dev/ps2");
     server.initialize();
 
-    /* Create a new keyboard object. */
+    // Create a new keyboard object
     Keyboard *kb = new Keyboard;
 
-    /* Register it with the DeviceServer. */
+    // Register it with the DeviceServer
     server.registerDevice(kb, "keyboard0");
     server.registerInterrupt(kb, PS2_IRQ);
 
-    /*
-     * Start processing requests.
-     */
+    // Start processing requests
     return server.run();
 }

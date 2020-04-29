@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,6 +24,15 @@
 #include "ChannelRegistry.h"
 #include "Channel.h"
 #include "ChannelMessage.h"
+#include <FileSystemMessage.h>
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libipc
+ * @{
+ */
 
 /**
  * Client for using Channels.
@@ -69,6 +78,8 @@ class ChannelClient : public Singleton<ChannelClient>
         NotFound
     };
 
+  public:
+
     /**
      * Constructor.
      */
@@ -90,6 +101,7 @@ class ChannelClient : public Singleton<ChannelClient>
      * Assign channel registry.
      *
      * @param registry ChannelRegistry object pointer
+     *
      * @return Result code
      */
     Result setRegistry(ChannelRegistry *registry);
@@ -108,15 +120,18 @@ class ChannelClient : public Singleton<ChannelClient>
      * to the given process and registers it with the ChannelRegistry.
      *
      * @param pid ProcessID for the process to connect to.
+     * @param msgSize Default message size to use.
+     *
      * @return Result code
      */
-    virtual Result connect(ProcessID pid);
+    virtual Result connect(ProcessID pid, Size msgSize = sizeof(FileSystemMessage));
 
     /**
      * Try to receive message from any channel.
      *
      * @param buffer Message buffer for output
      * @param pid ProcessID for output
+     *
      * @return Result code
      */
     virtual Result receiveAny(void *buffer, ProcessID *pid);
@@ -129,7 +144,10 @@ class ChannelClient : public Singleton<ChannelClient>
      * called when a response messages is received.
      *
      * @param pid ProcessID to send the message to
-     * @param 
+     * @param buffer Points to message to send
+     * @param callback Called when response message is received
+     *
+     * @return Result code
      */
     virtual Result sendRequest(ProcessID pid,
                                void *buffer,
@@ -140,6 +158,8 @@ class ChannelClient : public Singleton<ChannelClient>
      *
      * @param pid ProcessID from which we receive the message
      * @param msg Message which is received
+     *
+     * @return Result code
      */
     virtual Result processResponse(ProcessID pid,
                                    ChannelMessage *msg);
@@ -149,6 +169,7 @@ class ChannelClient : public Singleton<ChannelClient>
      *
      * @param buffer Message buffer for output
      * @param pid ProcessID for the channel
+     *
      * @return Result code
      */
     virtual Result syncReceiveFrom(void *buffer, ProcessID pid);
@@ -158,6 +179,7 @@ class ChannelClient : public Singleton<ChannelClient>
      *
      * @param buffer Message buffer to send
      * @param pid ProcessID for the channel
+     *
      * @return Result code
      */
     virtual Result syncSendTo(void *buffer, ProcessID pid);
@@ -167,6 +189,7 @@ class ChannelClient : public Singleton<ChannelClient>
      *
      * @param buffer Message buffer to send/receive
      * @param pid ProcessID for the channel
+     *
      * @return Result code
      */
     virtual Result syncSendReceive(void *buffer, ProcessID pid);
@@ -177,6 +200,7 @@ class ChannelClient : public Singleton<ChannelClient>
      * Get consumer for a process.
      *
      * @param pid ProcessID of the process
+     *
      * @return Channel object if found or ZERO otherwise.
      */
     Channel * findConsumer(ProcessID pid);
@@ -185,9 +209,12 @@ class ChannelClient : public Singleton<ChannelClient>
      * Get producer for a process.
      *
      * @param pid ProcessID of the process
+     *
      * @return Channel object if found or ZERO otherwise.
      */
     Channel * findProducer(ProcessID pid);
+
+  private:
 
     /** Contains registered channels */
     ChannelRegistry *m_registry;
@@ -195,5 +222,10 @@ class ChannelClient : public Singleton<ChannelClient>
     /** Contains ongoing requests */
     Index<Request> m_requests;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBIPC_CHANNELCLIENT_H */

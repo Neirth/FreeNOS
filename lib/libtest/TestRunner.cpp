@@ -22,6 +22,7 @@
 #include "TestRunner.h"
 #include "StdoutReporter.h"
 #include "TAPReporter.h"
+#include "XMLReporter.h"
 
 TestRunner::TestRunner(int argc, char **argv)
 {
@@ -39,6 +40,14 @@ TestRunner::TestRunner(int argc, char **argv)
                 delete m_reporter;
 
             m_reporter = new TAPReporter(argc, argv);
+            break;
+        }
+        else if (strcmp(argv[i], "-x") == 0 || strcmp(argv[i], "--xml") == 0)
+        {
+            if (m_reporter)
+                delete m_reporter;
+
+            m_reporter = new XMLReporter(argc, argv);
             break;
         }
         else if (strcmp(argv[i], "-n") == 0)

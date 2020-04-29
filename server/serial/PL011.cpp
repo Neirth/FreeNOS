@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
  * Copyright (C) 2013 Goswin von Brederlow <goswin-v-b@web.de>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,49 +28,49 @@ PL011::PL011(u32 irq)
 
 Error PL011::initialize()
 {
-    // Remap IO base to ensure we have user-level access to the registers.
-    if (m_io.map(IO_BASE + GPIO_BASE, PAGESIZE*2,
-                 Memory::User | Memory::Readable | Memory::Writable | Memory::Device)
-        != IO::Success)
-        return EINVAL;
+    if (!isKernel)
+    {
+        // Remap IO base to ensure we have user-level access to the registers.
+        if (m_io.map(UART_BASE, PAGESIZE*2,
+                     Memory::User | Memory::Readable | Memory::Writable | Memory::Device)
+            != IO::Success)
+        {
+            return EINVAL;
+        }
 
-    // TODO: hack. disable IRQ_REG() == 0...
-    ProcessCtl(SELF, DisableIRQ, 0);
+        // Disable receiving interrupts
+        ProcessCtl(SELF, DisableIRQ, m_irq);
+    }
+    else
+    {
+        m_io.setBase(UART_BASE);
+    }
 
     // Disable PL011.
     m_io.write(PL011_CR, 0x00000000);
-    
-    // Setup the GPIO pin 14 && 15.
-    // Disable pull up/down for all GPIO pins & delay for 150 cycles.
-    m_io.write(GPPUD, 0x00000000);
-    delay(150);
 
-    // Disable pull up/down for pin 14,15 & delay for 150 cycles.
-    m_io.write(GPPUDCLK0, (1 << 14) | (1 << 15));
-    delay(150);
-
-    // Write 0 to GPPUDCLK0 to make it take effect.
-    m_io.write(GPPUDCLK0, 0x00000000);
-    
     // Clear pending interrupts.
     m_io.write(PL011_ICR, 0x7FF);
 
     // Set integer & fractional part of baud rate.
-    // Divider = UART_CLOCK/(16 * Baud)
-    // Fraction part register = (Fractional part * 64) + 0.5
-    // UART_CLOCK = 3000000; Baud = 115200.
-
-    // Divider = 3000000/(16 * 115200) = 1.627 = ~1.
-    // Fractional part register = (.627 * 64) + 0.5 = 40.6 = ~40.
-    m_io.write(PL011_IBRD, 1);
-    m_io.write(PL011_FBRD, 40);
+    m_io.write(PL011_IBRD, 26);
+    m_io.write(PL011_FBRD, 3);
 
     // Disable FIFO, use 8 bit data transmission, 1 stop bit, no parity
     m_io.write(PL011_LCRH, PL011_LCRH_WLEN_8BIT);
 
-    // Enable Rx/Tx interrupts
-    m_io.write(PL011_IMSC,
-         PL011_IMSC_RXIM); // | PL011_IMSC_TXIM);
+    if (isKernel)
+    {
+        // Mask all interrupts.
+        m_io.write(PL011_IMSC, (1 << 1) | (1 << 4) | (1 << 5) |
+                               (1 << 6) | (1 << 7) | (1 << 8) |
+                               (1 << 9) | (1 << 10));
+    }
+    else
+    {
+        // Enable Rx/Tx interrupts
+        m_io.write(PL011_IMSC, PL011_IMSC_RXIM);
+    }
 
     // Enable PL011, receive & transfer part of UART.
     m_io.write(PL011_CR, (1 << 0) | (1 << 8) | (1 << 9));
@@ -90,7 +90,10 @@ Error PL011::interrupt(u32 vector)
         m_io.write(PL011_ICR, PL011_ICR_TXIC);
 
     // Re-enable interrupts
-    ProcessCtl(SELF, EnableIRQ, m_irq);
+    if (!isKernel)
+    {
+        ProcessCtl(SELF, EnableIRQ, m_irq);
+    }
     return ESUCCESS;
 }
 
@@ -123,18 +126,19 @@ Error PL011::write(IOBuffer & buffer, Size size, Size offset)
     if (mis & PL011_MIS_TXMIS)
         m_io.write(PL011_ICR, PL011_ICR_TXIC);
 
-#warning if FR_TXFE sets while buffer isnt empty, we need to wait for the TX IRQ, which we disabled!
-
     // Write as much bytes as possible
-    while ((m_io.read(PL011_FR) & PL011_FR_TXFE) && bytes < size)
+    while (bytes < size)
     {
-        m_io.write(PL011_DR, buffer[bytes++]);
+        if (m_io.read(PL011_FR) & PL011_FR_TXFE)
+        {
+            m_io.write(PL011_DR, buffer[bytes++]);
+        }
     }
     return bytes ? (Error) bytes : EAGAIN;
 }
 
 void PL011::delay(s32 count)
 {
-    asm volatile("1: subs %[count], %[count], #1; bne 1b"
-         : : [count]"r"(count));
+    asm volatile("1: subs %0, %0, #1; bne 1b"
+         : "=r"(count) : "0"(count));
 }

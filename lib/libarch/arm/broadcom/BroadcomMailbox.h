@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,17 @@
 #include <Types.h>
 #include <Macros.h>
 #include <arm/ARMIO.h>
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_bcm
+ * @{
+ */
 
 /**
  * Broadcom System-on-Chip Mailbox interface.
@@ -90,6 +101,8 @@ class BroadcomMailbox
         ARMProperty     = 9
     };
 
+  public:
+
     /**
      * Constructor
      */
@@ -107,14 +120,18 @@ class BroadcomMailbox
      *
      * @param channel
      * @param message 28-bit message on output
+     *
+     * @return Result code.
      */
-    Result read(Channel channel, u32 *message);
+    Result read(Channel channel, u32 *message) const;
 
     /**
      * Write 28-bit message.
      *
      * @param channel Channel to write to.
      * @param message 28-bit message to write.
+     *
+     * @return Result code.
      */
     Result write(Channel channel, u32 message);
 
@@ -123,5 +140,11 @@ class BroadcomMailbox
     /** I/O object */
     ARMIO m_io;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_ARM_BROADCOM_MAILBOX_H */

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,30 +24,33 @@
 #include <Macros.h>
 
 /**
- * @defgroup libc libc (ISO C99)
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
  * @{
  */
 
 /**
- * @brief Seek operations
+ * @name File seek operations
  * @{
  */
 
 /** Seek relative to current position. */
-#define SEEK_CUR	0
+#define SEEK_CUR        0
 
 /** Seek relative to end-of-file. */
-#define SEEK_END	1
+#define SEEK_END        1
 
 /** Seek relative to start-of-file. */
-#define SEEK_SET	2
+#define SEEK_SET        2
 
 /**
  * @}
  */
 
 /**
- * @brief File streams
+ * @name File streams
  * @{
  */
 
@@ -69,22 +72,23 @@ FILE;
  * The mode argument points to a string. If the string is one of the
  * following, the file shall be opened in the indicated mode. Otherwise,
  * the behavior is undefined.
- * 
+ *
  * r or rb           Open file for reading.
  * w or wb           Truncate to zero length or create file for writing.
  * a or ab           Append; open or create file for writing at end-of-file.
  * r+ or rb+ or r+b  Open file for update (reading and writing).
  * w+ or wb+ or w+b  Truncate to zero length or create file for update.
- * a+ or ab+ or a+b  Append; open or create file for update, writing at end-of-file. 
+ * a+ or ab+ or a+b  Append; open or create file for update, writing at end-of-file.
  *
  * @param filename Path to the file to open.
  * @param mode Mode describes how to open the file.
+ *
  * @return Upon successful completion, fopen() shall return a pointer
  *         to the object controlling the stream. Otherwise, a null
  *         pointer shall be returned, and errno shall be set to indicate the error.
  */
 extern C FILE * fopen(const char *filename,
-		      const char *mode);
+                      const char *mode);
 
 /**
  * @brief Binary input.
@@ -104,6 +108,7 @@ extern C FILE * fopen(const char *filename,
  * @param size Size of each item to read.
  * @param nitems Number of items to read.
  * @param stream FILE pointer to read from.
+ *
  * @return Upon successful completion, fread() shall return the number
  *         of elements successfully read which is less than nitems only
  *         if a read error or end-of-file is encountered. If size or
@@ -114,11 +119,11 @@ extern C FILE * fopen(const char *filename,
  *         the error.
  */
 extern C size_t fread(void *ptr, size_t size,
-		      size_t nitems, FILE *stream);
+                      size_t nitems, FILE *stream);
 
 /**
- * @brief Close a stream. 
- * 
+ * @brief Close a stream.
+ *
  * The fclose() function shall cause the stream pointed to by stream
  * to be flushed and the associated file to be closed. Any unwritten
  * buffered data for the stream shall be written to the file; any unread
@@ -128,6 +133,7 @@ extern C size_t fread(void *ptr, size_t size,
  * buffer was automatically allocated, it shall be deallocated.
  *
  * @param stream File stream to close.
+ *
  * @return Upon successful completion, fclose() shall return 0; otherwise,
  *         it shall return EOF and set errno to indicate the error.
  */
@@ -139,8 +145,10 @@ extern C int fclose(FILE *stream);
 
 /**
  * Output a debug message using printf().
+ *
  * @param fmt Formatted string.
  * @param ... Argument list.
+ *
  * @see printf
  */
 #define dprintf(fmt, ...) \
@@ -148,41 +156,50 @@ extern C int fclose(FILE *stream);
 
 /**
  * Write a formatted string into a buffer.
+ *
  * @param buffer String buffer to write to.
  * @param size Maximum number of bytes to write.
  * @param fmt Formatted string.
  * @param ... Argument list.
+ *
  * @return Number of bytes written to the buffer.
  */
 extern C int snprintf(char *buffer, unsigned int size, const char *fmt, ...);
 
 /**
  * Write a formatted string into a buffer.
+ *
  * @param buffer String buffer to write to.
  * @param size Maximum number of bytes to write.
  * @param fmt Formatted string.
  * @param args Argument list.
+ *
  * @return Number of bytes written to the buffer.
  */
 extern C int vsnprintf(char *buffer, unsigned int size, const char *fmt, va_list args);
 
 /**
  * Output a formatted string to standard output.
+ *
  * @param format Formatted string.
  * @param ... Argument list.
+ *
  * @return Number of bytes written or error code on failure.
  */
 extern C int printf(const char *format, ...);
 
 /**
  * Output a formatted string to standard output, using a variable argument list.
+ *
  * @param format Formatted string.
  * @param ... Argument list.
+ *
  * @return Number of bytes written or error code on failure.
  */
 extern C int vprintf(const char *format, va_list args);
 
 /**
+ * @}
  * @}
  */
 

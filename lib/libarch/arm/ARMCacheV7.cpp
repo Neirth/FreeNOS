@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,13 @@
 
 #include "ARMCore.h"
 #include "ARMCacheV7.h"
+
+#define CCSIDR_LINE_SIZE_OFFSET          0
+#define CCSIDR_LINE_SIZE_MASK            0x7
+#define CCSIDR_ASSOCIATIVITY_OFFSET      3
+#define CCSIDR_ASSOCIATIVITY_MASK        (0x3FF << 3)
+#define CCSIDR_NUM_SETS_OFFSET           13
+#define CCSIDR_NUM_SETS_MASK             (0x7FFF << 13)
 
 ARMCacheV7::Result ARMCacheV7::invalidate(ARMCacheV7::Type type)
 {
@@ -113,14 +120,14 @@ ARMCacheV7::Result ARMCacheV7::cleanAddress(ARMCacheV7::Type type, Address addr)
     return Success;
 }
 
-u32 ARMCacheV7::getCacheLevelId()
+u32 ARMCacheV7::getCacheLevelId() const
 {
     u32 levelId;
     asm volatile ("mrc p15,1,%0,c0,c0,1" : "=r" (levelId));
     return levelId;
 }
 
-u32 ARMCacheV7::readCacheSize(u32 level, u32 type)
+u32 ARMCacheV7::readCacheSize(u32 level, u32 type) const
 {
     u32 sel = level << 1 | type;
     u32 ids;
@@ -144,17 +151,11 @@ static inline s32 log_2_n_round_up(u32 n)
     }
 
     if (n & (n - 1))
-        return log2n + 1; /* not power of 2 - round up */
+        return log2n + 1; // not power of 2 - round up
     else
-        return log2n; /* power of 2 */
+        return log2n; // power of 2
 }
 
-#define CCSIDR_LINE_SIZE_OFFSET          0
-#define CCSIDR_LINE_SIZE_MASK            0x7
-#define CCSIDR_ASSOCIATIVITY_OFFSET      3
-#define CCSIDR_ASSOCIATIVITY_MASK        (0x3FF << 3)
-#define CCSIDR_NUM_SETS_OFFSET           13
-#define CCSIDR_NUM_SETS_MASK             (0x7FFF << 13)
 
 ARMCacheV7::Result ARMCacheV7::flushLevel(u32 level, bool clean)
 {

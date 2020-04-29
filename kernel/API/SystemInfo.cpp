@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,14 +21,12 @@
 #include <SplitAllocator.h>
 #include <CoreInfo.h>
 
-Error SystemInfoHandler(SystemInformation *info)
+API::Result SystemInfoHandler(SystemInformation *info)
 {
     SplitAllocator *memory = Kernel::instance->getAllocator();
     CoreInfo *core = Kernel::instance->getCoreInfo();
 
     DEBUG("");
-
-    // TODO: Verify memory access
 
     // Fill in our current information
     info->version          = VERSIONCODE;

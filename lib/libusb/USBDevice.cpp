@@ -186,20 +186,6 @@ Error USBDevice::initialize()
             }
         }
     }
-
-#if 0
-    getInterfaceDescriptor(m_interface);
-
-    // Get all endpoint descriptors
-    for (Size i = 1; i < m_interface->numEndpoints; i++)
-    {
-        USBDescriptor::Endpoint *ep = new USBDescriptor::Endpoint;
-        MemoryBlock::set(ep, 0, sizeof(*ep));
-
-        // Retrieve the endpoint descriptor
-        getEndpointDescriptor(i, ep);
-    }
-#endif
     return ESUCCESS;
 }
 
@@ -296,8 +282,8 @@ Error USBDevice::controlMessage(u8 request,
     msg.type          = USBTransfer::Control;
     msg.state         = USBMessage::Setup;
     msg.maxPacketSize = !m_device->maxPacketSize ? 8 : m_device->maxPacketSize;
-    msg.hubAddress    = 1; // TODO
-    msg.portAddress   = 1; // TODO
+    msg.hubAddress    = 1;
+    msg.portAddress   = 1;
 
     msg.setup.requestType = (direction << 7) | (type << 5) | recipient;
     msg.setup.request     = request;
@@ -306,12 +292,10 @@ Error USBDevice::controlMessage(u8 request,
     msg.setup.length      = size;
 
     msg.deviceId      = m_id;
-    msg.endpointId    = 0; // TODO: make parameter
+    msg.endpointId    = 0;
     msg.size          = size;
 
     // Use the physical address of the buffer
-    // TODO: for security this is not good. The USBDevice
-    // can supply a malicious physical address, even inside the kernel.
     if (buffer)
     {
         Memory::Range range;
@@ -351,8 +335,6 @@ Error USBDevice::transfer(const USBTransfer::Type type,
     msg.size          = size;
 
     // Use the physical address of the buffer
-    // TODO: for security this is not good. The USBDevice
-    // can supply a malicious physical address, even inside the kernel.
     Memory::Range range;
     range.virt = (Address) buffer;
     VMCtl(SELF, LookupVirtual, &range);
@@ -373,7 +355,6 @@ Error USBDevice::beginTransfer(
 {
     DEBUG("");
 
-    // TODO: make a Pool for this to avoid runtime allocations
     USBMessage *msg = new USBMessage;
     msg->direction     = direction;
     msg->speed         = m_speed;
@@ -391,26 +372,25 @@ Error USBDevice::beginTransfer(
     msg->packetId      = m_endpointsPacketId.at(msg->endpointId);
 
     // Use the physical address of the buffer
-    // TODO: for security this is not good. The USBDevice
-    // can supply a malicious physical address, even inside the kernel.
     Memory::Range range;
     range.virt = (Address) buffer;
     VMCtl(SELF, LookupVirtual, &range);
     msg->buffer = range.phys;
 
-    // TODO: move this kind of code in libfs (filesystem client) and reuse in libposix's write() too.
     FileSystemMessage fs;
-    FileDescriptor *fd = (FileDescriptor *) getFiles()->get(m_transferFile);
+    FileDescriptor *files = getFiles();
 
     // Write the file
-    if (fd)
+    if (m_transferFile > 0 && m_transferFile < FILE_DESCRIPTOR_MAX && files[m_transferFile].open)
     {
+        // Prepare the message. We use the offset field to remember virtual input buffer address
+        FileDescriptor *fd = &files[m_transferFile];
         fs.type   = ChannelMessage::Request;
         fs.action = WriteFile;
         fs.path   = fd->path;
         fs.buffer = (char *) msg;
         fs.size   = sizeof(*msg);
-        fs.offset = (Size) buffer; // TODO: abuse the offset field to remember virtual input buffer address
+        fs.offset = (Size) buffer;
         fs.from   = SELF;
         fs.deviceID.minor = fd->identifier;
         if (ChannelClient::instance->sendRequest(fd->mount, &fs, callback) == ChannelClient::Success)
@@ -437,7 +417,6 @@ Error USBDevice::submit(USBMessage & msg)
 {
     DEBUG("");
 
-    // TODO: make this more efficient by doing a "special" readwrite() call? with IPCMessage(..., API::SendReceive, ...)
     // Make an USB transfer by writing the USB transfer file
     if (::write(m_transferFile, &msg, sizeof(msg)) != sizeof(msg))
     {

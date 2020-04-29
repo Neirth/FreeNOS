@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,6 +24,14 @@
 #include "Macros.h"
 #include "MemoryBlock.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
 /** Default size of an Vector */
 #define VECTOR_DEFAULT_SIZE  64
 
@@ -36,6 +44,7 @@ template <class T> class Vector : public Sequence<T>
 
     /**
      * Constructor.
+     *
      * Initializes the Vector with the given Size.
      *
      * @param size The maximum size of the array
@@ -69,7 +78,7 @@ template <class T> class Vector : public Sequence<T>
     /**
      * Destructor.
      */
-    ~Vector()
+    virtual ~Vector()
     {
         delete[] m_array;
     }
@@ -78,6 +87,7 @@ template <class T> class Vector : public Sequence<T>
      * Adds the given item to the Vector, if possible.
      *
      * @param item The item to add to the Vector.
+     *
      * @return Position of the item in the Vector or -1 on failure.
      */
     virtual int insert(const T & item)
@@ -92,10 +102,12 @@ template <class T> class Vector : public Sequence<T>
 
     /**
      * Inserts the given item at the given position.
+     *
      * If an item exists at the given position, it will be replaced by the given item.
      *
      * @param position The position to insert the item.
      * @param item The item to insert
+     *
      * @return bool Whether inserting the item at the given position succeeded.
      */
     virtual bool insert(Size position, const T & item)
@@ -121,6 +133,7 @@ template <class T> class Vector : public Sequence<T>
      * Returns the item at the given position.
      *
      * @param position The position of the item to get.
+     *
      * @return Pointer to the item at the given position.
      */
     virtual const T * get(Size position) const
@@ -154,6 +167,7 @@ template <class T> class Vector : public Sequence<T>
      * Removes the item at the given position.
      *
      * @param position The position of the item to remove.
+     *
      * @return bool Whether removing the item succeeded.
      */
     virtual bool removeAt(Size position)
@@ -184,6 +198,7 @@ template <class T> class Vector : public Sequence<T>
 
     /**
      * Returns the number of items inside the Vector.
+     *
      * @return Number of items inside the Vector.
      */
     virtual Size count() const
@@ -237,5 +252,10 @@ template <class T> class Vector : public Sequence<T>
     /** Number of used items in the array. */
     Size m_count;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_VECTOR_H */

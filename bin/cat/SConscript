@@ -18,5 +18,5 @@
 Import('build_env')
 
 env = build_env.Clone()
-env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libexec', 'libarch', 'libipc' ])
-env.TargetProgram('cat', 'Main.cpp', env['bin'])
+env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libexec', 'libarch', 'libipc', 'libfs' ])
+env.TargetProgram('cat', Glob('*.cpp'), env['bin'])

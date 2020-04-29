@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,11 +18,19 @@
 #ifndef __FILESYSTEM_FILETYPE_H
 #define __FILESYSTEM_FILETYPE_H
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
 /** Number of bits needed to store a FileType. */
-#define FILETYPE_BITS	3
+#define FILETYPE_BITS   3
 
 /** Masker value for all FileTypes. */
-#define FILETYPE_MASK	7
+#define FILETYPE_MASK   7
 
 /**
  * Convert from a (host system's) POSIX struct stat into a FileType.
@@ -35,20 +43,20 @@
     \
     switch ((st)->st_mode & S_IFMT) \
     { \
-	case S_IFBLK:  t = BlockDeviceFile; break; \
-	case S_IFCHR:  t = CharacterDeviceFile; break; \
-	case S_IFIFO:  t = FIFOFile; break; \
-	case S_IFREG:  t = RegularFile; break; \
-	case S_IFDIR:  t = DirectoryFile; break; \
-	case S_IFLNK:  t = SymlinkFile; break; \
-	case S_IFSOCK: t = SocketFile; break; \
-	default: break; \
+        case S_IFBLK:  t = BlockDeviceFile; break; \
+        case S_IFCHR:  t = CharacterDeviceFile; break; \
+        case S_IFIFO:  t = FIFOFile; break; \
+        case S_IFREG:  t = RegularFile; break; \
+        case S_IFDIR:  t = DirectoryFile; break; \
+        case S_IFLNK:  t = SymlinkFile; break; \
+        case S_IFSOCK: t = SocketFile; break; \
+        default: break; \
     } \
     t; \
 })
 
-/** 
- * All possible filetypes. 
+/**
+ * All possible filetypes.
  */
 typedef enum FileType
 {
@@ -58,9 +66,14 @@ typedef enum FileType
     CharacterDeviceFile = 3,
     SymlinkFile         = 4,
     FIFOFile            = 5,
-    SocketFile		= 6,
-    UnknownFile		= 7,
+    SocketFile          = 6,
+    UnknownFile         = 7,
 }
 FileType;
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __FILESYSTEM_FILETYPE_H */

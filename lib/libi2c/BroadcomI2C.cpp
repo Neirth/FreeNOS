@@ -40,7 +40,7 @@ BroadcomI2C::Result BroadcomI2C::initialize()
 
     // Detect I2C controller. In Qemu, the ClockDivider is always zero.
     if (m_io.read(ClockDivider) == 0)
-    {        
+    {
         return NotFound;
     }
 
@@ -122,7 +122,7 @@ BroadcomI2C::Result BroadcomI2C::read(u8 *buf, Size size)
     // Clear FIFO and Status
     m_io.write(Control, ClearFIFO);
     m_io.write(Status, ClockStretchTimeout | AcknowledgeError | TransferDone);
-    
+
     // Set data length
     m_io.write(DataLength, size);
 

@@ -23,6 +23,14 @@
 class UDP;
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * User Datagram Protocol (UDP).
  *
  * The UDP factory creates new sockets for applications.
@@ -47,6 +55,7 @@ class UDPFactory : public File
      * @param buffer Input/Output buffer to output bytes to.
      * @param size Number of bytes to read, at maximum.
      * @param offset Offset inside the file to start reading.
+     *
      * @return Number of bytes read on success, Error on failure.
      */
     virtual Error read(IOBuffer & buffer, Size size, Size offset);
@@ -56,5 +65,10 @@ class UDPFactory : public File
     /** UDP protocol instance */
     UDP *m_udp;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_UDPFACTORY_H */

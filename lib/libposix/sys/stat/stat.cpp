@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,7 @@
 #include "Runtime.h"
 #include <errno.h>
 #include <Log.h>
+#include "unistd.h"
 #include "sys/stat.h"
 
 int stat(const char *path, struct stat *buf)
@@ -27,16 +28,29 @@ int stat(const char *path, struct stat *buf)
     FileSystemMessage msg;
     FileStat st;
     ProcessID mnt = findMount(path);
+    char fullpath[PATH_MAX];
 
-    /* Fill message. */
+    // Relative or absolute?
+    if (path[0] != '/')
+    {
+        char cwd[PATH_MAX];
+
+        // What's the current working dir?
+        getcwd(cwd, PATH_MAX);
+        snprintf(fullpath, sizeof(fullpath), "%s/%s", cwd, path);
+    }
+    else
+        strlcpy(fullpath, path, sizeof(fullpath));
+
+    // Fill message
     msg.type   = ChannelMessage::Request;
     msg.action = StatFile;
-    msg.path   = (char *) path;
+    msg.path   = fullpath;
     msg.stat   = &st;
 
-    DEBUG("path = " << (uint) msg.path << " stat = " << (uint) msg.stat);
+    DEBUG("path = " << (void *) msg.path << " stat = " << (void *) msg.stat);
 
-    /* Ask the FileSystem for the information. */
+    // Ask the FileSystem for the information
     if (mnt)
     {
         ChannelClient::instance->syncSendReceive(&msg, mnt);
@@ -51,7 +65,7 @@ int stat(const char *path, struct stat *buf)
     }
     else
         errno = msg.result = ENOENT;
-    
-    /* Success. */
+
+    // Success
     return msg.result == ESUCCESS ? 0 : -1;
 }

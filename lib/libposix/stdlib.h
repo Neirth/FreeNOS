@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,9 +21,12 @@
 #include <Macros.h>
 #include <sys/types.h>
 
-/** 
- * @defgroup libc libc (ISO C99)
- * @{ 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
+ * @{
  */
 
 /** Successful termination. */
@@ -40,20 +43,21 @@
  * the behaviour is undefined.
  *
  * @param status If the value of status is zero or EXIT_SUCCESS, an
- *		 implementation defined form of the status successful
- *		 termination is returned. If the value of status is
- *		 EXIT_FAILURE, an implementation-defined form of the status
- *		 unsuccesful termination is returned. Otherwise the status
- *		 is implementation-defined.
+ *               implementation defined form of the status successful
+ *               termination is returned. If the value of status is
+ *               EXIT_FAILURE, an implementation-defined form of the status
+ *               unsuccesful termination is returned. Otherwise the status
+ *               is implementation-defined.
  * @return The exit function cannot return to its caller.
  */
 extern C void exit(int status);
 
-/** 
- * @brief Convert a number to a string. 
- * @param buffer String buffer to write to. 
- * @param divisor Base of the number, e.g. 16 for hexadecimal. 
- * @param number The number to convert. 
+/**
+ * @brief Convert a number to a string.
+ *
+ * @param buffer String buffer to write to.
+ * @param divisor Base of the number, e.g. 16 for hexadecimal.
+ * @param number The number to convert.
  */
 extern C void itoa(char *buffer, int divisor, int number);
 
@@ -65,6 +69,7 @@ extern C void itoa(char *buffer, int divisor, int number);
  * respectively.
  *
  * @param nptr String pointer to convert.
+ *
  * @return The atoi, atol, and atoll functions return the converted value.
  */
 extern C int atoi(const char *nptr);
@@ -82,6 +87,7 @@ extern C int atoi(const char *nptr);
  *               str is stored in the object pointed to by endptr, provided
  *               that endptr is not a null pointer.
  * @param base Base of the number, e.g. 16 for hexadecimal.
+ *
  * @return Upon successful completion, these functions shall return the
  *         converted value, if any. If no conversion could be performed,
  *         0 shall be returned and errno may be set to [EINVAL]. If the
@@ -99,6 +105,7 @@ extern C long strtol(const char *nptr, char **endptr, int base);
  * size in bytes is specified by size and whose value is unspecified.
  *
  * @param size Number of bytes to allocate.
+ *
  * @return Upon successful completion with size not equal to 0, malloc()
  *         shall return a pointer to the allocated space. If size is 0,
  *         either a null pointer or a unique pointer that can be
@@ -120,27 +127,32 @@ extern C void * malloc(size_t size);
  * Any use of a pointer that refers to freed space results in undefined behavior.
  *
  * @param ptr Previously allocated memory to free.
+ *
  * @return The free() function shall not return a value.
  */
 extern C void free(void *ptr);
 
 /**
- * @brief Random number generator 
+ * @brief Random number generator
  *
  * The srandom() function sets its argument as the seed for a new sequence of
  * pseudo-random integers to be returned by random(). These sequences are
  * repeatable by calling srandom() with the same seed value. If no seed value
  * is provided, the random() function is automatically seeded with a value of 1.
+ *
+ * @param seed Initial seed value for the randomizer
  */
 extern C void srandom(unsigned int seed);
 
 /**
  * @brief Random number generator
+ *
  * @return Successive pseudo-random numbers in the range from 0 to RAND_MAX.
  */
 extern C long int random(void);
 
 /**
+ * @}
  * @}
  */
 

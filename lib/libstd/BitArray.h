@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +22,14 @@
 #include "Assert.h"
 #include "Types.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
 /** Macro to convert number of bits to bytes */
 #define BITS_TO_BYTES(bits) ((bits / 8) + ((bits % 8) ? 1 : 0))
 
@@ -42,6 +50,8 @@ class BitArray
         OutOfMemory
     };
 
+  public:
+
     /**
      * Class constructor.
      *
@@ -53,7 +63,7 @@ class BitArray
     /**
      * Class destructor.
      */
-    ~BitArray();
+    virtual ~BitArray();
 
     /**
      * Returns the maximum size of this Container.
@@ -66,6 +76,7 @@ class BitArray
      * Get the number of bits in the map which have the given value.
      *
      * @param on True to get the number of 1-bits, false for 0-bits.
+     *
      * @return Number of bits with the given value.
      */
     Size count(bool on) const;
@@ -80,6 +91,7 @@ class BitArray
 
     /**
      * Set a range of bits inside the map to 1.
+     *
      * @param from Bit to start with.
      * @param to End bit (inclusive).
      */
@@ -92,6 +104,7 @@ class BitArray
      * @param count Number of consequetive bits required.
      * @param offset Start bit number to start searching at inside the BitArray.
      * @param boundary First bit number must be on the given alignment boundary.
+     *
      * @return Result code.
      */
     Result setNext(Size *bit, Size count = 1, Size offset = 0, Size boundary = 1);
@@ -110,19 +123,23 @@ class BitArray
 
     /**
      * Verify if a given bit is set.
+     *
      * @param bit Bit number to check.
+     *
      * @return True if marked, false otherwise.
      */
     bool isSet(Size bit) const;
 
     /**
      * Retrieve a pointer to the internal BitArray.
+     *
      * @return Internal BitArray.
      */
     u8 * array() const;
 
     /**
      * Use the given pointer as the BitArray buffer.
+     *
      * @param array New bits array pointer.
      * @param size New number of bits. ZERO to keep the old value.
      */
@@ -130,11 +147,19 @@ class BitArray
 
     /**
      * Retrieve the value of the given bit.
+     *
+     * @param bit Bit number to find
+     *
+     * @return True if set, false otherwise
      */
     bool operator[](Size bit) const;
 
     /**
-     * Retrieve the value of the given bit.
+     * Retrieve the value of the given bit
+     *
+     * @param bit Bit number to find
+     *
+     * @return True if set, false otherwise
      */
     bool operator[](int bit) const;
 
@@ -152,5 +177,10 @@ class BitArray
     /** True if m_array was allocated interally. */
     bool m_allocated;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_BITARRAY_H */

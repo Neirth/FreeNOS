@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,21 +20,20 @@
 
 #ifndef __ASSEMBLER__
 
-/** 
- * @defgroup types types
- * @{ 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
  */
 
 /**
  * Restrict bit operations.
+ *
  * @see http://kerneltrap.org/node/3848
  */
-#if 0
-#define BITWISE \
-    __attribute__((bitwise))
-#else
 #define BITWISE
-#endif
 
 /**
  * @name Unsigned integers.
@@ -62,7 +61,7 @@ typedef unsigned char u8;
 /**
  * @}
  */
- 
+
 /**
  * @name Signed integers.
  * @{
@@ -92,6 +91,7 @@ typedef signed char s8;
 
 /**
  * @name Bitwise checked integers.
+ *
  * @see http://kerneltrap.org/node/3848
  * @{
  */
@@ -139,12 +139,12 @@ typedef unsigned short GroupID;
 /** Process Identification Number. */
 typedef u16 ProcessID;
 
-/**                                                                                   
- * Describes a device ID number.                                                      
- */                                                                                   
-typedef struct DeviceID                                                               
-{                                                                                     
-    /** Major device ID number is a PID. */                                           
+/**
+ * Describes a device ID number.
+ */
+typedef struct DeviceID
+{
+    /** Major device ID number is a PID. */
     ProcessID major;
 
     /** Device specific minor ID number. */
@@ -176,6 +176,11 @@ namespace Number
 #endif /* __cplusplus */
 
 /**
+ * @}
+ */
+
+/**
+ * @}
  * @}
  */
 

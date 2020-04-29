@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,32 +21,35 @@
 #include <Types.h>
 
 /**
- * @defgroup linn LinnFS (Linnenbank Filesystem) 
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup linnfs
  * @{
  */
 
-/** 
- * @name Special Inode Numbers 
- * @{ 
+/**
+ * @name Special Inode Numbers
+ * @{
  */
 
 /** Root inode. */
-#define LINN_INODE_ROOT		0
+#define LINN_INODE_ROOT         0
 
 /** Boot loader inode. */
-#define LINN_INODE_LOADER	1
+#define LINN_INODE_LOADER       1
 
 /** Bad blocks inode. */
-#define LINN_INODE_BAD		2
+#define LINN_INODE_BAD          2
 
 /** Journal inode. */
-#define LINN_INODE_JOURNAL	3
+#define LINN_INODE_JOURNAL      3
 
 /** First non-reserved inode. */
-#define LINN_INODE_FIRST	4
+#define LINN_INODE_FIRST        4
 
-/** 
- * @} 
+/**
+ * @}
  */
 
 /**
@@ -55,19 +58,19 @@
  */
 
 /** Direct blocks. */
-#define LINN_INODE_DIR_BLOCKS	4
+#define LINN_INODE_DIR_BLOCKS   4
 
 /** Indirect blocks. */
-#define	LINN_INODE_IND_BLOCKS	(LINN_INODE_DIR_BLOCKS  + 1)
+#define LINN_INODE_IND_BLOCKS   (LINN_INODE_DIR_BLOCKS  + 1)
 
 /** Double indirect blocks. */
-#define	LINN_INODE_DIND_BLOCKS	(LINN_INODE_IND_BLOCKS  + 1)
+#define LINN_INODE_DIND_BLOCKS  (LINN_INODE_IND_BLOCKS  + 1)
 
 /** Triple indirect blocks. */
-#define	LINN_INODE_TIND_BLOCKS	(LINN_INODE_DIND_BLOCKS + 1)
+#define LINN_INODE_TIND_BLOCKS  (LINN_INODE_DIND_BLOCKS + 1)
 
 /** Total number of block pointers in an LinnInode. */
-#define	LINN_INODE_BLOCKS	(LINN_INODE_TIND_BLOCKS + 1)
+#define LINN_INODE_BLOCKS       (LINN_INODE_TIND_BLOCKS + 1)
 
 /**
  * @}
@@ -80,8 +83,10 @@
 
 /**
  * Calculate the number of blocks used in an LinnInode.
+ *
  * @param super LinnSuperBlock pointer.
  * @param inode LinnInode pointer.
+ *
  * @return Number of blocks used.
  */
 #define LINN_INODE_NUM_BLOCKS(super,inode) \
@@ -98,21 +103,22 @@
  */
 typedef struct LinnInode
 {
-    le16 type:3;	/**< Type of file, as an FileType. */
-    le16 mode:13;	/**< Access permissions, as an FileMode. */
-    le16 uid;		/**< User Identity. */
-    le16 gid;		/**< Group Identity. */
-    le32 size;		/**< Size in bytes. */
-    le32 accessTime;	/**< Access time. */
-    le32 createTime;	/**< Creation time. */
-    le32 modifyTime;	/**< Modification time. */
-    le32 changeTime;	/**< Status change timestamp. */
-    le16 links;		/**< Links count. */
+    le16 type:3;        /**< Type of file, as an FileType. */
+    le16 mode:13;       /**< Access permissions, as an FileMode. */
+    le16 uid;           /**< User Identity. */
+    le16 gid;           /**< Group Identity. */
+    le32 size;          /**< Size in bytes. */
+    le32 accessTime;    /**< Access time. */
+    le32 createTime;    /**< Creation time. */
+    le32 modifyTime;    /**< Modification time. */
+    le32 changeTime;    /**< Status change timestamp. */
+    le16 links;         /**< Links count. */
     le32 block[LINN_INODE_BLOCKS]; /**< Pointers to blocks. */
 }
 LinnInode;
 
 /**
+ * @}
  * @}
  */
 

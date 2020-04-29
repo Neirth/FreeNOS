@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,6 +30,14 @@
 #include "FileSystemRequest.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
  * Abstract filesystem class.
  */
 class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
@@ -42,7 +50,7 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      * @param p Path to which we are mounted.
      */
     FileSystem(const char *path);
-    
+
     /**
      * Destructor function.
      */
@@ -63,7 +71,7 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
     Directory * getRoot();
 
     /**
-     * @brief Mount the FileSystem.
+     * Mount the FileSystem.
      *
      * This function is responsible for mounting the
      * FileSystem.
@@ -77,6 +85,7 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      *
      * @param file File object pointer.
      * @param path The path for the File.
+     *
      * @return Error code.
      */
     Error registerFile(File *file, const char *path, ...);
@@ -87,14 +96,17 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      * @param file File object pointer.
      * @param path The path for the File.
      * @param args Variable argument list.
+     *
      * @return Error code.
      */
     Error registerFile(File *file, const char *path, va_list args);
 
     /**
-     * @brief Create a new file.
+     * Create a new file.
+     *
      * @param type Describes the type of file to create.
      * @param deviceID Optionally specifies the device identities to create.
+     *
      * @return Pointer to a new File on success or ZERO on failure.
      */
     virtual File * createFile(FileType type, DeviceID deviceID);
@@ -105,6 +117,7 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      * @param file File to insert.
      * @param pathFormat Formatted full path to the file to insert.
      * @param ... Argument list.
+     *
      * @return Pointer to the newly created FileCache, or NULL on failure.
      */
     FileCache * insertFileCache(File *file, const char *pathFormat, ...);
@@ -115,12 +128,13 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      * @param file File to insert.
      * @param pathFormat Formatted full path to the file to insert.
      * @param args Argument list.
+     *
      * @return Pointer to the newly created FileCache, or NULL on failure.
      */
     FileCache * insertFileCache(File *file, const char *pathFormat, va_list args);
 
     /**
-     * @brief Process an incoming filesystem request using a path.
+     * Process an incoming filesystem request using a path.
      *
      * This message handler is responsible for processing any
      * kind of FileSystemMessages which have an FileSystemAction using
@@ -144,7 +158,7 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      *
      * @return True if retry is needed again, false if all requests processed
      */
-    bool retryRequests();
+    virtual bool retryRequests();
 
   protected:
 
@@ -157,7 +171,14 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
     Error processRequest(FileSystemRequest *req);
 
     /**
-     * @brief Change the filesystem root directory.
+     * Send response for a FileSystemMessage
+     *
+     * @param msg The FileSystemMessage to send response for
+     */
+    void sendResponse(FileSystemMessage *msg);
+
+    /**
+     * Change the filesystem root directory.
      *
      * This function set the root member to the given
      * Directory pointer. Additionally, it inserts '/.' and '/..'
@@ -171,7 +192,7 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
     void setRoot(Directory *newRoot);
 
     /**
-     * @brief Retrieve a File from storage.
+     * Retrieve a File from storage.
      *
      * This function is responsible for walking the
      * given FileSystemPath, retrieving each uncached File into
@@ -179,52 +200,69 @@ class FileSystem : public ChannelServer<FileSystem, FileSystemMessage>
      * of the last entry in the given path.
      *
      * @param path A path to lookup from storage.
+     *
      * @return Pointer to a FileCache on success, ZERO otherwise.
      */
     FileCache * lookupFile(FileSystemPath *path);
 
     /**
      * Search the cache for an entry.
+     *
      * @param path Full path of the file to find.
+     *
      * @return Pointer to FileCache object on success, NULL on failure.
      */
     FileCache * findFileCache(char *path);
 
     /**
      * Search the cache for an entry.
+     *
      * @param path Full path of the file to find.
+     *
      * @return Pointer to FileCache object on success, NULL on failure.
      */
     FileCache * findFileCache(String *path);
 
     /**
      * Search the cache for an entry.
+     *
      * @param path Full path of the file to find.
+     *
      * @return Pointer to FileCache object on success, NULL on failure.
      */
     FileCache * findFileCache(FileSystemPath *p);
 
     /**
      * Process a cache hit.
+     *
      * @param cache FileCache object which has just been referenced.
+     *
      * @return FileCache object pointer.
      */
     virtual FileCache * cacheHit(FileCache *cache);
 
     /**
      * Cleans up the entire file cache (except opened file caches and root).
+     *
      * @param cache Input FileCache object. ZERO to clean up all from root.
      */
     void clearFileCache(FileCache *cache = ZERO);
-    
+
+  protected:
+
     /** Root entry of the filesystem tree. */
     FileCache *m_root;
-    
+
     /** Mount point. */
     const char *m_mountPath;
 
     /** Contains ongoing requests */
     List<FileSystemRequest *> *m_requests;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIB_LIBFS_FILESYSTEM_H */

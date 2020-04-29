@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -43,8 +43,8 @@ int MPI_Send(const void *buf,
     {
         msg.integer = *(((int *) buf) + i);
 
-        // TODO: replace with ChannelClient::syncSendTo
-        while (ch->write(&msg) != Channel::Success);
+        while (ch->write(&msg) != Channel::Success)
+            ;
     }
     return MPI_SUCCESS;
 }

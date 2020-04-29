@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,13 +21,13 @@
 
 int closedir(DIR *dirp)
 {
-    /* Close file handle. */
+    // Close file handle
     close(dirp->fd);
 
-    /* Free buffers. */
+    // Free buffers
     delete dirp->buffer;
     delete dirp;
-    
-    /* Success. */
+
+    // Success
     return 0;
 }

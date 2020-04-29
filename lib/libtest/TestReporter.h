@@ -22,6 +22,14 @@
 #include "TestCase.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
  * Responsible for outputting test results.
  */
 class TestReporter
@@ -59,9 +67,14 @@ class TestReporter
     void setReport(bool value);
 
     /**
-     * Set show statistics on/off.
+     * Set final statistics on/off.
      */
     void setStatistics(bool value);
+
+    /**
+     * Set multine mode on/off.
+     */
+    void setMultiline(bool value);
 
     /**
      * Prepare for next test.
@@ -105,6 +118,8 @@ class TestReporter
      */
     virtual void reportFinish(List<TestInstance *> & tests) = 0;
 
+  protected:
+
     /** Argument count */
     int m_argc;
 
@@ -114,11 +129,19 @@ class TestReporter
     /** Report on/off */
     bool m_report;
 
-    /** Show final statistics. */
-    bool m_showStatistics;
+    /** Final statistics on/off */
+    bool m_statistics;
+
+    /** Multi line output */
+    bool m_multiline;
 
     /** Test statistics */
     uint m_ok, m_fail, m_skip;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTREPORTER_H */

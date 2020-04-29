@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,6 +20,14 @@
 
 #include <HashTable.h>
 #include "File.h"
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
 
 /**
  * Cached in-memory file.
@@ -43,10 +51,12 @@ typedef struct FileCache
             p->entries.insert(name, this);
         }
     }
-    
+
     /**
      * Comparision operator.
+     *
      * @param fc Instance to compare us with.
+     *
      * @return True if equal, false otherwise.
      */
     bool operator == (FileCache *fc)
@@ -59,16 +69,21 @@ typedef struct FileCache
 
     /** Our name */
     String name;
-    
+
     /** Contains childs. */
     HashTable<String, FileCache *> entries;
 
     /** Is this entry still valid?. */
     bool valid;
-    
+
     /** Parent */
     FileCache *parent;
 }
 FileCache;
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIB_LIBFS_FILECACHE_H */

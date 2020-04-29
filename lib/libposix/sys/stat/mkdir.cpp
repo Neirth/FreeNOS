@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,14 +26,14 @@ int mkdir(const char *path, mode_t mode)
     FileSystemMessage msg;
     ProcessID mnt = findMount(path);
 
-    /* Fill message. */
+    // Fill message
     msg.type   = ChannelMessage::Request;
     msg.action = CreateFile;
     msg.path   = (char *) path;
     msg.mode   = mode;
     msg.filetype = DirectoryFile;
-    
-    /* Ask the FileSystem to create it. */
+
+    // Ask the FileSystem to create it
     if (mnt)
     {
         ChannelClient::instance->syncSendReceive(&msg, mnt);
@@ -43,7 +43,7 @@ int mkdir(const char *path, mode_t mode)
     }
     else
         errno = ENOENT;
-    
-    /* Success. */
+
+    // Success
     return msg.result == ESUCCESS ? 0 : -1;
 }

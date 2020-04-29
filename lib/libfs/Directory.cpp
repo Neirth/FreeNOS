@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,7 +30,7 @@ Directory::~Directory()
 
     entries.clear();
 }
-    
+
 Error Directory::read(IOBuffer & buffer, Size size, Size offset)
 {
     Size bytes = 0;
@@ -60,7 +60,7 @@ void Directory::insert(FileType type, const char *name, ...)
     char path[PATHLEN];
     va_list args;
     Dirent *d;
-    
+
     // Only insert if not already in
     if (!get(name))
     {
@@ -77,8 +77,6 @@ void Directory::insert(FileType type, const char *name, ...)
         m_size += sizeof(*d);
     }
 }
-
-#warning libfs should not depend on libposix (e.g. strcmp) but use libstd instead
 
 void Directory::remove(const char *name)
 {

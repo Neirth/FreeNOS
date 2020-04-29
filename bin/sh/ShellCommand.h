@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,7 +23,16 @@
 #include <Types.h>
 
 /**
+ * @addtogroup bin
+ * @{
+ *
+ * @addtogroup sh
+ * @{
+ */
+
+/**
  * Builtin command for the Shell.
+ *
  * @see Shell
  */
 class ShellCommand
@@ -80,9 +89,14 @@ class ShellCommand
 
     /** Command help text. */
     const char *m_help;
-    
+
     /** Minimum number of parameters required. */
     Size m_minParams;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __SH_SHELLCOMMAND */

@@ -31,15 +31,33 @@ StdoutReporter::StdoutReporter(int argc, char **argv)
 
 void StdoutReporter::reportBegin(List<TestInstance *> & tests)
 {
+    if (m_multiline)
+        printf("%s%s: running %d tests\r\n", WHITE, basename(m_argv[0]), tests.count());
+
+#ifdef __HOST__
+    fflush(stdout);
+#endif /* __HOST__ */
 }
 
 void StdoutReporter::reportBefore(TestInstance & test)
 {
-    printf("%s%s: %s .. ", WHITE, basename(m_argv[0]), *test.m_name);
+    printf("%s%s: %s", WHITE, basename(m_argv[0]), *test.m_name);
+
+    if (m_multiline)
+        printf("\r\n");
+    else
+        printf(" .. ");
+
+#ifdef __HOST__
+    fflush(stdout);
+#endif /* __HOST__ */
 }
 
 void StdoutReporter::reportAfter(TestInstance & test, TestResult & result)
 {
+    if (m_multiline)
+        printf("%s%s: %s .. ", WHITE, basename(m_argv[0]), *test.m_name);
+
     switch (result.getResult())
     {
         case TestResult::Success: printf("%sOK\r\n", GREEN); break;
@@ -47,6 +65,13 @@ void StdoutReporter::reportAfter(TestInstance & test, TestResult & result)
         case TestResult::Skipped: printf("%sSKIP\r\n", YELLOW); break;
     }
     printf("%s", WHITE);
+
+    if (m_multiline)
+        printf("\r\n");
+
+#ifdef __HOST__
+    fflush(stdout);
+#endif /* __HOST__ */
 }
 
 void StdoutReporter::reportFinish(List<TestInstance *> & tests)

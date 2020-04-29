@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,8 +21,13 @@
 #include <Types.h>
 #include <Macros.h>
 
-/** Forward declaration */
-struct CPUState;
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ */
 
 /**
  * Interrupt controller interface.
@@ -44,14 +49,6 @@ class IntController
     };
 
     /**
-     * Function which is called when the CPU is interrupted.
-     *
-     * @param state State of the CPU on the moment the interrupt occurred.
-     */
-    // TODO: this does not belong here???
-    typedef void Handler(struct CPUState state);
-
-    /**
      * Constructor.
      */
     IntController();
@@ -64,13 +61,13 @@ class IntController
      *
      * @return Interrupt number base offset.
      */
-    // TODO: remove this function when IntController can serve hooks
-    uint getBase();
+    uint getBase() const;
 
     /**
      * Enable hardware interrupt (IRQ).
      *
      * @param irq Interrupt Request number.
+     *
      * @return Result code.
      */
     virtual Result enable(uint irq) = 0;
@@ -79,6 +76,7 @@ class IntController
      * Disable hardware interrupt (IRQ).
      *
      * @param irq Interrupt Request number.
+     *
      * @return Result code.
      */
     virtual Result disable(uint irq) = 0;
@@ -91,9 +89,28 @@ class IntController
      * on the next trigger moment.
      *
      * @param irq Interrupt Request number to clear.
+     *
      * @return Result code.
      */
     virtual Result clear(uint irq) = 0;
+
+    /**
+     * Retrieve the next pending interrupt (IRQ).
+     *
+     * @param irq Outputs the next pending interrupt on Success
+     *
+     * @return Result code.
+     */
+    virtual Result nextPending(uint & irq);
+
+    /**
+     * Check if an IRQ vector is set.
+     *
+     * @param irq Interrupt number
+     *
+     * @return True if triggered. False otherwise
+     */
+    virtual bool isTriggered(uint irq);
 
   protected:
 
@@ -101,5 +118,10 @@ class IntController
     uint m_base;
 
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_INTCONTROLLER_H */

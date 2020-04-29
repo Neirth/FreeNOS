@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -29,12 +29,21 @@
 #endif /* __SERVER__ */
 
 /**
- * @brief Runtime functions
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
+ * @name Runtime assertion
  * @{
  */
 
 /**
  * Function which prints a message, and then terminates itself.
+ *
  * @param fmt Formatted message.
  * @param ... Argument list.
  */
@@ -42,12 +51,14 @@ extern C void __assertFailure(const char *fmt, ...);
 
 /**
  * Verify that the given address is readable.
+ *
  * @param addr Address to verify.
  */
 extern C int __assertRead(Address addr);
 
 /**
  * Verify that the given address is writeable.
+ *
  * @param addr Address to verify.
  */
 extern C int __assertWrite(Address addr);
@@ -57,14 +68,16 @@ extern C int __assertWrite(Address addr);
  */
 
 /**
- * @brief Preprocessor macros
+ * @name Preprocessor assertion
  * @{
  */
 
 /**
  * Invokes __assertFailure for applications, and log() + exit() for servers.
+ *
  * @param fmt Formatted string.
  * @param ... Argument list.
+ *
  * @return Never.
  */
 #ifdef __SERVER__
@@ -78,17 +91,19 @@ extern C int __assertWrite(Address addr);
 
 /**
  * Verify that a given expression evaluates to true.
+ *
  * @param exp Boolean expression.
  */
 #define assert(exp) \
     if (!(exp)) \
     { \
-	raiseFailure("[%s:%d]: *** Assertion `%s' failed ***\n", \
-		       __FILE__, __LINE__, #exp); \
+        raiseFailure("[%s:%d]: *** Assertion `%s' failed ***\n", \
+                     __FILE__, __LINE__, #exp); \
     }
 
 /**
  * Presume that the given address is readable.
+ *
  * @param addr Address to check.
  */
 #define assertRead(addr) \
@@ -96,6 +111,7 @@ extern C int __assertWrite(Address addr);
 
 /**
  * Presume that the given address is writeable.
+ *
  * @param addr Address to check.
  */
 #define assertWrite(addr) \
@@ -108,29 +124,37 @@ extern C int __assertWrite(Address addr);
 #else
 
 /**
- * @brief Dummy preprocessor macros
+ * @name Dummy preprocessor macros
  * @{
  */
 
 /**
  * Dummy assertion function which does not perform any check.
+ *
  * @param exp Expression is ignored.
  */
 #define assert(exp)
 
 /**
  * Dummy assertion function for checking read access on an address.
+ *
  * @param addr Address is ignored.
  */
 #define assertRead(addr)
 
 /**
  * Dummy assertion function for checking read access on an address.
+ *
  * @param addr Address is ignored.
  */
 #define assertWrite(addr)
 
 /**
+ * @}
+ */
+
+/**
+ * @}
  * @}
  */
 

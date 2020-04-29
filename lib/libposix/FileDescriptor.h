@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,9 +24,15 @@
 #include <string.h>
 #include "limits.h"
 
-#define FILE_DESCRIPTOR_MAX 1024
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
-// TODO: move this to libfs
+#define FILE_DESCRIPTOR_MAX 1024
 
 /**
  * Abstracts a file which is opened by a user process.
@@ -50,9 +56,6 @@ class FileDescriptor
         open     = fd.open;
         strlcpy(path, fd.path, PATH_MAX);
     }
-
-    // TODO: please modify libstd's Array/Sequence, such that I do not
-    // need to implement these. I prefer to just specify a struct.
 
     bool operator == (const FileDescriptor & fd) const
     {
@@ -79,5 +82,10 @@ class FileDescriptor
     /** State of the file descriptor. */
     bool open;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBPOSIX_FILEDESCRIPTOR_H */

@@ -22,6 +22,14 @@
 #include "TestInt.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
  * Generate test data for character strings.
  */
 template <class T> class TestChar : public TestData<T>
@@ -43,7 +51,7 @@ template <class T> class TestChar : public TestData<T>
     /**
      * Destructor.
      */
-    ~TestChar()
+    virtual ~TestChar()
     {
         for (Size i = 0; i < this->m_values.count(); i++)
             delete[] this->m_values[i];
@@ -53,6 +61,7 @@ template <class T> class TestChar : public TestData<T>
      * Get random test value(s).
      *
      * @param count Number or values to generate.
+     *
      * @return The last generated T value.
      */
     virtual T random(Size count = 1);
@@ -61,6 +70,7 @@ template <class T> class TestChar : public TestData<T>
      * Get unique random test value(s).
      *
      * @param count Number of unique values to generate.
+     *
      * @return The last generated T value.
      */
     virtual T unique(Size count = 1);
@@ -142,5 +152,10 @@ template<> char * TestChar<char *>::unique(Size count)
     }
     return value;
 }
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTCHAR_H */

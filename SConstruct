@@ -20,7 +20,6 @@ import sys
 sys.path.insert(1, './support/scons')
 
 from build import *
-from archive import *
 
 #
 # Target build
@@ -36,7 +35,7 @@ VariantDir(target['BUILDROOT'] + '/test', '#test', duplicate = 0)
 VariantDir(target['BUILDROOT'] + '/kernel', '#kernel', duplicate = 0)
 
 # Install files to the target RootFS
-target.TargetInstall('VERSION')
+target.TargetInstall('VERSION', target['etc'])
 target.TargetInstall('build.conf', target['etc'])
 target.TargetInstall('build.host.conf', target['etc'])
 target.TargetInstall(target['BUILDROOT'] + '/include/Config.h', target['etc'])
@@ -67,7 +66,8 @@ SConscript(host['BUILDROOT'] + '/test/SConscript')
 #
 # Boot Image
 #
-target.BootImage('#${BUILDROOT}/boot.img.gz', '#config/' + target['ARCH'] + '/' + target['SYSTEM'] + '/boot.imgdesc')
+target.BootImage('#${BUILDROOT}/boot.img', '#config/' + target['ARCH'] + '/' + target['SYSTEM'] + '/boot.imgdesc')
+target.Gzip('#${BUILDROOT}/boot.img.gz', '#${BUILDROOT}/boot.img')
 
 #
 # RootFS
@@ -75,3 +75,11 @@ target.BootImage('#${BUILDROOT}/boot.img.gz', '#config/' + target['ARCH'] + '/' 
 Import('rootfs_files')
 target.LinnImage('#${BUILDROOT}/rootfs.linn', rootfs_files)
 target.Depends('#${BUILDROOT}/rootfs.linn', '#build/host')
+
+#
+# Source Release
+#
+target.Targets(release = 'git archive --format tar --prefix "FreeNOS-${VERSION}/" HEAD | gzip > "FreeNOS-${VERSION}.tar.gz"; \
+                          git log --decorate=short > ChangeLog-${VERSION}; \
+                          md5sum "FreeNOS-${VERSION}.tar.gz" > "FreeNOS-${VERSION}.tar.gz.md5"; \
+                          sha1sum "FreeNOS-${VERSION}.tar.gz" > "FreeNOS-${VERSION}.tar.gz.sha1"')

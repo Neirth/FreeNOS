@@ -28,19 +28,24 @@
 class MemoryContext;
 class IntelPIT;
 
-// TODO (needed for SMP startup). Move inside class as members.
-#define APIC_DEST(x) ((x) << 24)
-#define APIC_DEST_FIELD         0x00000
-#define APIC_DEST_LEVELTRIG     0x08000
-#define APIC_DEST_ASSERT        0x04000
-#define APIC_DEST_DM_INIT       0x00500
-#define APIC_DEST_DM_STARTUP    0x00600
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
 
 /**
  * Intel Advanced Programmable Interrupt Controller (APIC)
  */
 class IntelAPIC : public IntController, public Timer
 {
+  using Timer::start;
+
   public:
 
     /** APIC memory mapped I/O register base offset (physical address). */
@@ -101,6 +106,7 @@ class IntelAPIC : public IntController, public Timer
      */
     enum TimerFlags
     {
+        TimerMasked  = (1 << 16),
         PeriodicMode = (1 << 17)
     };
 
@@ -123,7 +129,7 @@ class IntelAPIC : public IntController, public Timer
      *
      * @return Initial timer counter.
      */
-    uint getCounter();
+    uint getCounter() const;
 
     /**
      * Initialize the APIC.
@@ -138,7 +144,7 @@ class IntelAPIC : public IntController, public Timer
      * @param microseconds The number of microseconds to wait at minimum.
      * @return Result code.
      */
-    virtual Timer::Result wait(u32 microseconds);
+    virtual Timer::Result wait(u32 microseconds) const;
 
     /**
      * Start the timer using PIT as reference timer.
@@ -156,6 +162,24 @@ class IntelAPIC : public IntController, public Timer
      * @return Result code.
      */
     Timer::Result start(uint initialCounter, uint hertz);
+
+    /**
+     * (Re)start the APIC timer.
+     *
+     * This function only re-enables the APIC timer.
+     * APIC initialization and timer configuration must
+     * be done prior to calling this function.
+     *
+     * @return Result code
+     */
+    virtual Timer::Result start();
+
+    /**
+     * Stop the APIC timer
+     *
+     * @return Result code
+     */
+    virtual Timer::Result stop();
 
     /**
      * Enable hardware interrupt (IRQ).
@@ -194,10 +218,29 @@ class IntelAPIC : public IntController, public Timer
      */
     IntController::Result sendStartupIPI(uint cpuId, Address addr);
 
+    /**
+     * Send Intercore-Processor-Interrupt.
+     *
+     * @param coreId Core identifier to send IPI to.
+     * @param vector Interrupt vector number of the IPI.
+     *
+     * @return Result code.
+     */
+    IntController::Result sendIPI(uint coreId, uint vector);
+
   private:
 
     /** I/O object */
     IntelIO m_io;
+
+    /** Saved initial counter value for APIC timer */
+    uint m_initialCounter;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_INTEL_APIC_H */

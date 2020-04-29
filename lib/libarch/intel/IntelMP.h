@@ -18,8 +18,25 @@
 #ifndef __LIBARCH_INTEL_MP_H
 #define __LIBARCH_INTEL_MP_H
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
+
 /** Physical memory address for the CoreInfo structure. */
 #define MPINFOADDR 0x10000
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #ifndef __ASSEMBLER__
 
@@ -30,12 +47,22 @@
 #include <CoreInfo.h>
 #include <CoreManager.h>
 #include "IntelIO.h"
-#include "IntelAPIC.h"
-
 
 /** Forward declarations */
 class MemoryContext;
 class IntelPIT;
+class IntelAPIC;
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
 
 /**
  * Intel Multi-Processor Specification.
@@ -116,7 +143,7 @@ class IntelMP : public CoreManager
     /**
      * Constructor
      */
-    IntelMP();
+    IntelMP(IntelAPIC & apic);
 
     /**
      * Discover processors.
@@ -129,6 +156,7 @@ class IntelMP : public CoreManager
      * Boot a processor.
      *
      * @param info CoreInfo object pointer.
+     *
      * @return Result code.
      */
     virtual Result boot(CoreInfo *info);
@@ -149,6 +177,8 @@ class IntelMP : public CoreManager
      */
     MPConfig * scanMemory(Address addr);
 
+  private:
+
     /** I/O instance for BIOS memory */
     IntelIO m_bios;
 
@@ -156,8 +186,14 @@ class IntelMP : public CoreManager
     IntelIO m_lastMemory;
 
     /** APIC instance */
-    IntelAPIC m_apic;
+    IntelAPIC & m_apic;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __ASSEMBLER__ */
 #endif /* __LIBARCH_INTEL_MP_H */

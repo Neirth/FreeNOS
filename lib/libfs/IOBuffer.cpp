@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,7 +20,6 @@
 IOBuffer::IOBuffer(const FileSystemMessage *msg)
     : m_message(msg)
 {
-    // TODO: hack because only read/write file actions need the buffer.
     if (msg->action == ReadFile || msg->action == WriteFile)
         m_buffer = new u8[msg->size];
     else
@@ -57,11 +56,10 @@ Error IOBuffer::bufferedRead()
     return m_count;
 }
 
-Error IOBuffer::bufferedWrite(void *buffer, Size size)
+Error IOBuffer::bufferedWrite(const void *buffer, Size size)
 {
     Size i = 0;
 
-    // TODO: hack. see above.
     if (!m_buffer)
         m_buffer = new u8[m_message->size];
 
@@ -71,7 +69,7 @@ Error IOBuffer::bufferedWrite(void *buffer, Size size)
     }
     return i;
 }
-    
+
 Error IOBuffer::read(void *buffer, Size size, Size offset) const
 {
     return VMCopy(m_message->from, API::Read,
@@ -86,12 +84,12 @@ Error IOBuffer::write(void *buffer, Size size, Size offset) const
                  (Address) m_message->buffer + offset, size);
 }
 
-Error IOBuffer::flush()
+Error IOBuffer::flush() const
 {
     return write(m_buffer, m_count, 0);
 }
 
-u8 IOBuffer::operator[](Size index)
+u8 IOBuffer::operator[](Size index) const
 {
     return index < m_size ? m_buffer[index] : 0;
 }

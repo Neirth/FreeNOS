@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,12 +22,12 @@
 
 char *getcwd(char *buf, size_t size)
 {
-    /* Copy our current working directory. */
+    // Copy our current working directory
     memcpy(buf, **getCurrentDirectory(), size);
 
-    /* Set errno. */
+    // Set errno
     errno = ESUCCESS;
 
-    /* All done. */
+    // Done
     return buf;
 }

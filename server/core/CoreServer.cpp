@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -33,16 +33,10 @@ const char * CoreServer::kernelPath = "/boot/kernel";
 
 CoreServer::CoreServer()
     : ChannelServer<CoreServer, FileSystemMessage>(this)
+#ifdef INTEL
+    , m_mp(m_apic)
+#endif /* INTEL */
 {
-    /*
-     * TODO:
-     * discover other CPUs with libarch APIC. Determine the memory
-     * splitup. Claim the memory for that CPU. Fill the boot struct with various argument
-     * inside the cpu1 memory so that IntelBoot.S can find its base.
-     * start new kernel with /boot/kernel (or any other kernel, depending on configuration)
-     * introduce a IntelGeometry, which uses APIC. CoreServer uses the Arch::Geometry to discover CPUs here.
-     * once CPU1 is up & running, we can implement libmpi! :-)
-     */
     m_numRegions = 0;
     m_kernel = ZERO;
     m_kernelImage = ZERO;
@@ -59,7 +53,7 @@ CoreServer::CoreServer()
     // Register IPC handlers
     addIPCHandler(ReadFile,  &CoreServer::getCoreCount);
 
-    // TODO: hack: because of waitpid() we must send the reply manually before waitpid().
+    // Because of waitpid() we must send the reply manually before waitpid().
     addIPCHandler(CreateFile, &CoreServer::createProcess, false);
 }
 
@@ -73,8 +67,7 @@ int CoreServer::runCore()
     while (true)
     {
         // wait from a message of the master core
-        // TODO: replace with ChannelClient::syncReceiveFrom
-        while (m_fromMaster->read(&msg) != Channel::Success);
+        receiveFromMaster(&msg);
 
         if (m_ipcHandlers->at(msg.action))
         {
@@ -83,8 +76,7 @@ int CoreServer::runCore()
 
             if (m_sendReply)
             {
-                // TODO: same
-                while (m_toMaster->write(&msg) != Channel::Success);
+                sendToMaster(&msg);
             }
         }
     }
@@ -97,16 +89,6 @@ void CoreServer::createProcess(FileSystemMessage *msg)
 
     if (m_info.coreId == 0)
     {
-        MemoryChannel *ch = (MemoryChannel *) m_toSlave->get(msg->size);
-
-        if (!ch)
-        {
-            ERROR("invalid coreId=" << msg->size);
-            msg->result = EBADF;
-            return;
-        }
-
-        // TODO:move in libmpi?
         range.virt = (Address) msg->buffer;
         VMCtl(msg->from, LookupVirtual, &range);
         msg->buffer = (char *) range.phys;
@@ -115,7 +97,7 @@ void CoreServer::createProcess(FileSystemMessage *msg)
         VMCtl(msg->from, LookupVirtual, &range);
         msg->path = (char *) range.phys;
 
-        if (ch->write(msg) != Channel::Success)
+        if (sendToSlave(msg->size, msg) != Success)
         {
             ERROR("failed to write channel on core"<<msg->size);
             msg->result = EBADF;
@@ -123,19 +105,15 @@ void CoreServer::createProcess(FileSystemMessage *msg)
         }
         DEBUG("creating program at phys " << (void *) msg->buffer << " on core" << msg->size);
 
-        ch = (MemoryChannel *) m_fromSlave->get(msg->size);
-        if (!ch)
+        if (receiveFromSlave(msg->size, msg) != Success)
         {
-            ERROR("cannot find read channel for core" << msg->size);
+            ERROR("failed to read channel on core" << msg->size);
             msg->result = EBADF;
             return;
         }
-        // TODO: replace with ChannelClient::syncReceiveFrom
-        while (ch->read(msg) != Channel::Success);
         DEBUG("program created with result " << (int)msg->result << " at core" << msg->size);
 
         msg->result = ESUCCESS;
-        //IPCMessage(msg->from, API::Send, msg, sizeof(*msg));
         ChannelClient::instance->syncSendTo(msg, msg->from);
     }
     else
@@ -151,11 +129,11 @@ void CoreServer::createProcess(FileSystemMessage *msg)
         pid_t pid = spawn(range.virt, msg->offset, cmd);
         int status;
 
-        // reply to master
+        // reply to master before calling waitpid()
         msg->result = ESUCCESS;
-        while (m_toMaster->write(msg) != Channel::Success);
+        sendToMaster(msg);
 
-        // TODO: temporary make coreserver waitpid() to save polling time
+        // Wait until the spawned process completes
         waitpid(pid, &status, 0);
     }
 }
@@ -190,7 +168,8 @@ CoreServer::Result CoreServer::test()
         msg.action = StatFile;
         msg.path = (char *)0x12345678;
         msg.size = m_info.coreId;
-        m_toMaster->write(&msg);
+
+        sendToMaster(&msg);
     }
     else
     {
@@ -199,16 +178,15 @@ CoreServer::Result CoreServer::test()
 
         for (Size i = 1; i < numCores; i++)
         {
-            MemoryChannel *ch = (MemoryChannel *) m_fromSlave->get(i);
-            if (!ch)
-                return IOError;
-
-            // TODO: replace with ChannelClient::syncReceiveFrom
-            while (ch->read(&msg) != Channel::Success);
+            receiveFromSlave(i, &msg);
 
             if (msg.action == StatFile)
             {
                 NOTICE("core" << i << " send a Ping");
+            }
+            else
+            {
+                ERROR("invalid message received from core" << i);
             }
         }
 
@@ -220,6 +198,12 @@ CoreServer::Result CoreServer::test()
 CoreServer::Result CoreServer::initialize()
 {
     Result r;
+
+#ifdef INTEL
+    // Register IPI vector
+    // TODO: minus 32 because of IRQ() in IntelKernel
+    ProcessCtl(SELF, WatchIRQ, IPIVector - 32);
+#endif /* INTEL */
 
     // Only core0 needs to start other coreservers
     if (m_info.coreId != 0)
@@ -257,7 +241,7 @@ CoreServer::Result CoreServer::loadKernel()
         return IOError;
     }
     close(fd);
-    
+
     // Attempt to read executable format
     if (ExecutableFormat::find(m_kernelImage, st.st_size, &m_kernel) != ExecutableFormat::Success)
         return ExecError;
@@ -279,7 +263,7 @@ CoreServer::Result CoreServer::bootCore(uint coreId, CoreInfo *info,
             info->memory.size << " available=" << sysInfo.memoryAvail);
 
     // Claim the core's memory
-    if (VMCtl(SELF, RemoveMem, &info->memory) != API::Success)
+    if (VMCtl(SELF, ReserveMem, &info->memory) != API::Success)
     {
         ERROR("failed to reserve memory for core" << coreId <<
               " at " << (void *)info->memory.phys);
@@ -290,7 +274,7 @@ CoreServer::Result CoreServer::bootCore(uint coreId, CoreInfo *info,
           << info->memory.size / 1024 / 1024 << "MB");
 
     // Map the kernel
-    for (int i = 0; i < m_numRegions; i++)
+    for (Size i = 0; i < m_numRegions; i++)
     {
         Memory::Range range;
         range.phys = info->memory.phys + regions[i].virt;
@@ -302,20 +286,19 @@ CoreServer::Result CoreServer::bootCore(uint coreId, CoreInfo *info,
         // Map the target kernel's memory for regions[i].size
         if (VMCtl(SELF, Map, &range) != 0)
         {
-            // TODO: convert from API::Error to errno.
-            //errno = EFAULT;
             return OutOfMemory;
         }
         // Copy the kernel to the target core's memory
-#warning VMCopy should just return API::Result, not a Size
-	Error r = VMCopy(SELF, API::Write, (Address) regions[i].data,
-                                 range.virt,
-                                 regions[i].size);
-	if (r != regions[i].size)
-	    return MemoryError;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+        API::Result r = VMCopy(SELF, API::Write, (Address) regions[i].data,
+                               range.virt,
+                               regions[i].size);
+        if ((Size)r != regions[i].size)
+            return MemoryError;
 
         // Unmap the target kernel's memory
-        if (VMCtl(SELF, Release, &range) != API::Success)
+        if (VMCtl(SELF, UnMap, &range) != API::Success)
         {
             return MemoryError;
         }
@@ -342,7 +325,7 @@ CoreServer::Result CoreServer::bootCore(uint coreId, CoreInfo *info,
         return MemoryError;
 
     // Unmap the BootImage
-    if (VMCtl(SELF, Release, &range) != API::Success)
+    if (VMCtl(SELF, UnMap, &range) != API::Success)
         return MemoryError;
 
 #ifdef INTEL
@@ -368,7 +351,6 @@ CoreServer::Result CoreServer::discover()
         m_acpi.discover() == IntelACPI::Success)
     {
         NOTICE("using ACPI as CoreManager");
-        // TODO: hack. Must always call IntelMP::discover() for IntelMP::boot()
         m_mp.discover();
         m_cores = &m_acpi;
     }
@@ -518,7 +500,71 @@ CoreServer::Result CoreServer::setupChannels()
     return Success;
 }
 
-bool CoreServer::retryRequests()
+CoreServer::Result CoreServer::receiveFromMaster(FileSystemMessage *msg)
 {
-    return false;
+    Channel::Result result = Channel::NotFound;
+
+    // wait from a message of the master core
+    while (result != Channel::Success)
+    {
+        for (uint i = 0; i < MaxMessageRetry && result != Channel::Success; i++)
+        {
+            result = m_fromMaster->read(msg);
+        }
+
+        // Wait for IPI which will wake us
+        ProcessCtl(SELF, EnableIRQ, IPIVector);
+        ProcessCtl(SELF, EnterSleep, 0, 0);
+    }
+
+    return Success;
+}
+
+CoreServer::Result CoreServer::sendToMaster(FileSystemMessage *msg)
+{
+    while (m_toMaster->write(msg) != Channel::Success)
+        ;
+
+    return Success;
+}
+
+CoreServer::Result CoreServer::receiveFromSlave(uint coreId, FileSystemMessage *msg)
+{
+    MemoryChannel *ch = (MemoryChannel *) m_fromSlave->get(coreId);
+    if (!ch)
+        return IOError;
+
+    while (ch->read(msg) != Channel::Success)
+        ;
+
+    return Success;
+}
+
+CoreServer::Result CoreServer::sendToSlave(uint coreId, FileSystemMessage *msg)
+{
+    MemoryChannel *ch = (MemoryChannel *) m_toSlave->get(coreId);
+    if (!ch)
+    {
+        ERROR("cannot retrieve MemoryChannel for core" << coreId);
+        msg->result = ENOENT;
+        return IOError;
+    }
+
+    if (ch->write(msg) != Channel::Success)
+    {
+        ERROR("failed to write channel on core" << coreId);
+        msg->result = EBADF;
+        return IOError;
+    }
+
+#ifdef INTEL
+    // Send IPI to ensure the slave wakes up for the message
+    if (m_apic.sendIPI(coreId, IPIVector) != IntController::Success)
+    {
+        ERROR("failed to send IPI to core" << coreId);
+        return IOError;
+    }
+
+#endif /* INTEL */
+    return Success;
 }

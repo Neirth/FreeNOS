@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,9 +23,12 @@
 #include "ExecutableFormat.h"
 #include "ELFHeader.h"
 
-/**   
- * @defgroup libexec_elf libexec (ELF)
- * @{   
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libexec
+ * @{
  */
 
 /**
@@ -37,8 +40,11 @@ class ELF : public ExecutableFormat
 
     /**
      * Class constructor.
+     *
+     * @param image Pointer to raw input image data
+     * @param size Number of bytes of input image data
      */
-    ELF(u8 *image, Size size);
+    ELF(const u8 *image, Size size);
 
     /**
      * Class destructor.
@@ -51,25 +57,34 @@ class ELF : public ExecutableFormat
      * @param regions Memory regions to fill.
      * @param count Maximum number of memory regions on input.
      *              Actual number of memory regions on output.
+     *
      * @return Result code.
      */
-    virtual Result regions(Region *regions, Size *count);
+    virtual Result regions(Region *regions, Size *count) const;
 
     /**
      * Lookup the program entry point.
      *
      * @param entry Program entry point on output.
+     *
      * @return Result code.
      */
-    virtual Result entry(Address *entry);
+    virtual Result entry(Address *entry) const;
 
     /**
      * Read ELF header from memory.
+     *
+     * @param image Pointer to raw input image data
+     * @param size Number of bytes of input image data
+     * @param fmt Outputs a pointer to an ELF instance
+     *
+     * @return Result code
      */
-    static Result detect(u8 *program, Size size, ExecutableFormat **fmt);
+    static Result detect(const u8 *image, Size size, ExecutableFormat **fmt);
 };
 
 /**
+ * @}
  * @}
  */
 

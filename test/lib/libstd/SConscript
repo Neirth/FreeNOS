@@ -23,37 +23,15 @@ env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libtest', 'libexec', 'liba
 env.UseLibraries([ 'libtest', 'libstd', 'libarch' ], 'host')
 env.UseServers(['memory'])
 
-# TODO: provide a macro for this? TestProgram() ? or Program override?
-
-env.TargetProgram('BitArrayTest', 'BitArrayTest.cpp')
-env.HostProgram('BitArrayTest', 'BitArrayTest.cpp')
-
-env.TargetProgram('ArrayTest', 'ArrayTest.cpp')
-env.HostProgram('ArrayTest', 'ArrayTest.cpp')
-
-env.TargetProgram('HashTableTest', 'HashTableTest.cpp')
-env.HostProgram('HashTableTest', 'HashTableTest.cpp')
-
-env.TargetProgram('HashIteratorTest', 'HashIteratorTest.cpp')
-env.HostProgram('HashIteratorTest', 'HashIteratorTest.cpp')
-
-env.TargetProgram('ListTest', 'ListTest.cpp')
-env.HostProgram('ListTest', 'ListTest.cpp')
-
-env.TargetProgram('ListIteratorTest', 'ListIteratorTest.cpp')
-env.HostProgram('ListIteratorTest', 'ListIteratorTest.cpp')
-
-env.TargetProgram('StringTest', 'StringTest.cpp')
-env.HostProgram('StringTest', 'StringTest.cpp')
-
-env.TargetProgram('SingletonTest', 'SingletonTest.cpp')
-env.HostProgram('SingletonTest', 'SingletonTest.cpp')
-
-env.TargetProgram('IndexTest', 'IndexTest.cpp')
-env.HostProgram('IndexTest', 'IndexTest.cpp')
-
-env.TargetProgram('VectorTest', 'VectorTest.cpp')
-env.HostProgram('VectorTest', 'VectorTest.cpp')
-
-env.TargetProgram('MacrosTest', 'MacrosTest.cpp')
-env.HostProgram('MacrosTest', 'MacrosTest.cpp')
+env.TargetHostProgram('BitArrayTest', 'BitArrayTest.cpp')
+env.TargetHostProgram('ArrayTest', 'ArrayTest.cpp')
+env.TargetHostProgram('HashTableTest', 'HashTableTest.cpp')
+env.TargetHostProgram('HashIteratorTest', 'HashIteratorTest.cpp')
+env.TargetHostProgram('ListTest', 'ListTest.cpp')
+env.TargetHostProgram('ListIteratorTest', 'ListIteratorTest.cpp')
+env.TargetHostProgram('StringTest', 'StringTest.cpp')
+env.TargetHostProgram('SingletonTest', 'SingletonTest.cpp')
+env.TargetHostProgram('IndexTest', 'IndexTest.cpp')
+env.TargetHostProgram('VectorTest', 'VectorTest.cpp')
+env.TargetHostProgram('MacrosTest', 'MacrosTest.cpp')
+env.TargetHostProgram('QueueTest', 'QueueTest.cpp')

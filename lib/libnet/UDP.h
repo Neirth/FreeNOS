@@ -30,6 +30,14 @@ class UDPFactory;
 class ARP;
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * User Datagram Protocol (UDP)
  */
 class UDP : public NetworkProtocol
@@ -47,6 +55,8 @@ class UDP : public NetworkProtocol
         u16 checksum;
     }
     Header;
+
+  public:
 
     /**
      * Constructor
@@ -112,6 +122,8 @@ class UDP : public NetworkProtocol
     static const ulong calculateSum(const u16 *ptr,
                                     Size bytes);
 
+  private:
+
     UDPFactory *m_factory;
 
     Index<UDPSocket> m_sockets;
@@ -121,5 +133,10 @@ class UDP : public NetworkProtocol
 
     ::IPV4 *m_ipv4;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_UDP_H */

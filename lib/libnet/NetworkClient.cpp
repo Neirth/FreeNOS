@@ -35,7 +35,6 @@ NetworkClient::~NetworkClient()
 
 NetworkClient::Result NetworkClient::initialize()
 {
-    // TODO: move this functionality to libfs's FileSystemClient
     // Get a list of mounts
     refreshMounts(0);
     FileSystemMount *mounts = ::getMounts();
@@ -109,7 +108,6 @@ NetworkClient::Result NetworkClient::connectSocket(int sock, IPV4::Address addr,
 
 NetworkClient::Result NetworkClient::bindSocket(int sock, IPV4::Address addr, u16 port)
 {
-    
     DEBUG("");
     return writeSocketInfo(sock, addr, port, Listen);
 }
@@ -131,8 +129,8 @@ NetworkClient::Result NetworkClient::writeSocketInfo(
         return IOError;
 
     // Update the file descriptor path
-    Vector<FileDescriptor> *fds = getFiles();
-    MemoryBlock::copy((*fds)[sock].path, buf, sizeof(buf));
+    FileDescriptor *fd = &getFiles()[sock];
+    MemoryBlock::copy(fd->path, buf, sizeof(buf));
 
     // Write address+port+action info to the socket
     SocketInfo info;

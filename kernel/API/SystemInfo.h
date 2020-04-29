@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,36 +22,58 @@
 #include <FreeNOS/Config.h>
 #include <FreeNOS/Kernel.h>
 
-/**  
- * @defgroup kernelapi kernel (API) 
- * @{  
- */
+struct SystemInformation;
 
 /**
- * Forward declaration.
- * @see SystemInformation
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernelapi
+ * @{
  */
-struct SystemInformation;
-class BitAllocator;
 
 /**
  * Prototype for user applications. Retrieves system information.
- * @param buf Target buffer.
+ *
+ * @param info Pointer to SystemInformation output buffer.
+ *
+ * @return API::Success on success and other API::ErrorCode on failure.
  */
-inline Error SystemInfo(SystemInformation *info)
+inline API::Result SystemInfo(SystemInformation *info)
 {
     return trapKernel1(API::SystemInfoNumber, (Address) info);
 }
 
 /**
+ * @}
+ */
+
+#ifdef __KERNEL__
+
+/**
+ * @addtogroup kernelapi_handler
+ * @{
+ */
+
+/**
  * Kernel prototype.
  */
-extern Error SystemInfoHandler(SystemInformation *info);
+extern API::Result SystemInfoHandler(SystemInformation *info);
+
+/**
+ * @}
+ */
+
+#endif /* __KERNEL__ */
+
+/**
+ * @addtogroup kernelapi
+ * @{
+ */
 
 /**
  * System information structure.
  */
-// TODO: replace this with CoreInfo.
 typedef struct SystemInformation
 {
     /**
@@ -64,10 +86,10 @@ typedef struct SystemInformation
 
     /** System version. */
     ulong version;
-    
+
     /** Boot commandline. */
     char cmdline[64];
-    
+
     /** Total and available memory in bytes. */
     Size memorySize, memoryAvail;
 
@@ -89,6 +111,7 @@ typedef struct SystemInformation
 SystemInformation;
 
 /**
+ * @}
  * @}
  */
 

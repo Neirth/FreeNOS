@@ -21,6 +21,14 @@
 #include "USBTransfer.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
+/**
  * USB Message implementation.
  *
  * USBMessages are communicated between the
@@ -58,5 +66,10 @@ typedef struct USBMessage
     state;
 }
 USBMessage;
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USBMESSAGE_H */

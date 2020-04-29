@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,22 +26,24 @@ ARMControl::~ARMControl()
 {
 }
 
-u32 ARMControl::read(Register reg)
+u32 ARMControl::read(Register reg) const
 {
     switch (reg)
     {
-        case MainID:               return mrc(p15, 0, 0, c0,  c0);
-        case SystemControl:        return mrc(p15, 0, 0, c1,  c0);
-        case AuxControl:           return mrc(p15, 0, 1, c1,  c0);
-        case TranslationTable0:    return mrc(p15, 0, 0, c2,  c0);
-        case TranslationTable1:    return mrc(p15, 0, 1, c2,  c0);
-        case TranslationTableCtrl: return mrc(p15, 0, 2, c2,  c0);
-        case DomainControl:        return mrc(p15, 0, 0, c3,  c0);
-        case UserProcID:           return mrc(p15, 0, 4, c13, c0);
+        case MainID:                  return mrc(p15, 0, 0, c0,  c0);
+        case CoreID:                  return mrc(p15, 0, 5, c0,  c0);
+        case SystemControl:           return mrc(p15, 0, 0, c1,  c0);
+        case AuxControl:              return mrc(p15, 0, 1, c1,  c0);
+        case TranslationTable0:       return mrc(p15, 0, 0, c2,  c0);
+        case TranslationTable1:       return mrc(p15, 0, 1, c2,  c0);
+        case TranslationTableCtrl:    return mrc(p15, 0, 2, c2,  c0);
+        case DomainControl:           return mrc(p15, 0, 0, c3,  c0);
+        case UserProcID:              return mrc(p15, 0, 4, c13, c0);
         case InstructionFaultAddress: return mrc(p15, 0, 2, c6, c0);
         case InstructionFaultStatus:  return mrc(p15, 0, 1, c5, c0);
         case DataFaultAddress:        return mrc(p15, 0, 0, c6, c0);
         case DataFaultStatus:         return mrc(p15, 0, 0, c5, c0);
+        case SystemFrequency:         return mrc(p15, 0, 0, c14, c0);
         default: break;
     }
     return 0;

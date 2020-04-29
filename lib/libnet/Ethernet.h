@@ -27,6 +27,14 @@ class IPV4;
 class ICMP;
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Ethernet networking protocol
  */
 class Ethernet : public NetworkProtocol
@@ -69,6 +77,8 @@ class Ethernet : public NetworkProtocol
         ARP  = 0x0806u          /**< Address resolution protocol */
     };
 
+  public:
+
     /**
      * Constructor
      */
@@ -84,8 +94,22 @@ class Ethernet : public NetworkProtocol
      */
     virtual Error initialize();
 
+    /**
+     * Retrieve Ethernet address
+     *
+     * @param address Output buffer to store the address
+     *
+     * @return Error code
+     */
     virtual Error getAddress(Address *address);
 
+    /**
+     * Set Ethernet address
+     *
+     * @param address Input address
+     *
+     * @return Error code
+     */
     virtual Error setAddress(Address *address);
 
     /**
@@ -139,5 +163,10 @@ class Ethernet : public NetworkProtocol
 };
 
 Log & operator << (Log &log, const Ethernet::Address & addr);
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_ETHERNET_H */

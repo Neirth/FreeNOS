@@ -23,6 +23,14 @@
 #include "USBDescriptor.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
+/**
  * USB Hub driver.
  */
 class USBHub : public USBDevice
@@ -105,8 +113,15 @@ class USBHub : public USBDevice
      */
     Error portAttach(u8 port);
 
+  private:
+
     /** Hub descriptor. */
     USBDescriptor::Hub *m_hub;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USBHUB_H */

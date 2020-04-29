@@ -22,10 +22,10 @@
 Allocator * Allocator::m_default = ZERO;
 
 Allocator::Allocator()
+    : m_parent(ZERO)
+    , m_alignment(MEMALIGN)
+    , m_base(ZERO)
 {
-    m_parent = ZERO;
-    m_alignment = MEMALIGN;
-    m_base = 0;
 }
 
 Allocator::~Allocator()
@@ -65,12 +65,12 @@ Allocator::Result Allocator::setBase(Address addr)
     return Success;
 }
 
-Address Allocator::aligned(Address addr, Size boundary)
+Address Allocator::aligned(Address addr, Size boundary) const
 {
     Address corrected = addr;
 
     if (addr % boundary)
         corrected += boundary - (addr % boundary);
-    
+
     return corrected;
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,9 +21,9 @@ void * memcpy(void *dest, const void *src, size_t count)
 {
     const char *sp = (const char *)src;
     char *dp = (char *)dest;
-    
+
     for(; count != 0; count--)
-	*dp++ = *sp++;
+        *dp++ = *sp++;
 
     return (dest);
 }

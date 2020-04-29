@@ -60,37 +60,34 @@ Directory * FileSystem::getRoot()
 Error FileSystem::mount()
 {
     pid_t pid = ProcessCtl(SELF, GetPID);
-    FileSystemPath path;
-    String mountString("/mount");
-    String p;
-    char buf[16];
+    FileSystemMount mnt;
 
-    // The rootfs server and /mount server have a fixed mount
-    if (pid == ROOTFS_PID || pid == MOUNTFS_PID)
+    // The rootfs server and sysfs server have a fixed mount
+    if (pid == ROOTFS_PID || pid == SYSFS_PID)
         return ESUCCESS;
 
-    // Set variables
-    pid = ProcessCtl(SELF, GetPID);
-    mountString << m_mountPath;
-    path.parse(*mountString);
-    snprintf(buf, sizeof(buf), "%u", pid);
-    
-    // Make directories for /mount/$PATH
-    for (ListIterator<String *> i(*path.split()); i.hasCurrent(); i++)
-    {
-        String *s = i.current();
-        p << "/" << **s;
+    // Fill the mount structure
+    mnt.procID = pid;
+    mnt.options = 0;
+    strlcpy(mnt.path, m_mountPath, PATH_MAX);
 
-        // TODO: avoid libposix dependency on mkdir().
-        // TODO: implement client interface functions in libfs for doing things like mkdir() open() read() write() etc
-        // TODO: then use those client interface functions in libposix, and here too.
-        if (i.hasNext())
-            mkdir(*p, S_IWUSR | S_IRUSR);
+    // Open the mounts file in SysFS
+    int fd = open("/sys/mounts", O_WRONLY);
+    if (fd < 0)
+    {
+        ERROR("failed to open mount '" << m_mountPath << "': " << strerror(errno));
+        return errno;
     }
-    // write our PID to /mount/$PATH
-    creat(*mountString, S_IRUSR|S_IWUSR);
-    int fd = open(*mountString, O_WRONLY);
-    write(fd, buf, strlen(buf));
+
+    // write the mount structure to the SysFS mounts file
+    if (write(fd, &mnt, sizeof(mnt)) != sizeof(mnt))
+    {
+        ERROR("failed to write mount '" << m_mountPath << "': " << strerror(errno));
+        close(fd);
+        return errno;
+    }
+
+    // Close it
     close(fd);
 
     // Done
@@ -162,7 +159,7 @@ Error FileSystem::processRequest(FileSystemRequest *req)
                     (Address) msg->path, PATHLEN)) <= 0)
     {
         ERROR("path missing: result = " << (int)msg->result << " from = " << msg->from <<
-              " addr = " << (uint)msg->path << " action = " << (int) msg->action << " stat = " << (int) msg->stat);
+              " addr = " << (void *) msg->path << " action = " << (int) msg->action << " stat = " << (void *) msg->stat);
         msg->type = ChannelMessage::Response;
         msg->result = EACCES;
         m_registry->getProducer(msg->from)->write(msg);
@@ -185,7 +182,6 @@ Error FileSystem::processRequest(FileSystemRequest *req)
         msg->type = ChannelMessage::Response;
         msg->result = ENOENT;
         m_registry->getProducer(msg->from)->write(msg);
-#warning put this in ChannelClient somehow
         ProcessCtl(msg->from, Resume, 0);
         return msg->result;
     }
@@ -257,16 +253,20 @@ Error FileSystem::processRequest(FileSystemRequest *req)
             break;
     }
     ret = msg->result;
-//    msg->result &= 0xffffff; // (msg->result & ~ERESTART);
 
     // Only send reply if completed (not EAGAIN)
     if (msg->result != EAGAIN)
     {
-        msg->type = ChannelMessage::Response;
-        m_registry->getProducer(msg->from)->write(msg);
-        ProcessCtl(msg->from, Resume, 0);
+        sendResponse(msg);
     }
     return ret;
+}
+
+void FileSystem::sendResponse(FileSystemMessage *msg)
+{
+    msg->type = ChannelMessage::Response;
+    m_registry->getProducer(msg->from)->write(msg);
+    ProcessCtl(msg->from, Resume, 0);
 }
 
 void FileSystem::timeout()
@@ -447,18 +447,12 @@ void FileSystem::clearFileCache(FileCache *cache)
         if (i.current()->valid)
         {
             clearFileCache(i.current());
-
-            /* May we remove reference to this entry? */
-            if (i.current()->file->getOpenCount() == 0)    
-            {
-                i.remove();
-            }
+            i.remove();
         }
     }
 
     /* Remove the entry itself, if empty. */
-    if (!cache->valid && cache->entries.count() == 0 &&
-         cache->file->getOpenCount() == 0)
+    if (!cache->valid && cache->entries.count() == 0)
     {
         /* Remove entry from parent */
         if (cache->parent)

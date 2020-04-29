@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,15 +18,21 @@
 #ifndef __API_IOCTL_H
 #define __API_IOCTL_H
 
-#include <FreeNOS/System.h>
+#ifndef __SYSTEM
+#error Do not include this file directly, use FreeNOS/System.h instead
+#endif
 
-/**  
- * @defgroup kernelapi kernel (API) 
- * @{  
+/**
+ * @addtogroup kernel
+ * @{
+ *
+ * @addtogroup kernelapi
+ * @{
  */
 
 /**
  * Available operation to perform using PrivExec().
+ *
  * @see PrivExec
  */
 typedef enum IOOperation
@@ -47,7 +53,7 @@ inline u8 ReadByte(Address addr)
     return (u8) trapKernel3(API::IOCtlNumber, IOByteRead, addr, 0);
 }
 
-inline Error WriteByte(Address addr, u8 value)
+inline API::Result WriteByte(Address addr, u8 value)
 {
     return trapKernel3(API::IOCtlNumber, IOByteWrite, addr, value);
 }
@@ -57,20 +63,43 @@ inline u16 ReadWord(Address addr)
     return (u16) trapKernel3(API::IOCtlNumber, IOWordRead, addr, 0);
 }
 
-inline Error WriteWord(Address addr, u16 value)
+inline API::Result WriteWord(Address addr, u16 value)
 {
     return trapKernel3(API::IOCtlNumber, IOWordWrite, addr, value);
 }
 
-inline Error WriteLong(Address addr, ulong value)
+inline API::Result WriteLong(Address addr, ulong value)
 {
     return trapKernel3(API::IOCtlNumber, IOLongWrite, addr, value);
 }
 
 /**
- * Kernel handler prototype.
+ * @}
+ */
+
+#ifdef __KERNEL__
+
+/**
+ * @addtogroup kernelapi_handler
+ * @{
+ */
+
+/**
+ * Kernel handler prototype for various I/O functions.
+ *
+ * @param op Operation to perform
+ * @param addr Input/Output address
+ * @param value Value for writing
+ *
+ * @return Error code
  */
 extern Error IOCtlHandler(IOOperation op, Address addr, ulong value);
+
+/**
+ * @}
+ */
+
+#endif /* __KERNEL__ */
 
 /**
  * @}

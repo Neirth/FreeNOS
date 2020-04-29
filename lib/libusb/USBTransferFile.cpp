@@ -29,8 +29,6 @@ USBTransferFile::USBTransferFile(USBController *controller)
 
 Error USBTransferFile::write(IOBuffer & buffer, Size size, Size offset)
 {
-    //DEBUG("");
-
     USBMessage *usb = (USBMessage *) buffer.getBuffer();
     const FileSystemMessage *msg = buffer.getMessage();
 

@@ -22,14 +22,4 @@ env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libtest', 'libexec', 'liba
 env.UseLibraries([ 'libtest', 'liballoc', 'libarch', 'libstd' ], 'host')
 env.Append(CPPPATH = [ '#lib/liballoc' ])
 
-#
-# TODO: perhaps a TestProgram() macro for this?
-#
-
-#print()
-#print('TODO: use mocking instead of direct compilation of dependencies.
-#Note for host, we cannot compile everything.')
-#print()
-
-env.TargetProgram('BubbleAllocatorTest', 'BubbleAllocatorTest.cpp')
-env.HostProgram('BubbleAllocatorTest', 'BubbleAllocatorTest.cpp')
+env.TargetHostProgram('BubbleAllocatorTest', 'BubbleAllocatorTest.cpp')

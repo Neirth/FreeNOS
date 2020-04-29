@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -24,33 +24,40 @@
 ssize_t write(int fildes, const void *buf, size_t nbyte)
 {
     FileSystemMessage msg;
-    FileDescriptor *fd = (FileDescriptor *) getFiles()->get(fildes);
-    
-    // Write the file
-    if (fd)
+    FileDescriptor *files = getFiles();
+
+    if (fildes >= FILE_DESCRIPTOR_MAX || fildes < 0)
     {
-        msg.type   = ChannelMessage::Request;
-        msg.action = WriteFile;
-        msg.path   = fd->path;
-        msg.buffer = (char *) buf;
-        msg.size   = nbyte;
-        msg.offset = ZERO; // TODO: should be fd->offset?
-        msg.from   = SELF;
-        msg.deviceID.minor = fd->identifier;
-        ChannelClient::instance->syncSendReceive(&msg, fd->mount);
-
-        // Did we write something?
-        if (msg.result >= 0)
-        {
-            fd->position += msg.result;
-            return msg.result;
-        }
-
-        // Set error number
-        errno = msg.result;
+        errno = ERANGE;
+        return -1;
     }
-    else
+
+    // Do we have this file descriptor?
+    if (!files[fildes].open)
+    {
         errno = ENOENT;
-    
+        return -1;
+    }
+
+    // Write the file
+    msg.type   = ChannelMessage::Request;
+    msg.action = WriteFile;
+    msg.path   = files[fildes].path;
+    msg.buffer = (char *) buf;
+    msg.size   = nbyte;
+    msg.offset = files[fildes].position;
+    msg.from   = SELF;
+    msg.deviceID.minor = files[fildes].identifier;
+    ChannelClient::instance->syncSendReceive(&msg, files[fildes].mount);
+
+    // Did we write something?
+    if (msg.result >= 0)
+    {
+        files[fildes].position += msg.result;
+        return msg.result;
+    }
+
+    // Set error number
+    errno = msg.result;
     return -1;
 }

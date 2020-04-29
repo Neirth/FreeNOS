@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,29 +23,35 @@
 #include <FileSystemPath.h>
 #include <Types.h>
 
-/** 
- * @defgroup tmpfs tmpfs (Temporary Filesystem) 
- * @{ 
+/**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup tmpfs
+ * @{
  */
 
 /**
- * Temporary filesystem (procfs). Maps files into virtual memory.
+ * Temporary filesystem (TmpFS). Maps files into virtual memory.
  */
 class TmpFileSystem : public FileSystem
 {
   public:
-    
+
     /**
      * Class constructor function.
+     *
      * @param path Path to which we are mounted.
      */
     TmpFileSystem(const char *path);
 
     /**
      * @brief Creates a new TmpFile.
+     *
      * @param path Full path to the file to create.
      * @param type Describes the file type to create.
      * @param deviceID Optionally specifies which device identities to use.
+     *
      * @return Pointer to a new File on success, or ZERO on failure.
      *
      * @see File
@@ -55,6 +61,7 @@ class TmpFileSystem : public FileSystem
 };
 
 /**
+ * @}
  * @}
  */
 

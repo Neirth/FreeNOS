@@ -21,6 +21,14 @@
 #include "TestReporter.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
  * Output TestResults to standard output.
  */
 class StdoutReporter : public TestReporter
@@ -52,5 +60,10 @@ class StdoutReporter : public TestReporter
      */
     virtual void reportFinish(List<TestInstance *> & tests);
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_STDOUTREPORTER_H */

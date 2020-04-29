@@ -58,7 +58,7 @@ int DirectoryScanner::scan(const char *path)
                 if (dent->d_name[0] != '.')
                     scan(subPath);
                 break;
-    
+
             // Regular file
             case DT_REG:
                 if (str.endsWith((const char *)"Test"))

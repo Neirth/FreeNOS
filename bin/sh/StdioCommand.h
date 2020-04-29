@@ -22,6 +22,14 @@
 #include "ShellCommand.h"
 
 /**
+ * @addtogroup bin
+ * @{
+ *
+ * @addtogroup sh
+ * @{
+ */
+
+/**
  * Change the standard Input/Output of the shell.
  */
 class StdioCommand : public ShellCommand
@@ -41,5 +49,10 @@ class StdioCommand : public ShellCommand
      */
     virtual int execute(Size nparams, char **params);
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __SH_STDIOCOMMAND */

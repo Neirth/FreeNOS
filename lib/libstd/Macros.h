@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,19 +20,27 @@
 
 #include "Types.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
 /** Binary 1 means true. */
-#define TRUE		1
+#define TRUE            1
 
 /** Binary zero means false. */
-#define FALSE		0
+#define FALSE           0
 
 /** NULL means zero. */
 #ifndef NULL
-#define NULL		(void *)0
+#define NULL            (void *)0
 #endif
 
 /** Zero value. */
-#define ZERO		0
+#define ZERO            0
 
 /** Stringfies the given input. */
 #define QUOTE(x) \
@@ -50,8 +58,6 @@
 
 /** Convert gigabytes to bytes */
 #define GigaByte(v) ((v) * 1024 * 1024 * 1024)
-
-// TODO: #warning Integer range depends on the architecture. Move to libarch.
 
 /** Minimum value of an object of type long int. */
 #define LONG_MIN -2147483647L
@@ -73,8 +79,10 @@
 
 /**
  * Calculate a division, and round to up any remaining.
+ *
  * @param number Input number.
  * @param divisor Divisor number.
+ *
  * @return Ceiled number.
  */
 #define CEIL(number,divisor) \
@@ -85,6 +93,10 @@
 
 /**
  * Absolute value of a double.
+ *
+ * @param number Input number
+ *
+ * @return Absolute value
  */
 inline double doubleAbsolute(double number)
 {
@@ -115,6 +127,7 @@ inline bool doubleEquals(double a, double b, double epsilon)
 
 /**
  * Can be used to link a symbol inside a specific section.
+ *
  * @param s Section name.
  */
 #define SECTION(s) \
@@ -128,6 +141,7 @@ inline bool doubleEquals(double a, double b, double epsilon)
 
 /**
  * Ensures strict minimum memory requirements.
+ *
  * This option effectively disabled extra padding by the compiler.
  */
 #define PACKED \
@@ -135,9 +149,15 @@ inline bool doubleEquals(double a, double b, double epsilon)
 
 /**
  * Aligns a symbol at the given boundary.
+ *
  * @param n Boundary to align.
  */
 #define ALIGN(n) \
     __attribute__((aligned(n)))
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __MACROS_H */

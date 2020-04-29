@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,30 +25,31 @@ int vprintf(const char *format, va_list args)
     char buf[1024];
     Size size, written = 0;
     Error e;
-    
-    /* Write formatted string. */
+
+    // Write formatted string
     size = vsnprintf(buf, sizeof(buf), format, args);
-    
-    /* Write it to standard output. */
+
+    // Write it to standard output
     while (written < size)
     {
-	e = write(1, buf + written, size - written);
-	
-	switch (e)
-	{
-	    /* Error occurred. */
-	    case -1:
-		return e;
-	
-	    /* End of file reached. */
-	    case 0:
-		return written;
-		
-	    /* Process bytes. */
-	    default:
-		written += e;
-	}
+        e = write(1, buf + written, size - written);
+
+        switch (e)
+        {
+            // Error occurred
+            case -1:
+                return e;
+
+            // End of file reached
+            case 0:
+                return written;
+
+            // Process bytes
+            default:
+                written += e;
+        }
     }
-    /* All done. */
+
+    // Done
     return written;
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,6 +30,7 @@
 #include <errno.h>
 #include "mpi.h"
 
+#define MPI_PROG_CMDLEN 512
 #define MEMBASE(id) (memChannelBase.phys + (coreCount * PAGESIZE * 2 * (id)))
 
 Size coreCount = 0;
@@ -117,9 +118,8 @@ int MPI_Init(int *argc, char ***argv)
         // now create the slaves using coreservers.
         for (Size i = 1; i < coreCount; i++)
         {
-            // TODO: check for cmd buffer size...
-            char *cmd = new char[512];
-            snprintf(cmd, 512, "%s -a %x -c %d",
+            char *cmd = new char[MPI_PROG_CMDLEN];
+            snprintf(cmd, MPI_PROG_CMDLEN, "%s -a %x -c %d",
                      programPath, memChannelBase.phys, coreCount);
 
             for (int j = 1; j < *argc; j++)
@@ -146,7 +146,7 @@ int MPI_Init(int *argc, char ***argv)
     }
     else
     {
-        // If we are slave (node N): 
+        // If we are slave (node N):
         // read the -addr argument, and map the UniChannels into our address space.
         for (int i = 1; i < (*argc); i++)
         {
@@ -194,10 +194,12 @@ int MPI_Init(int *argc, char ***argv)
         readChannel->insert(i, *ch);
 
         if (info.coreId == 0)
-        printf("%s: read: core%d: data=%x feedback=%x base%d=%x\n", (*argv)[0], i, 
-            MEMBASE(info.coreId) + (PAGESIZE * 2 * i),
-            MEMBASE(info.coreId) + (PAGESIZE * 2 * i) + PAGESIZE,
-            i, MEMBASE(i));
+        {
+            printf("%s: read: core%d: data=%x feedback=%x base%d=%x\n", (*argv)[0], i,
+                    MEMBASE(info.coreId) + (PAGESIZE * 2 * i),
+                    MEMBASE(info.coreId) + (PAGESIZE * 2 * i) + PAGESIZE,
+                    i, MEMBASE(i));
+        }
     }
 
     // Fill write channels
@@ -211,10 +213,12 @@ int MPI_Init(int *argc, char ***argv)
         writeChannel->insert(i, *ch);
 
         if (info.coreId == 0)
-        printf("%s: write: core%d: data=%x feedback=%x base%d=%x\n", (*argv)[0], i, 
-            MEMBASE(i) + (PAGESIZE * 2 * info.coreId),
-            MEMBASE(i) + (PAGESIZE * 2 * info.coreId) + PAGESIZE,
-            i, MEMBASE(i));
+        {
+            printf("%s: write: core%d: data=%x feedback=%x base%d=%x\n", (*argv)[0], i,
+                    MEMBASE(i) + (PAGESIZE * 2 * info.coreId),
+                    MEMBASE(i) + (PAGESIZE * 2 * info.coreId) + PAGESIZE,
+                    i, MEMBASE(i));
+        }
     }
 
     return MPI_SUCCESS;

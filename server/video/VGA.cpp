@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -71,6 +71,6 @@ Error VGA::write(IOBuffer & buffer, Size size, Size offset)
     {
         return EFAULT;
     }
-    memcpy(vga + (offset / sizeof(u16)), buffer.getBuffer(), size);    
+    memcpy(vga + (offset / sizeof(u16)), buffer.getBuffer(), size);
     return size;
 }

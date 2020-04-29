@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,9 +21,12 @@
 #include <Types.h>
 #include "Allocator.h"
 
-/** 
- * @defgroup liballoc liballoc 
- * @{ 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup liballoc
+ * @{
  */
 
 /**
@@ -46,26 +49,23 @@ class BubbleAllocator : public Allocator
      *
      * @return Size of memory owned by the Allocator.
      */
-    virtual Size size();
+    virtual Size size() const;
 
     /**
      * Get memory available.
      *
      * @return Size of memory available by the Allocator.
      */
-    virtual Size available();
+    virtual Size available() const;
 
     /**
-     * Allocate memory
+     * Allocate memory.
      *
-     * @param size Amount of memory in bytes to allocate on input. 
-     *             On output, the amount of memory in bytes actually allocated.
-     * @param addr Output parameter which contains the address
-     *             allocated on success.
-     * @param align Alignment of the required memory or use ZERO for default.
-     * @return New memory block on success and ZERO on failure.
+     * @param args Allocator arguments containing the requested size, address and alignment.
+     *
+     * @return Result value.
      */
-    virtual Result allocate(Size *size, Address *addr, Size align = ZERO);
+    virtual Result allocate(Arguments & args);
 
     /**
      * Release memory.
@@ -77,20 +77,21 @@ class BubbleAllocator : public Allocator
      * @see allocate
      */
     virtual Result release(Address addr);
-    
+
   private:
-    
+
     /** Memory region to allocate from. */
     u8 *m_start;
-    
+
     /** Current "top" of the growing bubble. */
     u8 *m_current;
-    
+
     /** Size of the memory region. */
     Size m_size;
 };
 
-/** 
+/**
+ * @}
  * @}
  */
 

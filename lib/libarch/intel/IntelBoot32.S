@@ -28,11 +28,6 @@
 #define KERNEL_LOWMEM   ((1024 * 1024 * 1024) - (1024 * 1024 * 128))
 #define STACK_SIZE 0x4000
 
-/*
- * TODO: move interrupt handling and IDT setup to libarch's IntelCore code.
- * see Desktop/scratch1
- */
-
 /**
  * Generates interrupt handlers.
  */
@@ -144,6 +139,7 @@ bootEntry32:
     idtEntry 46, 0x8e
     idtEntry 47, 0x8e
     idtEntry 48, 0x8e
+    idtEntry 50, 0x8e
     idtEntry 0x90, 0xee
 
     /* Load IDT. */
@@ -259,6 +255,9 @@ remapped:
     movl $(stack + STACK_SIZE), %esp
     movl %esp, %ebp
 
+    /* Initialize floating point unit (FPU) */
+    finit
+
     /* Invoke kernel. */
     pushl $coreInfo
     call kernel_main
@@ -308,6 +307,7 @@ interruptHandler 45, 0
 interruptHandler 46, 0
 interruptHandler 47, 0
 interruptHandler 48, 0
+interruptHandler 50, 0
 interruptHandler 0x90, 0
 
 .section ".bss"

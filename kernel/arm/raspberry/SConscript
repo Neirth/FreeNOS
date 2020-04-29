@@ -25,59 +25,46 @@ for item in env['LINKUSER']:
 env.Append(LINKFLAGS = env['LINKKERN'])
 env.Append(CPPFLAGS = '-D__KERNEL__')
 
-env.UseLibraries(['liballoc', 'libstd', 'libarch', 'libipc'])
-env.UseServers(['core'])
-env.TargetProgram('kernel', [ Glob('*.S'),
-                              Glob('*.cpp'),
+env.UseLibraries(['liballoc', 'libstd', 'libarch', 'libipc', 'libfs', 'libposix'])
+env.UseServers(['core', 'serial'])
+
+env.TargetProgram('kernel', [ Glob('*.cpp'),
                               Glob('#' + env['BUILDROOT'] + '/kernel/*.cpp'),
                               Glob('#' + env['BUILDROOT'] + '/kernel/API/*.cpp'),
-                              Glob('#' + env['BUILDROOT'] + '/kernel/arm/*.cpp')
+                              Glob('#' + env['BUILDROOT'] + '/kernel/arm/*.cpp'),
+                              Glob('#' + env['BUILDROOT'] + '/kernel/arm/*.S'),
+                              '#server/serial/PL011.cpp'
                               ],
-                   env['boot'])
+                   False)
+
+#
+# Embed the boot.img in the kernel
+#
+env.Command('kernel.bootimg', 'kernel', env['OBJCOPY'] + ' ' +
+            '--update-section .bootimg=' + env['BUILDROOT'] + '/boot.img ' + 
+            env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel')
 
 #
 # Provide binary kernel image to overwrite kernel.img on the Raspbian SD card.
 #
-env.Command('kernel.img', 'kernel', env['CROSS_COMPILE'] + 'objcopy -O binary ' +
+env.Command('kernel.img', 'kernel.bootimg', env['OBJCOPY'] + ' -O binary ' +
             env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel ' +
             env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel.img')
 
 #
-# Trick QEMU into thinking we provide a Linux kernel, such that it will
-# pass ATAGS bootloader information (similar to Multiboot for intel)
-#
-env.Command('vmlinux', 'kernel', 'cp ' +
-            env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/kernel ' +
-            env['BUILDROOT'] + '/kernel/arm/' + env['SYSTEM'] + '/vmlinux')
-
-#
 # Qemu targets
 #
-env.Targets(qemu = 'qemu-system-arm -kernel ' + build_env['BUILDROOT'] +
-                   '/kernel/arm/raspberry/vmlinux -cpu arm1176 -M raspi -nographic ' +
-                   '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
+env.Targets(qemu = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                   '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic')
 
-env.Targets(qemu_usb = 'qemu-system-arm -kernel ' + build_env['BUILDROOT'] +
-                       '/kernel/arm/raspberry/vmlinux -cpu arm1176 -M raspi -nographic -usb -usbdevice disk:/tmp/disk.bin ' +
-                       '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
+env.Targets(qemu_usb = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                       '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic -usb -usbdevice disk:/tmp/disk.bin')
 
-env.Targets(qemu_debug = 'qemu-system-arm -kernel ' + build_env['BUILDROOT'] +
-                         '/kernel/arm/raspberry/vmlinux -cpu arm1176 -M raspi -nographic -s -S ' +
-                         '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
+env.Targets(qemu_debug = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                         '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic -s -S')
 
-env.Targets(qemu_debug2 = 'qemu-system-arm2 -kernel ' + build_env['BUILDROOT'] +
-                         '/kernel/arm/raspberry2/vmlinux -M raspi2 -nographic -s -S -cpu cortex-a8 ' +
-                         '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
+env.Targets(qemu_debugs = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                          '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic -s -S -d int,cpu_reset')
 
-env.Targets(qemu2 = 'qemu-system-arm2 -kernel ' + build_env['BUILDROOT'] +
-                    '/kernel/arm/raspberry2/vmlinux -M raspi2 -nographic -cpu cortex-a8 ' +
-                    '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
-
-
-env.Targets(qemu_debugs = 'qemu-system-arm -kernel ' + build_env['BUILDROOT'] +
-                          '/kernel/arm/raspberry/vmlinux -cpu arm1176 -M raspi -nographic -s -S -d int,cpu_reset ' +
-                          '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
-
-env.AutoTester(qemu_test = 'qemu-system-arm -kernel ' + build_env['BUILDROOT'] +
-                           '/kernel/arm/raspberry/vmlinux -cpu arm1176 -M raspi -nographic ' +
-                           '-initrd ' + build_env['BUILDROOT'] + '/boot.img')
+env.AutoTester(qemu_test = build_env['QEMUCMD'] + ' -kernel ' + build_env['BUILDROOT'] +
+                           '/kernel/arm/' + build_env['SYSTEM'] + '/kernel -nographic')

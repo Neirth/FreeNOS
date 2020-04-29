@@ -24,6 +24,14 @@
 class Shell;
 
 /**
+ * @addtogroup bin
+ * @{
+ *
+ * @addtogroup sh
+ * @{
+ */
+
+/**
  * Prints the help info for all known ShellCommands.
  */
 class HelpCommand : public ShellCommand
@@ -49,5 +57,10 @@ class HelpCommand : public ShellCommand
     /** Shell object */
     Shell *m_shell;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __SH_HELPCOMMAND */

@@ -30,6 +30,6 @@ Error USBController::initialize()
     if (r != ESUCCESS)
         return r;
 
-    registerFile(new USBTransferFile(this), "/transfer");    
+    registerFile(new USBTransferFile(this), "/transfer");
     return ESUCCESS;
 }

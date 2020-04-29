@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -28,27 +28,38 @@
 #include "ChannelRegistry.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libipc
+ * @{
+ */
+
+/**
  * Message handler function (dummy) container.
  */
 template <class Func> struct MessageHandler
 {
     /**
      * Constructor function.
+     *
      * @param f Function to execute.
      * @param r Send a reply?
      */
     MessageHandler(Func f, bool r) : exec(f), sendReply(r)
-    {}
-    
+    {
+    }
+
     /** Handler function. */
     Func exec;
-    
+
     /** Whether to send a reply or not. */
     bool sendReply;
 };
 
 /**
  * Template class which serves incoming messages from Channels using MessageHandlers.
+ *
  * @param MsgType Type of Message to serve.
  */
 template <class Base, class MsgType> class ChannelServer
@@ -57,7 +68,7 @@ template <class Base, class MsgType> class ChannelServer
 
     /** Member function pointer inside Base, to handle IPC messages. */
     typedef void (Base::*IPCHandlerFunction)(MsgType *);
-    
+
     /** Member function pointer inside Base, to handle interrupts. */
     typedef void (Base::*IRQHandlerFunction)(Size);
 
@@ -76,12 +87,12 @@ template <class Base, class MsgType> class ChannelServer
 
     /**
      * Constructor function.
+     *
      * @param num Number of message handlers to support.
      */
     ChannelServer(Base *inst, Size num = 32)
         : m_sendReply(true), m_instance(inst)
     {
-        // TODO: debug
         m_self = ProcessCtl(SELF, GetPID, 0);
 
         m_client   = ChannelClient::instance;
@@ -143,7 +154,7 @@ template <class Base, class MsgType> class ChannelServer
             readChannels();
 
             // Retry requests until all served (EAGAIN or return value)
-            retryRequests();
+            retryAllRequests();
 
             // Sleep with timeout or return in case the process is
             // woken up by an external (wakeup) interrupt.
@@ -156,20 +167,28 @@ template <class Base, class MsgType> class ChannelServer
             Error r = ProcessCtl(SELF, EnterSleep, expiry, (Address) &m_time);
             DEBUG("EnterSleep returned: " << (int)r);
 
-            // TODO: Reset sleep timeout. Put it in Timer(::Info) class.
-            // TODO: or let the kernel return whether the timeout was reached.
-            if (m_expiry.frequency && m_expiry.ticks < m_time.ticks)
+            // Check for sleep timeout
+            if (m_expiry.frequency)
             {
-                m_expiry.frequency = 0;
-                timeout();
+                if (ProcessCtl(SELF, InfoTimer, (Address) &m_time) != API::Success)
+                {
+                    ERROR("failed to retrieve system timer");
+                }
+                else if (m_expiry.ticks < m_time.ticks)
+                {
+                    m_expiry.frequency = 0;
+                    timeout();
+                }
             }
         }
+
         // Satify compiler
         return 0;
     }
-    
+
     /**
      * Register a new IPC message action handler.
+     *
      * @param slot Action value to trigger h.
      * @param h Handler to execute.
      * @param r Does the handler need to send a reply (per default) ?
@@ -178,9 +197,10 @@ template <class Base, class MsgType> class ChannelServer
     {
         m_ipcHandlers->insert(slot, new MessageHandler<IPCHandlerFunction>(h, sendReply));
     }
-    
+
     /**
      * Register a new IRQ message vector handler
+     *
      * @param slot Vector value to trigger h.
      * @param h Handler to execute.
      */
@@ -198,6 +218,16 @@ template <class Base, class MsgType> class ChannelServer
     }
 
     /**
+     * Retry any pending requests
+     *
+     * @return True if retry is needed again, false if all requests processed
+     */
+    virtual bool retryRequests()
+    {
+        return false;
+    }
+
+    /**
      * Set a sleep timeout
      *
      * @param msec Milliseconds to sleep (approximately)
@@ -206,7 +236,12 @@ template <class Base, class MsgType> class ChannelServer
     {
         DEBUG("msec = " << msec);
 
-        // TODO: Note that this gives only imprecise timing
+        if (ProcessCtl(SELF, InfoTimer, (Address) &m_time) != API::Success)
+        {
+            ERROR("failed to retrieve system timer info");
+            return;
+        }
+
         Size msecPerTick = 1000 / m_time.frequency;
         m_expiry.frequency = m_time.frequency;
         m_expiry.ticks     = m_time.ticks + ((msec / msecPerTick) + 1);
@@ -219,6 +254,7 @@ template <class Base, class MsgType> class ChannelServer
      *
      * @param pid ProcessID
      * @param range Memory range of shared mapping
+     *
      * @return Result code
      */
     Result accept(ProcessID pid, Memory::Range range)
@@ -259,7 +295,7 @@ template <class Base, class MsgType> class ChannelServer
         while (m_kernelEvent.read(&event) == Channel::Success)
         {
             DEBUG(m_self << ": got kernel event: " << (int) event.type);
-    
+
             switch (event.type)
             {
                 case ShareCreated:
@@ -268,10 +304,6 @@ template <class Base, class MsgType> class ChannelServer
                     accept(event.share.pid, event.share.range);
                     break;
                 }
-                case ShareRemoved:
-                    DEBUG(m_self << ": share removed");
-                    break;
-
                 case InterruptEvent:
                 {
                     DEBUG(m_self << ": interrupt: " << event.number);
@@ -287,9 +319,6 @@ template <class Base, class MsgType> class ChannelServer
                     DEBUG(m_self << ": process terminated: PID " << event.number);
                     m_registry->unregisterConsumer(event.number);
                     m_registry->unregisterProducer(event.number);
-    
-                    // TODO: Do any implementation defined cleanup for this PID
-                    // m_instance->unregisterProcess(event.number)
 
                     // cleanup the VMShare area now for that process
                     VMShare(event.number, API::Delete, ZERO);
@@ -363,9 +392,10 @@ template <class Base, class MsgType> class ChannelServer
     /**
      * Keep retrying requests until all served
      */
-    void retryRequests()
+    void retryAllRequests()
     {
-        while (m_instance->retryRequests());
+        while (m_instance->retryRequests())
+            ;
     }
 
   protected:
@@ -384,10 +414,10 @@ template <class Base, class MsgType> class ChannelServer
 
     /** IPC handler functions. */
     Vector<MessageHandler<IPCHandlerFunction> *> *m_ipcHandlers;
-    
+
     /** IRQ handler functions. */
     Vector<MessageHandler<IRQHandlerFunction> *> *m_irqHandlers;
-    
+
     /** Server object instance. */
     Base *m_instance;
 
@@ -402,5 +432,10 @@ template <class Base, class MsgType> class ChannelServer
     /** System timer expiration value */
     Timer::Info m_expiry;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBIPC_CHANNELSERVER_H */

@@ -100,7 +100,6 @@ TestCase(ArrayPutSeq)
     TestInt<int> ints(INT_MIN, INT_MAX);
     Array<int, 256> a;
 
-
     // Clear the array
     a.fill(0);
 
@@ -130,7 +129,7 @@ TestCase(ArrayPutSeq)
 TestCase(ArrayPutRandom)
 {
     TestInt<int> ints(INT_MIN, INT_MAX);
-    TestInt<uint> sizes(64, 256);
+    TestInt<uint> sizes(32, 128);
     TestInt<uint> indexes(0, 255);
     Array<int, 256> a;
     uint count = sizes.random();
@@ -181,11 +180,13 @@ TestCase(ArrayCompare)
     testAssert(a1.compareTo(a2) == 0);
     testAssert(a1.equals(a2));
     testAssert(a1.size() == a2.size());
+    testAssert(a1.count() == a2.count());
 
     // Change one item. Arrays cannot be equal
     a1.insert(0, ~(a1[0]));
     testAssert(a1.compareTo(a2) != 0);
     testAssert(!a1.equals(a2));
     testAssert(a1.size() == a2.size());
+    testAssert(a1.count() == a2.count());
     return OK;
 }

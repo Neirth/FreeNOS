@@ -23,6 +23,11 @@
 #include <POSIXApplication.h>
 
 /**
+ * @addtogroup bin
+ * @{
+ */
+
+/**
  * Network ping/pong application.
  */
 class NetPing : public POSIXApplication
@@ -40,11 +45,6 @@ class NetPing : public POSIXApplication
     virtual ~NetPing();
 
     /**
-     * Initialize the application.
-     */
-    virtual Result initialize();
-
-    /**
      * Execute the application event loop.
      */
     virtual Result exec();
@@ -60,9 +60,10 @@ class NetPing : public POSIXApplication
      * Send ICMP ping/pong.
      */
     Result icmpPing(const char *dev, const char *host);
-
-    /** Socket */
-    int m_socket;
 };
+
+/**
+ * @}
+ */
 
 #endif /* __BIN_NETPING_H */

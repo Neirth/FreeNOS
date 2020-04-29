@@ -19,5 +19,5 @@ Import('build_env')
 
 env = build_env.Clone()
 env.UseLibraries([ 'libposix', 'liballoc', 'libstd', 'libexec', 'libarch', 'libipc', 'libfs' ])
-env.UseServers(['filesystem'])
-env.TargetProgram('ipctest', 'Main.cpp', env['bin'])
+env.UseServers(['ipctest'])
+env.TargetProgram('ipctest', Glob('*.cpp'), env['bin'])

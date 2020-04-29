@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Alexander Schrijver
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,26 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <StdioLog.h>
+#include "Echo.h"
 
 int main(int argc, char **argv)
 {
-    int i, newline = 1, args = 1;
-
-    for (i = 1; i < argc; i++)
-    {
-	if (args == 1 && strcmp(argv[i], "-n") == 0)
-	{
-	    newline = 0;
-	    continue;
-	}
-	args = 0;
-	printf("%s ", argv[i]);
-    }
-    if (newline)
-	printf("\n");
-
-    return EXIT_SUCCESS;
+    StdioLog log;
+    Echo app(argc, argv);
+    return app.run();
 }

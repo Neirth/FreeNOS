@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,9 +22,10 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <MemoryBlock.h>
 #include "ELF.h"
 
-ELF::ELF(u8 *image, Size size)
+ELF::ELF(const u8 *image, Size size)
     : ExecutableFormat(image, size)
 {
 }
@@ -33,48 +34,49 @@ ELF::~ELF()
 {
 }
 
-ELF::Result ELF::detect(u8 *program, Size size, ExecutableFormat **fmt)
+ELF::Result ELF::detect(const u8 *image, Size size, ExecutableFormat **fmt)
 {
-    ELFHeader *header = (ELFHeader *) program;
+    ELFHeader *header = (ELFHeader *) image;
 
-    /* Verify ELF magic. */    
+    // Verify ELF magic bytes
     if (header->ident[ELF_INDEX_MAGIC0] == ELF_MAGIC0 &&
         header->ident[ELF_INDEX_MAGIC1] == ELF_MAGIC1 &&
         header->ident[ELF_INDEX_MAGIC2] == ELF_MAGIC2 &&
         header->ident[ELF_INDEX_MAGIC3] == ELF_MAGIC3)
     {
-        /* Only accept current, 32-bit ELF executable programs. */
+        // Only accept current version, 32-bit ELF executable programs
         if (header->ident[ELF_INDEX_CLASS] == ELF_CLASS_32 &&
             header->version == ELF_VERSION_CURRENT &&
             header->type    == ELF_TYPE_EXEC)
         {
-            (*fmt) = new ELF(program, size);
+            (*fmt) = new ELF(image, size);
             return Success;
         }
     }
     return InvalidFormat;
 }
 
-ELF::Result ELF::regions(ELF::Region *regions, Size *count)
+ELF::Result ELF::regions(ELF::Region *regions, Size *count) const
 {
     ELFSegment *segments;
     ELFHeader *header = (ELFHeader *) m_image;
     Size max = *count, num = header->programHeaderEntryCount, c = 0;
 
-    /* Must be of the same sizes. */
+    // Must be of the same sizes
     if (!(header->programHeaderEntrySize == sizeof(ELFSegment) &&
           header->programHeaderEntryCount < 16))
     {
         return InvalidFormat;
     }
-    /* Point to the program segments. */
+
+    // Point to the program segments
     segments = (ELFSegment *) (m_image + header->programHeaderOffset);
     (*count) = 0;
 
-    /* Fill in the memory regions. */
-    for (Size i = 0; i < max && i < num; i++)
+    // Fill in the memory regions
+    for (Size i = 0; c < max && i < num; i++)
     {
-        /* We are only interested in loadable segments. */
+        // We are only interested in loadable segments
         if (segments[i].type != ELF_SEGMENT_LOAD)
             continue;
 
@@ -82,12 +84,12 @@ ELF::Result ELF::regions(ELF::Region *regions, Size *count)
         regions[c].size   = segments[i].memorySize;
         regions[c].access = Memory::User | Memory::Readable | Memory::Writable;
         regions[c].data   = new u8[segments[i].memorySize];
-    
-        /* Read segment contents from file. */
+
+        // Read segment contents from file
         MemoryBlock::copy(regions[c].data, m_image + segments[i].offset,
                           segments[i].fileSize);
 
-        /* Nulify remaining space. */
+        // Nulify remaining space
         if (segments[i].memorySize > segments[i].fileSize)
         {
             memset(regions[c].data + segments[i].fileSize, 0,
@@ -95,12 +97,13 @@ ELF::Result ELF::regions(ELF::Region *regions, Size *count)
         }
         c++;
     }
-    /* All done. */
+
+    // All done
     (*count) = c;
     return Success;
 }
 
-ELF::Result ELF::entry(Address *entry)
+ELF::Result ELF::entry(Address *entry) const
 {
     ELFHeader *header = (ELFHeader *) m_image;
     *entry = header->entry;

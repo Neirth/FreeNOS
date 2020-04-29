@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,8 +22,11 @@
 #include <Device.h>
 
 /**
- * @defgroup ata ATA (Advanced Technology Attachment)  
- * @{  
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup ATA
+ * @{
  */
 
 /**
@@ -118,7 +121,7 @@
  * @brief Error flag (when set).
  * Send a new command to clear it (or nuke it with a Software Reset).
  */
-#define ATA_STATUS_ERROR 0x01 
+#define ATA_STATUS_ERROR 0x01
 
 /**
  * @brief Drive data ready for transfer.
@@ -142,7 +145,7 @@
  * @see http://wiki.osdev.org/ATA_PIO_Mode#Device_Control_Register_.2F_Alternate_Status
  * @{
  */
- 
+
 /**
  * @brief Software Reset.
  * Set this to reset all ATA drives on a bus, if one is misbehaving.
@@ -194,6 +197,7 @@
 
 /**
  * @brief Swap ASCII bytes from IDENTIFY.
+ *
  * This macro is needed to swap ASCII bytes in
  * the IDENTIFY result buffer, because IDENTIFY returns
  * 256 little-endian words.
@@ -245,7 +249,7 @@ typedef struct ATADrive
 {
     /** Bytes returned from IDENTIFY. */
     IdentifyData identity;
-    
+
     /** Number of sectors. */
     Size sectors;
 }
@@ -265,39 +269,48 @@ class ATAController : public Device
 
     /**
      * @brief Configures the ATA controller.
+     *
      * @return Error result code.
-     */    
+     */
     virtual Error initialize();
 
-    /** 
+    /**
      * Read bytes from a drive attached to the ATA controller.
-     * @param buffer Buffer to store bytes to read. 
-     * @param size Number of bytes to read. 
-     * @param offset Offset in the device. 
-     * @return Number of bytes on success and an error code on failure. 
+     *
+     * @param buffer Buffer to store bytes to read.
+     * @param size Number of bytes to read.
+     * @param offset Offset in the device.
+     *
+     * @return Number of bytes on success and an error code on failure.
      */
     virtual Error read(IOBuffer & buffer, Size size, Size offset);
 
     /**
      * @brief Process ATA interrupts.
+     *
      * @param vector Interrupt number.
+     *
      * @return Error result code.
      */
-    virtual Error interrupt(Size vector);        
-    
+    virtual Error interrupt(Size vector);
+
   private:
-    
+
     /**
      * @brief Polls the Regular Status register.
+     *
      * @param noData Don't wait for the ATA_STATUS_DATA flag to set.
      */
     void pollReady(bool noData = false);
-    
+
+  private:
+
     /** @brief Drives detected on the ATA bus. */
     List<ATADrive *> drives;
 };
 
 /**
+ * @}
  * @}
  */
 

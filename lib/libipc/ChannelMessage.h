@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,6 +17,16 @@
 
 #ifndef __LIBIPC_CHANNELMESSAGE_H
 #define __LIBIPC_CHANNELMESSAGE_H
+
+#include <Types.h>
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libipc
+ * @{
+ */
 
 /**
  * Basic message format for sending on a Channel
@@ -40,5 +50,10 @@ class ChannelMessage
     /** Optional request identifier */
     Size identifier:31;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBIPC_CHANNELMESSAGE_H */

@@ -15,15 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <Log.h>
-#include <KernelLog.h>
+#include <StdioLog.h>
 #include "NetCtl.h"
 
 int main(int argc, char **argv)
 {
-    KernelLog log;
-    log.setMinimumLogLevel(Log::Notice);
-
+    StdioLog log;
     NetCtl app(argc, argv);
     return app.run();
 }

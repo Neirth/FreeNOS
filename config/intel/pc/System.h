@@ -23,6 +23,8 @@
 #define __SYSTEM
 
 #include <intel/IntelConstant.h>
+
+#ifndef __HOST__
 #include <intel/IntelCore.h>
 #include <intel/IntelCache.h>
 #include <intel/IntelIO.h>
@@ -34,5 +36,6 @@
 #include <intel/IntelSerial.h>
 
 #include <FreeNOS/API.h>
+#endif /* __HOST__ */
 
 #endif /* __INTEL_PC_SYSTEM_H */

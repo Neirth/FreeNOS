@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,13 +26,14 @@ size_t fread(void *ptr, size_t size,
 {
     size_t num = 0, i;
     char *buf = (char *) ptr;
-    
-    /* Read items. */
+
+    // Read items
     for (i = 0; i < nitems; i++)
     {
-	num += read(stream->fd, buf, size);
-	buf += size;
+        num += read(stream->fd, buf, size);
+        buf += size;
     }
-    /* Done. */
+
+    // Done
     return num;
 }

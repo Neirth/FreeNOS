@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -33,16 +33,16 @@ API::API()
     m_apis.insert(IOCtlNumber,      (Handler *) IOCtlHandler);
 }
 
-Error API::invoke(Number number,
-                  ulong arg1,
-                  ulong arg2,
-                  ulong arg3,
-                  ulong arg4,
-                  ulong arg5)
+API::Result API::invoke(Number number,
+                        ulong arg1,
+                        ulong arg2,
+                        ulong arg3,
+                        ulong arg4,
+                        ulong arg5)
 {
     Handler **handler = (Handler **) m_apis.get(number);
 
-    if (handler)
+    if (handler && *handler)
         return (*handler)(arg1, arg2, arg3, arg4, arg5);
     else
         return InvalidArgument;
@@ -60,6 +60,6 @@ Log & operator << (Log &log, API::Operation op)
         case API::Read:        log.append("Read");        break;
         case API::ReadPhys:    log.append("ReadPhys");    break;
         case API::Write:       log.append("Write");       break;
-    }    
+    }
     return log;
 }

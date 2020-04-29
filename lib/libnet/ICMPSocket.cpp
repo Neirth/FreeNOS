@@ -43,11 +43,6 @@ Error ICMPSocket::read(IOBuffer & buffer, Size size, Size offset)
 {
     DEBUG("");
 
-    //if (offset >= sizeof(ICMP::Header))
-    //    return 0;
-
-    // TODO: use a timeout on the ICMP socket
-
     if (!m_gotReply)
         return EAGAIN;
 
@@ -87,10 +82,6 @@ Error ICMPSocket::process(NetworkQueue::Packet *pkt)
 void ICMPSocket::error(Error err)
 {
     DEBUG("");
-
-    // Set the ethernet reply result code
-    // The read operation uses the result code
-    // m_ethResult = err;
 }
 
 void ICMPSocket::setReply(ICMP::Header *header)

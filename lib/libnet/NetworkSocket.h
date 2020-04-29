@@ -24,6 +24,14 @@
 #include "NetworkClient.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Network socket represents a single logical connection on a protocol.
  */
 class NetworkSocket : public File
@@ -63,5 +71,10 @@ class NetworkSocket : public File
     /** Socket connection */
     NetworkClient::SocketInfo m_info;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_NETWORKSOCKET_H */

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,12 +23,20 @@
 #include "FileSystemMessage.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
  * @brief Abstract Input/Output buffer.
  */
 class IOBuffer
 {
   public:
-    
+
     /**
      * Constructor.
      *
@@ -39,7 +47,7 @@ class IOBuffer
     /**
      * Destructor.
      */
-    ~IOBuffer();
+    virtual ~IOBuffer();
 
     /**
      * Get byte count.
@@ -68,53 +76,58 @@ class IOBuffer
      * @param buffer Copy bytes from the I/O buffer to this memory address.
      * @param size Number of bytes to copy.
      * @param offset The offset inside the I/O buffer to start reading.
+     *
      * @return Number of bytes read on success, and error code on failure.
      */
     Error read(void *buffer, Size size, Size offset = ZERO) const;
 
     /**
-     * @brief Write bytes to the I/O buffer.
+     * Write bytes to the I/O buffer.
      *
      * @param buffer Contains the bytes to write.
      * @param size Number of bytes to write.
      * @param offset The offset inside the I/O buffer to start writing.
+     *
      * @return Number of bytes written on success, and error code on failure.
      */
     Error write(void *buffer, Size size, Size offset = ZERO) const;
 
     /**
-     * @brief Buffered read bytes from message to the I/O buffer.
+     * Buffered read bytes from message to the I/O buffer.
      *
      * @return Error code.
      */
     Error bufferedRead();
 
     /**
-     * @brief Buffered write bytes to the I/O buffer.
+     * Buffered write bytes to the I/O buffer.
      *
      * @param buffer Contains the bytes to write.
      * @param size Number of bytes to write.
      * @param offset The offset inside the I/O buffer to start writing.
+     *
      * @return Number of bytes written on success, and error code on failure.
      */
-    Error bufferedWrite(void *buffer, Size size);
+    Error bufferedWrite(const void *buffer, Size size);
 
     /**
      * Flush write buffers.
      *
      * @return Error code.
      */
-    Error flush();
+    Error flush() const;
 
     /**
      * Byte index operator.
      *
+     * @param index Index value
+     *
      * @return Byte value at the given index or 0 if index is invalid.
      */
-    u8 operator[] (Size index);
+    u8 operator[] (Size index) const;
 
   private:
-    
+
     /**
      * @brief Current request being processed.
      *
@@ -136,5 +149,10 @@ class IOBuffer
     /** Bytes written to the buffer. */
     Size m_count;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIB_LIBFS_IOBUFFER_H */

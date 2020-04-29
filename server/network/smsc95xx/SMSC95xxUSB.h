@@ -26,6 +26,14 @@ class NetworkServer;
 class SMSC95xx;
 
 /**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup smsc95xx
+ * @{
+ */
+
+/**
  * SMSC95xx USB-based Ethernet controller.
  */
 class SMSC95xxUSB : public USBDevice
@@ -131,7 +139,7 @@ class SMSC95xxUSB : public USBDevice
      * Receive Command Words.
      */
     enum ReceiveCommand
-    {    
+    {
         RxCommandFilterFail      = 0x40000000,
         RxCommandFrameLength     = 0x3fff0000,
         RxCommandErrorSummary    = 0x00008000,
@@ -211,6 +219,8 @@ class SMSC95xxUSB : public USBDevice
      */
     void write(Register reg, u32 value);
 
+  private:
+
     /** Word aligned temporary value */
     u32 *m_value;
 
@@ -226,5 +236,10 @@ class SMSC95xxUSB : public USBDevice
     NetworkQueue::Packet *m_rxPacket;
     NetworkQueue::Packet *m_txPacket;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_SMSC95XXUSB_H */

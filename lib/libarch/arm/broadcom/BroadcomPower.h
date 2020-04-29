@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,6 +21,17 @@
 #include <Types.h>
 #include <Macros.h>
 #include <arm/broadcom/BroadcomMailbox.h>
+
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_bcm
+ * @{
+ */
 
 /**
  * Broadcom Power Management.
@@ -49,6 +60,8 @@ class BroadcomPower
         IOError
     };
 
+  public:
+
     /**
      * Constructor.
      */
@@ -65,6 +78,7 @@ class BroadcomPower
      * Set power on.
      *
      * @param device Device to power on.
+     *
      * @return Result code.
      */
     Result enable(Device device);
@@ -77,5 +91,11 @@ class BroadcomPower
     /** Current bitmask of enabled devices. */
     u32 m_mask;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_ARM_BROADCOMPOWER_H */

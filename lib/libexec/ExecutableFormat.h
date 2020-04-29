@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,9 +22,12 @@
 #include <Memory.h>
 #include <Types.h>
 
-/**  
- * @defgroup libexec libexec
- * @{  
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libexec
+ * @{
  */
 
 /** Entry point of a program. */
@@ -69,13 +72,15 @@ class ExecutableFormat
         OutOfMemory
     };
 
+  public:
+
     /**
      * Class constructor.
      *
      * @param image Pointer to program image.
      * @param size Size of the program image.
      */
-    ExecutableFormat(u8 *image, Size size);
+    ExecutableFormat(const u8 *image, Size size);
 
     /**
      * Class destructor.
@@ -88,9 +93,10 @@ class ExecutableFormat
      * @param regions Memory regions to fill.
      * @param count On input, the maximum number of regions to read.
      *              On output, the actual number of regions read.
+     *
      * @return Result code.
      */
-    virtual Result regions(Region *regions, Size *count) = 0;
+    virtual Result regions(Region *regions, Size *count) const = 0;
 
     /**
      * Lookup the program entry point.
@@ -98,7 +104,7 @@ class ExecutableFormat
      * @param entry Entry point on output.
      * @return Result code.
      */
-    virtual Result entry(Address *entry) = 0;
+    virtual Result entry(Address *entry) const = 0;
 
     /**
      * Find a ExecutableFormat which can handle the given format.
@@ -108,16 +114,19 @@ class ExecutableFormat
      * @param fmt ExecutableFormat object pointer on output.
      * @return Result code.
      */
-    static Result find(u8 *image, Size size, ExecutableFormat **fmt);
+    static Result find(const u8 *image, Size size, ExecutableFormat **fmt);
 
   protected:
 
-    u8 *m_image;
+    /** Input image raw data */
+    const u8 *m_image;
 
-    Size m_size;
+    /** Input image size in bytes */
+    const Size m_size;
 };
 
 /**
+ * @}
  * @}
  */
 

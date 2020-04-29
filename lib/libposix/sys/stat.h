@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,14 +26,17 @@
 #include <time.h>
 #include "types.h"
 
-/**                                                                                                                                                                                                     
- * @defgroup libposix libposix (POSIX.1-2008)
+/**
+ * @addtogroup lib
  * @{
- */ 
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
 /**
- * @brief File type bits.
- * 
+ * @name File stat type bits.
+ *
  * The <sys/stat.h> header shall define the following symbolic constants for
  * the file types encoded in type mode_t. The values shall be suitable for
  * use in #if preprocessing directives.
@@ -42,25 +45,25 @@
  */
 
 /** Type of file. */
-#define S_IFMT	 (FILETYPE_MASK << FILEMODE_BITS)
+#define S_IFMT   (FILETYPE_MASK << FILEMODE_BITS)
 
 /** Block special. */
-#define S_IFBLK	 (BlockDeviceFile << FILEMODE_BITS)
+#define S_IFBLK  (BlockDeviceFile << FILEMODE_BITS)
 
 /** Character special. */
 #define S_IFCHR  (CharacterDeviceFile << FILEMODE_BITS)
 
 /** FIFO special. */
-#define S_IFIFO	 (FIFOFile << FILEMODE_BITS)
+#define S_IFIFO  (FIFOFile << FILEMODE_BITS)
 
 /** Regular. */
-#define S_IFREG	 (RegularFile << FILEMODE_BITS)
+#define S_IFREG  (RegularFile << FILEMODE_BITS)
 
 /** Directory. */
-#define S_IFDIR	 (DirectoryFile << FILEMODE_BITS)
+#define S_IFDIR  (DirectoryFile << FILEMODE_BITS)
 
 /** Symbolic link. */
-#define S_IFLNK	 (SymlinkFile << FILEMODE_BITS)
+#define S_IFLNK  (SymlinkFile << FILEMODE_BITS)
 
 /** Socket. */
 #define S_IFSOCK (SocketFile << FILEMODE_BITS)
@@ -69,7 +72,7 @@
 
 /**
  * @brief File mode bits.
- * 
+ *
  * The <sys/stat.h> header shall define the following symbolic constants for the
  * file mode bits encoded in type mode_t, with the indicated numeric values.
  * These macros shall expand to an expression which has a type that allows them
@@ -81,7 +84,7 @@
  */
 
 /** Read, write, execute/search by owner. */
-#define S_IRWXU	 OwnerRWX
+#define S_IRWXU  OwnerRWX
 
 /** Read permission, owner. */
 #define S_IRUSR  OwnerR
@@ -119,13 +122,13 @@
 /** @} */
 
 /**
- * @brief File type macros.
- * 
+ * @name File type macros.
+ *
  * The following macros shall be provided to test whether a file is of the
  * specified type. The value m supplied to the macros is the value of st_mode
  * from a stat structure. The macro shall evaluate to a non-zero value if the
  * test is true; 0 if the test is false.
- * 
+ *
  * @{
  */
 
@@ -169,69 +172,70 @@ struct stat
      */
     void fromFileStat(FileStat *stat)
     {
-	this->st_mode  = stat->access;
-	this->st_mode |= stat->type << FILEMODE_BITS;
+        this->st_mode  = stat->access;
+        this->st_mode |= stat->type << FILEMODE_BITS;
         this->st_size  = stat->size;
         this->st_uid   = stat->userID;
         this->st_gid   = stat->groupID;
-	this->st_dev   = stat->deviceID;
+        this->st_dev   = stat->deviceID;
     }
 #endif /* CPP */
 
     /** Device ID of device containing file. */
     dev_t st_dev;
-    
+
     /** File serial number. */
-    ino_t st_ino;	
-    
+    ino_t st_ino;
+
     /** Mode of file. */
     mode_t st_mode;
-    
+
     /** Number of hard links to the file. */
     nlink_t st_nlink;
-    
+
     /** User ID of file. */
-    uid_t st_uid;	
-    
+    uid_t st_uid;
+
     /** Group ID of file. */
     gid_t st_gid;
-    
+
     /** Device ID (if file is character or block special). */
     dev_t st_rdev;
-    
+
     /**
-     * For regular files, the file size in bytes. 
-     * For symbolic links, the length in bytes of the 
+     * For regular files, the file size in bytes.
+     * For symbolic links, the length in bytes of the
      * pathname contained in the symbolic link.
-     * For a shared memory object, the length in bytes. 
+     * For a shared memory object, the length in bytes.
      * For a typed memory object, the length in bytes.
-     * For other file types, the use of this field is 
+     * For other file types, the use of this field is
      * unspecified.
      */
     off_t st_size;
-    
+
     /** Last data access timestamp. */
     struct timespec st_atim;
-    
+
     /** Last data modification timestamp. */
     struct timespec st_mtim;
-    
+
     /** Last file status change timestamp. */
     struct timespec st_ctim;
-    
+
     /**
-     * A file system-specific preferred I/O block size 
-     * for this object. In some file system types, this 
+     * A file system-specific preferred I/O block size
+     * for this object. In some file system types, this
      * may vary from file to file.
      */
     blksize_t st_blksize;
-    
+
     /** Number of blocks allocated for this object. */
     blkcnt_t st_blocks;
 };
 
 /**
  * Get file status.
+ *
  * @param path The path argument points to a pathname naming a file.
  *             Read, write, or execute permission of the named file
  *             is not required. An implementation that provides additional
@@ -242,6 +246,7 @@ struct stat
  * @param buf The buf argument is a pointer to a stat structure,
  *            as defined in the <sys/stat.h> header, into which
  *            information is placed concerning the file.
+ *
  * @return Upon successful completion, these functions shall return 0.
  *         Otherwise, these functions shall return -1 and set errno to
  *         indicate the error.
@@ -250,9 +255,11 @@ extern C int stat(const char *path, struct stat *buf);
 
 /**
  * Make directory, special file, or regular file
+ *
  * @param path The mknod() function shall create a new file
  *             named by the pathname to which the argument path points.
  * @param mode The file type for path is OR'ed into the mode argument.
+ *
  * @return Upon successful completion, these functions shall return 0.
  *         Otherwise, these functions shall return -1 and set errno to
  *         indicate the error. If -1 is returned, the new file shall
@@ -270,6 +277,7 @@ extern C int mknod(const char *path, mode_t mode, dev_t dev);
  *
  * @param path Full path to the directory to create.
  * @param mode Initial access permissions on the directory.
+ *
  * @return Upon successful completion, these functions shall return 0.
  *         Otherwise, these functions shall return -1 and set errno to
  *         indicate the error. If -1 is returned, no directory shall
@@ -288,6 +296,7 @@ extern C int mkdir(const char *path, mode_t mode);
  *
  * @param path Full path to the file to create
  * @param mode Initial access permissions for the file.
+ *
  * @return Upon successful completion, these functions shall return 0.
  *         Otherwise, these functions shall return -1 and set errno to
  *         indicate the error. If -1 is returned, no file shall
@@ -296,6 +305,7 @@ extern C int mkdir(const char *path, mode_t mode);
 extern C int creat(const char *path, mode_t mode);
 
 /**
+ * @}
  * @}
  */
 

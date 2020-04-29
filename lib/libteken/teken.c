@@ -277,7 +277,7 @@ teken_input_byte(teken_t *t, unsigned char c)
 void
 teken_input(teken_t *t, const void *buf, size_t len)
 {
-	const char *c = buf;
+	const char *c = (const char *)buf;
 
 	while (len-- > 0)
 		teken_input_byte(t, *c++);

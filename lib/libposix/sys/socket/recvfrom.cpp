@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,7 +25,6 @@
 extern C int recvfrom(int sockfd, void *buf, size_t len, int flags,
                       struct sockaddr *addr, socklen_t addrlen)
 {
-
     char packet[2048];
     NetworkClient::SocketInfo info;
 
@@ -36,9 +35,10 @@ extern C int recvfrom(int sockfd, void *buf, size_t len, int flags,
     if (r < 0)
         return r;
 
-    // TODO: inefficient. and move to NetworkClient.
+    memcpy(&info, packet, sizeof(info));
     addr->addr = info.address;
     addr->port = info.port;
+
     memcpy(buf, packet + sizeof(info), r - sizeof(info));
     return r - sizeof(info);
 }

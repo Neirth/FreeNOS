@@ -45,7 +45,6 @@ Error UDPSocket::read(IOBuffer & buffer, Size size, Size offset)
     if (!pkt)
         return EAGAIN;
 
-    // TODO: assumes ethernet here
     IPV4::Header *ipHdr = (IPV4::Header *)(pkt->data + sizeof(Ethernet::Header));
     UDP::Header *udpHdr = (UDP::Header *)(pkt->data + sizeof(Ethernet::Header) + sizeof(IPV4::Header));
     NetworkClient::SocketInfo info;
@@ -74,9 +73,6 @@ Error UDPSocket::write(IOBuffer & buffer, Size size, Size offset)
     {
         buffer.read(&m_info, sizeof(m_info));
 
-        // TODO: retry if the random port is already in use...
-        // TODO: move this to the NetworkSocket
-        // TODO: remove libposix dependency. Use Random from libstd later.
         if (m_info.port == 0)
             m_info.port = random() % 65535;
 
@@ -96,7 +92,6 @@ Error UDPSocket::process(NetworkQueue::Packet *pkt)
 {
     DEBUG("");
 
-    // TODO: for performance its better to "trade" packets instead of copying
     NetworkQueue::Packet *buf = m_queue.get();
     if (!buf)
     {

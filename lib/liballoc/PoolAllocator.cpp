@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,77 +20,82 @@
 #include <MemoryBlock.h>
 
 PoolAllocator::PoolAllocator()
+    : Allocator()
 {
     MemoryBlock::set(m_pools, 0, sizeof(m_pools));
 }
 
-Size PoolAllocator::size()
+Size PoolAllocator::size() const
 {
     return m_parent ? m_parent->size() : ZERO;
 }
 
-Size PoolAllocator::available()
+Size PoolAllocator::available() const
 {
     return m_parent ? m_parent->available() : ZERO;
 }
 
-Allocator::Result PoolAllocator::allocate(Size *size, Address *addr, Size align)
+Allocator::Result PoolAllocator::allocate(Allocator::Arguments & args)
 {
     Size index, nPools = 1;
     MemoryPool *pool = ZERO;
-    
-    /* Find the correct pool size. */
+
+    // Find the correct pool size
     for (index = POOL_MIN_POWER; index < POOL_MAX_POWER; index++)
     {
-        if (*size <= (Size) 1 << (index + 1)) break;
+        if (args.size <= (Size) 1 << (index + 1)) break;
     }
-    /* Do we need to allocate an initial pool? */
+
+    // Do we need to allocate an initial pool?
     if (!m_pools[index] && m_parent)
     {
-        pool = m_pools[index] = newPool(index, POOL_MIN_COUNT(*size));
+        pool = m_pools[index] = newPool(index, POOL_MIN_COUNT(args.size));
     }
-    /* Search for pool with enough memory. */
+    // Search for pool with enough memory
     else
     {
-        /* Loop current pools. */
+        // Loop current pools
         for (pool = m_pools[index]; pool; pool = pool->next, nPools++)
         {
-            /* At least one block still free? */
+            // At least one block still free?
             if (pool->free)
                 break;
 
-            /* If no pool has free space anymore, allocate another. */
+            // If no pool has free space anymore, allocate another
             if (!pool->next)
             {
-                pool = newPool(index, POOL_MIN_COUNT(*size) * nPools);
+                pool = newPool(index, POOL_MIN_COUNT(args.size) * nPools);
                 break;
             }
         }
     }
-    /* Attempt to allocate. */
+    // Attempt to allocate
     if (pool)
     {
-        *addr = pool->allocate();
+        args.address = pool->allocate();
         return Success;
     }
-    *addr = ZERO;
+    args.address = ZERO;
     return OutOfMemory;
 }
 
 MemoryPool * PoolAllocator::newPool(Size index, Size cnt)
 {
     MemoryPool *pool = 0;
-    Size sz;
-    
-    /* Prepare amount to allocate from m_parent. */
-    sz  = cnt * (1 << (index + 1));
-    sz += sizeof(MemoryPool);
-    sz += BITMAP_NUM_BYTES(cnt);
-    sz += MEMALIGN;
+    Allocator::Arguments alloc_args;
 
-    /* Ask m_parent for memory, then fill in the pool. */
-    if (m_parent->allocate(&sz, (Address *)&pool) == Success)
+    // Prepare amount to allocate from m_parent
+    alloc_args.address = 0;
+    alloc_args.alignment = 0;
+    alloc_args.size  = cnt * (1 << (index + 1));
+    alloc_args.size += sizeof(MemoryPool);
+    alloc_args.size += BITMAP_NUM_BYTES(cnt);
+    alloc_args.size += MEMALIGN;
+
+    // Ask m_parent for memory, then fill in the pool
+    if (m_parent->allocate(alloc_args) == Allocator::Success)
     {
+        pool = (MemoryPool *) alloc_args.address;
         pool->count  = cnt;
         pool->addr   = aligned( ((Address) (pool + 1)) + BITMAP_NUM_BYTES(pool->count), MEMALIGN );
         pool->next   = m_pools[index];
@@ -104,7 +109,6 @@ MemoryPool * PoolAllocator::newPool(Size index, Size cnt)
 
 Allocator::Result PoolAllocator::release(Address addr)
 {
-    // TODO: very slow! requires a full scan of the heap in the worst case.
     for (Size i = POOL_MIN_POWER - 1; i < POOL_MAX_POWER; i++)
     {
         for (MemoryPool *p = m_pools[i]; p; p = p->next)

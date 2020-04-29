@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,10 +23,11 @@
 
 int main(int argc, char **argv)
 {
-#if defined(INTEL) && defined(STDIO_LOGGING) 
+#if defined(INTEL) && defined(STDIO_LOGGING)
     StdioLog log;
     SystemInformation info;
 
+    // Is this the master core?
     if (info.coreId == 0)
     {
         close(0);

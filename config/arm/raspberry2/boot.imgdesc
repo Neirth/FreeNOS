@@ -1,6 +1,6 @@
-./server/core/server
-./server/filesystem/tmp/server
-./server/filesystem/linn/server
-./server/idle/server
-./bin/init/init
-./rootfs.linn
+BootProgram ./server/core/server
+BootProgram ./server/filesystem/sys/server
+BootProgram ./server/filesystem/linn/server
+BootProgram ./server/idle/server
+BootProgram ./bin/init/init
+BootData ./rootfs.linn

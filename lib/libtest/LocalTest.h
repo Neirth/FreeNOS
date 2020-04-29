@@ -20,19 +20,47 @@
 
 #include "TestInstance.h"
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
 typedef TestResult TestFunction(void);
 
+/**
+ * Represents test inside the same process
+ */
 class LocalTest : public TestInstance
 {
   public:
 
+    /**
+     * Class constructor
+     *
+     * @param name Test name
+     * @param func Test function to run
+     */
     LocalTest(const char *name, TestFunction func);
 
+    /**
+     * Run the test function
+     *
+     * @return TestResult
+     */
     virtual TestResult run();
 
   private:
 
+    /** Contains the test to run */
     TestFunction *m_func;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_LOCALTEST_H */

@@ -37,8 +37,10 @@ def boot_image_emitter(target, source, env):
 	       line[0] == '#':
 	    continue
 
-	# Make us depend on the program.
-	source.append('#' + env['BUILDROOT'] + '/' + line.strip())
+        symboltype, symbolname = line.strip().split(' ')
+
+	# Make us depend on the program/file.
+	source.append('#' + env['BUILDROOT'] + '/' + symbolname)
 
     # We also depend on the mkimage utility.
     source.append('#' + build.host['BUILDROOT'] + '/bin/img/img')
@@ -53,14 +55,19 @@ def boot_image_emitter(target, source, env):
 def boot_image_func(target, source, env):
 
     # Invoke the mkimage utility to generate a boot image.
-    image_out, ext  = os.path.splitext(str(target[0]))
     d = os.getcwd()
 
-    os.chdir(env['BUILDROOT'])
-    os.system("'" + d + "/" + build.host['BUILDROOT'] + "/bin/img/img' '" +
-                    d + "/" + str(source[0]) + "' '" +
-                    d + "/" + image_out + "'")
-    os.system("gzip -c '" + d + "/" + image_out + "' > '" + d + "/" + image_out + ".gz'")
+    os.chdir(env['BUILDPATH'])
+
+    img_cmd = "'" + build.host['BUILDROOT'] + "/bin/img/img' '" \
+                  + "--prefix=" + env['BUILDROOT'] + "' '" \
+                  + str(source[0]) + "' '" \
+                  + str(target[0]) + "'"
+
+    r = os.system(img_cmd)
+    if r != 0:
+        raise Exception("failed to generate boot image `" + str(target[0]) + "': command `" + img_cmd + "' failed: exit code " + str(r>>8))
+
     os.chdir(d)
 
 def boot_image_str(target, source, env):

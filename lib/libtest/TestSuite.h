@@ -23,19 +23,49 @@
 
 class TestInstance;
 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
+ * Maintains a list of test instances
+ */
 class TestSuite : public Singleton<TestSuite>
 {
   public:
 
+    /**
+     * Class constructor
+     */
     TestSuite();
 
+    /**
+     * Add a test
+     *
+     * @param test TestInstance to add
+     */
     void addTest(TestInstance *test);
 
+    /**
+     * Retrieve a list of all tests
+     *
+     * @return List of TestInstances
+     */
     List<TestInstance *> * getTests();
 
   private:
 
+    /** List of TestInstances in the suite */
     List<TestInstance *> m_tests;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTSUITE_H */

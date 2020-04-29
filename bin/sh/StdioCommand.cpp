@@ -26,17 +26,16 @@ StdioCommand::StdioCommand() : ShellCommand("stdio", 2)
 
 int StdioCommand::execute(Size nparams, char **params)
 {
-    while (true)
-    {
-        // Reopen standard I/O
-        close(0);
-        close(1);
-        close(2);
+    // Close current standard I/O
+    close(0);
+    close(1);
+    close(2);
 
-        if (open(params[0], O_RDWR) >= 0 &&
-            open(params[1], O_RDWR) >= 0 &&
-            open(params[1], O_RDWR) >= 0)
-            break;
-    }
+    // Reopen standard I/O
+    open(params[0], O_RDWR);
+    open(params[1], O_RDWR);
+    open(params[1], O_RDWR);
+
+    // Done
     return 0;
 }

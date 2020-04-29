@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,15 +18,18 @@
 #ifndef __SERVER_I2C_GROVEPI_LCDBAR_H
 #define __SERVER_I2C_GROVEPI_LCDBAR_H
 
-/**     
- * @defgroup groveDigi GrovePi LCD Bar
- * @{
- */
-
 #include <Macros.h>
 #include <Types.h>
 #include <Device.h>
 #include <I2C.h>
+
+/**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup grovepi
+ * @{
+ */
 
 /**
  * @brief GrovePi LCD Bar
@@ -73,6 +76,7 @@ class LCDBar : public Device
      * @param buffer Buffer to save the read bytes.
      * @param size Number of bytes to read.
      * @param offset Offset in the file to read.
+     *
      * @return Number of bytes on success and ZERO on failure. 
      */
     virtual Error write(IOBuffer & buffer, Size size, Size offset);
@@ -94,11 +98,14 @@ class LCDBar : public Device
      */
     void textCommand(Command cmd);
 
+  private:
+
     /** I2C controller */
     I2C *m_i2c;
 };
 
 /**
+ * @}
  * @}
  */
 

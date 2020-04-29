@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -38,7 +38,7 @@ Size hash(int key, Size mod)
 {
     Size ret = FNV_INIT;
 
-    assert(mod > 0);    
+    assert(mod > 0);
 
     for (Size i = 0; i < 4; i++)
     {

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,13 +25,13 @@
 #include <Index.h>
 #include <MemoryContext.h>
 
-/** 
- * @defgroup kernel kernel (generic)
- * @{ 
- */
-
 class MemoryChannel;
 class Process;
+
+/**
+ * @addtogroup kernel
+ * @{
+ */
 
 /**
  * Manages memory shares for a Process.
@@ -82,7 +82,7 @@ class ProcessShares
      * Constructor.
      */
     ProcessShares(ProcessID pid);
-    
+
     /**
      * Destructor function.
      */
@@ -104,6 +104,7 @@ class ProcessShares
      * Set MemoryContext.
      *
      * @param context MemoryContext object
+     *
      * @return Result code.
      */
     Result setMemoryContext(MemoryContext *context);
@@ -122,6 +123,7 @@ class ProcessShares
      * @param tagId TagID for the share.
      * @param virt Virtual address of the share.
      * @param size Size of the share.
+     *
      * @return Result code.
      */
     Result createShare(ProcessID pid,
@@ -134,6 +136,7 @@ class ProcessShares
      * Read memory share by Process, Core and Tag IDs.
      *
      * @param share MemoryShare buffer (input/output).
+     *
      * @return Result code.
      */
     Result readShare(MemoryShare *share);
@@ -142,6 +145,7 @@ class ProcessShares
      * Remove all shares for the given ProcessID
      *
      * @param pid ProcessID to remove all shares for
+     *
      * @return Result code
      */
     Result removeShares(ProcessID pid);
@@ -153,9 +157,12 @@ class ProcessShares
      *
      * @param share MemoryShare object pointer
      * @param idx Index position of the object
+     *
      * @return Result code
      */
     Result releaseShare(MemoryShare *share, Size idx);
+
+  private:
 
     /** ProcessID associated to these shares */
     ProcessID m_pid;

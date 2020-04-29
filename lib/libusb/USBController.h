@@ -25,6 +25,14 @@
 #include "USBMessage.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
+/**
  * USB controller abstract interface.
  */
 class USBController : public DeviceServer
@@ -56,5 +64,10 @@ class USBController : public DeviceServer
     /** I/O instance */
     Arch::IO m_io;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USBCONTROLLER_H */

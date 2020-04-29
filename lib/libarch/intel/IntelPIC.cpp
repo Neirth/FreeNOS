@@ -18,6 +18,7 @@
 #include "IntelPIC.h"
 
 IntelPIC::IntelPIC()
+    : IntController()
 {
     m_base = InterruptBase;
     m_master.setBase(MasterBase);
@@ -85,8 +86,8 @@ IntelPIC::Result IntelPIC::clear(uint irq)
     // End-Of-Interrupt to slave needed?
     if (irq >= 8)
         m_slave.outb(Command, EndOfInterrupt);
-    
+
     // Always signal End-Of-Interrupt to the master
-    m_master.outb(Command, EndOfInterrupt);        
+    m_master.outb(Command, EndOfInterrupt);
     return Success;
 }

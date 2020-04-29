@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -15,21 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <StdioLog.h>
+#include "Hostname.h"
 
 int main(int argc, char **argv)
 {
-    char host[128];
-
-    /* Fetch hostname. */
-    gethostname(host, sizeof(host));
-    
-    /* Output our hostname. */
-    printf("%s\r\n", host);
-    
-    /* Done. */
-    return EXIT_SUCCESS;
+    StdioLog log;
+    Hostname app(argc, argv);
+    return app.run();
 }

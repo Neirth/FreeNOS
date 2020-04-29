@@ -24,6 +24,11 @@
 #include <POSIXApplication.h>
 
 /**
+ * @addtogroup bin
+ * @{
+ */
+
+/**
  * Network send/receive (cat) application.
  */
 class NetCat : public POSIXApplication
@@ -82,5 +87,9 @@ class NetCat : public POSIXApplication
     /** Host port */
     u16 m_port;
 };
+
+/**
+ * @}
+ */
 
 #endif /* __BIN_NETCAT_H */

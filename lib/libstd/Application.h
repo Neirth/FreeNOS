@@ -25,6 +25,14 @@
 #include "ArgumentContainer.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
  * Generic application
  */
 class Application
@@ -47,11 +55,17 @@ class Application
         Success,
         NotFound,
         IOError,
-        InvalidArgument
+        InvalidArgument,
+        ShowUsage
     };
+
+  public:
 
     /**
      * Class constructor.
+     *
+     * @param argc Argument count
+     * @param argv Argument values
      */
     Application(int argc, char **argv);
 
@@ -74,7 +88,7 @@ class Application
      *
      * @return Result code
      */
-    virtual Result initialize() = 0;
+    virtual Result initialize();
 
     /**
      * Execute the application event loop.
@@ -89,21 +103,53 @@ class Application
      * @param string Text to print to program output.
      * @return Result code.
      */
-    virtual Result output(const char *string) = 0;
+    virtual Result output(const char *string) const = 0;
 
     /**
-     * Terminate program.
+     * Print string to output.
      *
-     * @param code Termination code.
+     * @param string Reference to string to output.
+     *
+     * @return Result code.
      */
-    virtual void exit(int code) = 0;
+    virtual Result output(String & string) const;
+
+  protected:
+
+    /**
+     * Get program arguments parser.
+     *
+     * @return Program arguments parser.
+     */
+    ArgumentParser & parser();
+
+    /**
+     * Get constant program arguments parser.
+     *
+     * @return Program arguments parser.
+     */
+    const ArgumentParser & parser() const;
+
+    /**
+     * Get program arguments.
+     */
+    const ArgumentContainer & arguments() const;
+
+    /**
+     * Set program version.
+     *
+     * @param version Program version string
+     */
+    void setVersion(const String & version);
+
+  private:
 
     /**
      * Print usage and terminate.
      */
-    void usage();
+    void usage() const;
 
-  protected:
+  private:
 
     /** Program argument parser object */
     ArgumentParser m_parser;
@@ -120,5 +166,10 @@ class Application
     /** Program version */
     String m_version;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_APPLICATION_H */

@@ -54,7 +54,6 @@ UDPSocket * UDP::createSocket(String & path)
     if (!sock)
         return ZERO;
 
-    // TODO: we need a pool here too
     int pos = m_sockets.insert(*sock);
     if (pos == -1)
     {

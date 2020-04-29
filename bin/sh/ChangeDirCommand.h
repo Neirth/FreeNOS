@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,12 +22,20 @@
 #include "ShellCommand.h"
 
 /**
+ * @addtogroup bin
+ * @{
+ *
+ * @addtogroup sh
+ * @{
+ */
+
+/**
  * Change the current working directory.
  */
 class ChangeDirCommand : public ShellCommand
 {
   public:
-    
+
     /**
      * Constructor function.
      */
@@ -41,5 +49,9 @@ class ChangeDirCommand : public ShellCommand
      */
     virtual int execute(Size nparams, char **params);
 };
+
+/**
+ * @}
+ */
 
 #endif /* __SH_CHANGE_DIR_COMMAND */

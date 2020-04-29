@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -206,7 +206,7 @@ bool String::startsWith(const char *prefix) const
 
     return true;
 }
-        
+
 bool String::endsWith(String & suffix) const
 {
     return endsWith(suffix.m_string);
@@ -391,7 +391,7 @@ String & String::lower()
 
     return (*this);
 }
-        
+
 String & String::upper()
 {
     // Make sure the string is allocated
@@ -546,7 +546,7 @@ Size String::setUnsigned(ulong number, Number::Base base, char *string, bool sig
     // If needed, make sure enough allocated space is available.
     if (!string)
         reserve(STRING_DEFAULT_SIZE - 1);
-    
+
     // Set target buffer
     p = string ? string : m_string;
 
@@ -564,6 +564,13 @@ Size String::setUnsigned(ulong number, Number::Base base, char *string, bool sig
         ud = -number;
         written++;
     }
+    // Add '0x' prefix for hexadecimal numbers
+    if (base == Number::Hex)
+    {
+        *p++ = '0';
+        *p++ = 'x';
+        written += 2;
+    }
     saved = p;
 
     // Divide ud by the divisor, until ud == 0
@@ -573,15 +580,15 @@ Size String::setUnsigned(ulong number, Number::Base base, char *string, bool sig
         *p++ = (remainder < 10) ? remainder + '0' : remainder + 'a' - 10;
     }
     while (ud /= divisor);
-    
+
     // Terminate buffer
     *p = 0;
-    
+
     // Initialize pointers
     p1 = saved;
     p2 = p - 1;
     written += p2-p1+1;
-    
+
     // Reverse buf
     while (p1 < p2)
     {
@@ -661,10 +668,26 @@ String & String::operator << (const String & str)
     return (*this);
 }
 
-String & String::operator << (long number)
+String & String::operator << (int number)
 {
     if (reserve(m_count + 16))
         m_count += set(number, m_base, m_string + m_count);
+
+    return (*this);
+}
+
+String & String::operator << (unsigned int number)
+{
+    if (reserve(m_count + 16))
+        m_count += setUnsigned(number, m_base, m_string + m_count);
+
+    return (*this);
+}
+
+String & String::operator << (void *ptr)
+{
+    if (reserve(m_count + 16))
+        m_count += setUnsigned((unsigned long) ptr, Number::Hex, m_string + m_count);
 
     return (*this);
 }

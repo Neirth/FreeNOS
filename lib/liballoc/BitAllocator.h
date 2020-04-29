@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,9 +23,12 @@
 #include <Memory.h>
 #include "Allocator.h"
 
-/** 
- * @defgroup kernel kernel (generic)
- * @{ 
+/**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup liballoc
+ * @{
  */
 
 /**
@@ -52,26 +55,26 @@ class BitAllocator : public Allocator
      *
      * @return Chunk size.
      */
-    Size chunkSize();
+    Size chunkSize() const;
 
     /**
      * Get total size.
      *
      * @return Total size.
      */
-    virtual Size size();
+    virtual Size size() const;
 
     /**
      * Get available memory.
      *
      * @return Available memory.
      */
-    virtual Size available();
+    virtual Size available() const;
 
     /**
      * Get base memory address.
      */
-    Address base();
+    Address base() const;
 
     /**
      * Get allocation BitArray.
@@ -83,32 +86,27 @@ class BitAllocator : public Allocator
     /**
      * Allocate memory.
      *
-     * @param size Size of memory to allocate.
-     * @param addr Address allocated.
-     * @param align Alignment of the required memory or use
-     *              ZERO for chunksize. Must be a multiple
-     *              of the chunksize.
-     * @return Result value.
-     */
-    virtual Result allocate(Size *size, Address *addr, Size align = ZERO);
-
-    /**
-     * Allocate memory.
+     * @param args Allocator arguments containing the requested size, address and alignment.
      *
-     * @param size Size of memory to allocate.
-     * @param addr Address allocated.
-     * @param align Alignment of the required memory or use
-     *              ZERO for chunksize. Must be a multiple
-     *              of the chunksize.
-     * @param allocStart Allocation address to start searching at.
      * @return Result value.
      */
-    Result allocate(Size *size, Address *addr, Size align = ZERO, Address allocStart = 0);
+    virtual Result allocate(Arguments & args);
 
     /**
-     * Allocate address.
+     * Allocate memory from defined starting address.
+     *
+     * @param args Allocator arguments containing the requested size, address and alignment.
+     * @param allocStart Allocation address to start searching at.
+     *
+     * @return Result value.
+     */
+    Result allocate(Arguments & args, Address allocStart = 0);
+
+    /**
+     * Allocate a specific address.
      *
      * @param addr Allocate a specific address.
+     *
      * @return Result value.
      */
     Result allocate(Address addr);
@@ -118,7 +116,7 @@ class BitAllocator : public Allocator
      *
      * @return True if allocated, false otherwise.
      */
-    bool isAllocated(Address page);
+    bool isAllocated(Address page) const;
 
     /**
      * Release memory chunk.
@@ -142,6 +140,7 @@ class BitAllocator : public Allocator
 
 /**
  * @}
+ * @}
  */
 
-#endif /* __MEMORY_H */
+#endif /* __LIBALLOC_BITALLOCATOR_H */

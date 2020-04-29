@@ -5,6 +5,7 @@
 /server/ps2/server &
 /server/video/server &
 /server/terminal/server &
+write /sys/mountwait /console
 stdio /console/tty0 /console/tty0
 
 #
@@ -18,6 +19,7 @@ stdio /console/tty0 /console/tty0
 # Serial console
 #
 /server/serial/server &
+write /sys/mountwait /dev/serial
 /bin/login /dev/serial/serial0/io /dev/serial/serial0/io &
 
 #

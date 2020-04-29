@@ -36,12 +36,12 @@ ArgumentContainer::~ArgumentContainer()
         delete m_positionals[i];
 }
 
-Vector<Argument *> & ArgumentContainer::getPositionals()
+const Vector<Argument *> & ArgumentContainer::getPositionals() const
 {
     return m_positionals;
 }
 
-HashTable<String, Argument *> & ArgumentContainer::getFlags()
+const HashTable<String, Argument *> & ArgumentContainer::getFlags() const
 {
     return m_flags;
 }

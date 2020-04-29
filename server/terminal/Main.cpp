@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,17 +20,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <Runtime.h>
+#include <KernelLog.h>
 
 int main(int argc, char **argv)
 {
+    KernelLog log;
+    log.setMinimumLogLevel(Log::Notice);
+
+    // Wait for the input/output devices to become available
+    waitMount("/dev/ps2");
+    waitMount("/dev/video");
+    refreshMounts(0);
+
+    // Register our device
     DeviceServer server("/console");
     server.initialize();
 
-    refreshMounts(0);
-
-    /*
-     * Start serving requests.
-     */
-    server.registerDevice(new Terminal, "tty0");
+    // Start serving requests.
+    server.registerDevice(new Terminal("/dev/ps2/keyboard0", "/dev/video/vga0"), "tty0");
     return server.run();
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -69,17 +69,15 @@ Timer::Result Timer::tick()
     return Success;
 }
 
-Timer::Result Timer::wait(u32 microseconds)
+Timer::Result Timer::wait(u32 microseconds) const
 {
-    // TODO: use getCurrent() to busy wait
     return Success;
 }
 
-bool Timer::isExpired(const Timer::Info *info)
+bool Timer::isExpired(const Timer::Info & info) const
 {
-    if (!info->frequency)
+    if (!info.frequency)
         return false;
 
-    // TODO: take integer overflow into account!
-    return m_info.ticks > info->ticks;
+    return m_info.ticks > info.ticks;
 }

@@ -31,6 +31,14 @@
 #endif /* __HOST__ */
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libtest
+ * @{
+ */
+
+/**
  * Generate test data for a certain data type.
  */
 template <class T> class TestData
@@ -64,7 +72,7 @@ template <class T> class TestData
         // Collect seed from the current time
 #ifdef __HOST__
         struct timeval tv;
-        gettimeofday(&tv, NULL);
+        gettimeofday(&tv, (struct timezone *)NULL);
         seed += tv.tv_sec + tv.tv_usec;
 #else
         seed += timestamp();
@@ -85,6 +93,7 @@ template <class T> class TestData
      * Retrieve previously random generated test data by index.
      *
      * @param index Index of the value to retrieve.
+     *
      * @return T value reference.
      */
     T & get(Size index)
@@ -104,6 +113,7 @@ template <class T> class TestData
      * Get random test value(s).
      *
      * @param count Number or values to generate.
+     *
      * @return The last generated T value.
      */
     virtual T random(Size count = 1) = 0;
@@ -112,6 +122,7 @@ template <class T> class TestData
      * Get unique random test value(s).
      *
      * @param count Number of unique values to generate.
+     *
      * @return The last generated T value.
      */
     virtual T unique(Size count = 1) = 0;
@@ -121,5 +132,10 @@ template <class T> class TestData
     /** Vector with generated values. */
     Vector<T> m_values;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBTEST_TESTDATA_H */

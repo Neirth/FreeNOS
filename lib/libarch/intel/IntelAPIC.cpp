@@ -17,15 +17,28 @@
 
 #include <Log.h>
 #include <MemoryContext.h>
+#include <Core.h>
+#include <FreeNOS/System.h>
 #include "IntelPIT.h"
 #include "IntelAPIC.h"
 
-#warning Split IntelAPIC in two classes: the interrupt part and timer part. IntelAPICTimer, IntelAPIC
+#pragma clang optimize off
+#pragma GCC push_options
+#pragma GCC optimize ("O0")
 
-IntelAPIC::IntelAPIC() : IntController()
+#define APIC_DEST(x) ((x) << 24)
+#define APIC_DEST_FIELD         0x00000
+#define APIC_DEST_LEVELTRIG     0x08000
+#define APIC_DEST_ASSERT        0x04000
+#define APIC_DEST_DM_INIT       0x00500
+#define APIC_DEST_DM_STARTUP    0x00600
+
+IntelAPIC::IntelAPIC()
+    : IntController()
 {
     m_frequency = 0;
-    m_int       = TimerVector;
+    m_int = TimerVector;
+    m_initialCounter = 0;
     m_io.setBase(IOBase);
 }
 
@@ -34,14 +47,14 @@ IntelIO & IntelAPIC::getIO()
     return m_io;
 }
 
-uint IntelAPIC::getCounter()
+uint IntelAPIC::getCounter() const
 {
     return m_io.read(InitialCount);
 }
 
 Timer::Result IntelAPIC::start(IntelPIT *pit)
 {
-    u32 t1, t2, ic, loops = 20;
+    u32 t1, t2, loops = 20;
 
     // Start the APIC timer
     m_io.write(DivideConfig, Divide16);
@@ -64,56 +77,85 @@ Timer::Result IntelAPIC::start(IntelPIT *pit)
     t2 = m_io.read(CurrentCount);
 
     // Configure the APIC timer to run at the same frequency as the PIT.
-    ic = (t1 - t2) / loops;
+    m_initialCounter = (t1 - t2) / loops;
     m_frequency = pit->getFrequency();
-    m_io.write(InitialCount, ic);
+    m_io.write(InitialCount, m_initialCounter);
 
     // Calculate APIC bus frequency in hertz using the known PIT
     // frequency as reference for diagnostics.
-    u32 busFreq = ic * 16 * pit->getFrequency();
+    u32 busFreq = m_initialCounter * 16 * pit->getFrequency();
     NOTICE("Detected " << busFreq / 1000000 << "."
                        << busFreq % 1000000 << " Mhz APIC bus");
-    NOTICE("APIC counter set at " << ic);
+    NOTICE("APIC counter set at " << m_initialCounter);
     return Timer::Success;
 }
 
-Timer::Result IntelAPIC::wait(u32 microseconds)
+Timer::Result IntelAPIC::wait(u32 microseconds) const
 {
-    // TODO: hack: busy wait fixed time.
-    for (Size i = 0; i < 10000000; i++)
-        microseconds += i;
-
-    if (!m_frequency)
-        return microseconds == 0 ? Timer::NotFound : Timer::IOError; // TODO: hack to prevent g++ to optimize the loop away
-
-    Size usecPerInt = 1000000 / m_frequency;
-    Size usecPerTick = usecPerInt / m_io.read(InitialCount);
-    u32 t1 = m_io.read(CurrentCount), t2;
-    u32 waited = 0;
-
-    while (waited < microseconds)
+    if (!isKernel)
     {
-        t2 = m_io.read(CurrentCount);
+        Timer::Info info;
 
-        if (t2 < t1)
+        // Get current kernel timer ticks
+        if (ProcessCtl(SELF, InfoTimer, (Address) &info) != API::Success)
+            return Timer::IOError;
+
+        // Frequency must be set
+        if (!info.frequency)
+            return Timer::IOError;
+
+        // Set time to wait (very rough approximation)
+        u32 msecPerTick = 1000.0 / info.frequency;
+        u32 msecToWait = microseconds / 1000;
+        info.ticks += (msecToWait / msecPerTick) + 1;
+
+        // Wait until the timer expires
+        if (ProcessCtl(SELF, WaitTimer, (Address) &info) != API::Success)
+            return Timer::IOError;
+    }
+    else
+    {
+        Size usecPerInt = 1000000 / m_frequency;
+        Size usecPerTick = usecPerInt / m_io.read(InitialCount);
+        u32 t1 = m_io.read(CurrentCount), t2;
+        u32 waited = 0;
+
+        while (waited < microseconds)
         {
-            waited += (t1 - t2) * usecPerTick;
+            t2 = m_io.read(CurrentCount);
+            if (t2 < t1)
+            {
+                waited += (t1 - t2) * usecPerTick;
+                t1 = t2;
+            }
             t1 = t2;
         }
-        t1 = t2;
     }
     return Timer::Success;
 }
 
 Timer::Result IntelAPIC::start(u32 initialCounter, uint hertz)
 {
-    // Set hertz
+    // Set members
     m_frequency = hertz;
+    m_initialCounter = initialCounter;
 
     // Start the APIC timer
     m_io.write(DivideConfig, Divide16);
-    m_io.write(InitialCount, initialCounter);
+    m_io.write(InitialCount, m_initialCounter);
+    return start();
+}
+
+Timer::Result IntelAPIC::start()
+{
+    // Start the APIC timer
     m_io.write(Timer, TimerVector | PeriodicMode);
+    return Timer::Success;
+}
+
+Timer::Result IntelAPIC::stop()
+{
+    m_io.write(Timer, TimerVector | TimerMasked);
     return Timer::Success;
 }
 
@@ -122,10 +164,6 @@ Timer::Result IntelAPIC::initialize()
     // Map the registers into the address space
     if (m_io.map(IOBase) != IntelIO::Success)
         return Timer::IOError;
-
-#warning TODO: detect the APIC with CPUID
-    // if (not detected)
-    //     return NotFound;
 
     // Initialize and disable the timer
     m_io.write(DivideConfig, Divide16);
@@ -189,16 +227,28 @@ IntController::Result IntelAPIC::sendStartupIPI(uint cpuId, Address addr)
         m_io.write(IntCommand1, cfg);
 
         // Wait 1 milisecond
-#warning FIX this.
-        // TODO: this is difficult in the current implementation, because
-        //       the *userspace* instance of this class does not have
-        //       m_frequency set.. better solution is that libarch provides a Timer
-        //       abstract class, and that class should provide a consistent interface
-        //       for (busy) waiting on timer events, triggering, etc, where it hides
-        //       if the call is done with a kernel trap or direct register write etc.
         wait(1000);
     }
 
     // Startup interrupt delivered.
+    return IntController::Success;
+}
+
+IntController::Result IntelAPIC::sendIPI(uint cpuId, uint vector)
+{
+    ulong cfg;
+
+    // Write APIC Destination
+    cfg  = m_io.read(IntCommand2);
+    cfg &= 0x00ffffff;
+    m_io.write(IntCommand2, cfg | APIC_DEST(cpuId));
+
+    // Write to lower 32-bits of Interrupt Command, which triggers the IPI.
+    cfg = (APIC_DEST_FIELD | APIC_DEST_LEVELTRIG |
+            APIC_DEST_ASSERT);
+    cfg |= vector;
+    m_io.write(IntCommand1, cfg);
+
+    // Done
     return IntController::Success;
 }

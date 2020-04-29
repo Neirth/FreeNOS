@@ -124,9 +124,6 @@ Error IPV4::getTransmitPacket(NetworkQueue::Packet **pkt,
     Ethernet::Address ethAddr;
     Error r;
 
-    // TODO: implement IP routing tables. For example, destination 0.0.0.0 (any)
-    //       may be served by a gateway. For that path we need to use the gateway's IP
-
     // Find the ethernet address using ARP first
     if ((r = m_arp->lookupAddress(&destination, &ethAddr)) != ESUCCESS)
         return r;

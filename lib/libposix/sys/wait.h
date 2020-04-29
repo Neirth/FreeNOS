@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,10 +21,13 @@
 #include <Macros.h>
 #include "types.h"
 
-/**                                                                                                                                                                                                     
- * @defgroup libposix libposix (POSIX.1-2008)
+/**
+ * @addtogroup lib
  * @{
- */ 
+ *
+ * @addtogroup libposix
+ * @{
+ */
 
 /**
  * @brief Wait for a child process to stop or terminate
@@ -39,10 +42,13 @@
  * @param pid Process ID of child to wait for.
  * @param stat_loc Points to an integer for storing the exit status.
  * @param options Optional flags.
+ *
+ * @return Process ID of the child on success or -1 on error
  */
 extern C pid_t waitpid(pid_t pid, int *stat_loc, int options);
 
 /**
+ * @}
  * @}
  */
 

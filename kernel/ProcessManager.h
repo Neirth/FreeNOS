@@ -20,11 +20,24 @@
 
 #include <Types.h>
 #include <MemoryMap.h>
+#include <Vector.h>
+#include <List.h>
 #include "Process.h"
+
+/**
+ * Maximum number of processes.
+ *
+ * @group kernel
+ */
+#define MAX_PROCS 1024
+
 #include "Scheduler.h"
 
-/** Maximum number of processes. */
-#define MAX_PROCS 1024
+/**
+ * @addtogroup kernel
+ * @{
+ */
+
 
 /**
  * Represents a process which may run on the host.
@@ -32,35 +45,54 @@
 class ProcessManager
 {
   public:
-    
+
+    /**
+     * Result code
+     */
+    enum Result
+    {
+        Success,
+        InvalidArgument,
+        IOError,
+        WakeupPending,
+        AlreadyExists
+    };
+
+  public:
+
     /**
      * Constructor function.
      */
-    ProcessManager(Scheduler *scheduler);
-    
+    ProcessManager();
+
     /**
      * Destructor function.
      */
     virtual ~ProcessManager();
 
     /**
-     * Get scheduler object
+     * Create a new Process.
      *
-     * @return Scheduler object instance
+     * @param entry Process executable entry point
+     * @param map Memory mapping
+     * @param readyToRun True to immediately run the Process or false to sleep.
+     * @param privileged True to create a privileged Process
+     *
+     * @return Process pointer on success or ZERO on failure
      */
-    Scheduler * getScheduler();
-
-    /**
-     * Create and add a new Process.
-     */
-    Process * create(Address entry, const MemoryMap &map);
+    Process * create(Address entry,
+                     const MemoryMap &map,
+                     bool readyToRun = false,
+                     bool privileged = false);
 
     /**
      * Retrieve a Process by it's ID.
+     *
      * @param id ProcessID number.
+     *
      * @return Pointer to the appropriate process or ZERO if not found.
      */
-    Process * get(ProcessID id);        
+    Process * get(ProcessID id);
 
     /**
      * Remove a Process.
@@ -69,8 +101,76 @@ class ProcessManager
 
     /**
      * Schedule next process to run.
+     *
+     * @return Result code
      */
-    void schedule(Process *proc = ZERO);
+    Result schedule();
+
+    /**
+     * Let current Process wait for another Process to terminate.
+     *
+     * @param proc Process pointer
+     *
+     * @return Result code
+     */
+    Result wait(Process *proc);
+
+    /**
+     * Let current Process sleep until a timer expires or wakeup occurs.
+     *
+     * @param timer Timer on which the process must be woken up (if expired), or ZERO for no limit
+     * @param ignoreWakeups True to enter Sleep state regardless of pending wakeups
+     *
+     * @return Result code
+     */
+    Result sleep(const Timer::Info *timer = 0, bool ignoreWakeups = false);
+
+    /**
+     * Take Process out of Sleep state and mark ready for execution.
+     *
+     * @param proc Process pointer
+     *
+     * @return Result code
+     */
+    Result wakeup(Process *proc);
+
+    /**
+     * Raise kernel event for a Process
+     *
+     * @param proc Process pointer
+     * @param event Event to raise
+     *
+     * @return Result code
+     */
+    Result raiseEvent(Process *proc, struct ProcessEvent *event);
+
+    /**
+     * Register an interrupt notification for a Process.
+     *
+     * @param proc Process pointer
+     * @param vector Interrupt vector number
+     *
+     * @return Result code
+     */
+    Result registerInterruptNotify(Process *proc, u32 vector);
+
+    /**
+     * Remove all interrupt notifications for a Process
+     *
+     * @param proc Process pointer
+     *
+     * @return Result code
+     */
+    Result unregisterInterruptNotify(Process *proc);
+
+    /**
+     * Raise interrupt notifications for a interrupt vector
+     *
+     * @param vector Interrupt vector
+     *
+     * @return Result code
+     */
+    Result interruptNotify(u32 vector);
 
     /**
      * Set the idle process.
@@ -79,16 +179,14 @@ class ProcessManager
 
     /**
      * Current process running. NULL if no process running yet.
+     *
+     * @return Process pointer
      */
     Process * current();
 
     /**
-     * Previous process running.
-     */
-    Process * previous();
-
-    /**
      * Retrieve the process table.
+     *
      * @return Pointer to the process table.
      */
     Vector<Process *> * getProcessTable();
@@ -99,16 +197,19 @@ class ProcessManager
     Vector<Process *> m_procs;
 
     /** Object which selects processes to run. */
-    Scheduler *m_scheduler;
+    Scheduler m_scheduler;
 
     /** Currently executing process */
     Process *m_current;
 
-    /** Previous process executing */
-    Process *m_previous;
-
     /** Idle process */
     Process *m_idle;
+
+    /** Next timer */
+    Timer::Info m_nextSleepTimer;
+
+    /** Interrupt notification list */
+    Vector<List<Process *> *> m_interruptNotifyList;
 };
 
 /**

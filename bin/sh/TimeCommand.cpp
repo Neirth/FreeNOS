@@ -22,6 +22,7 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/wait.h>
+#include <Log.h>
 #include "TimeCommand.h"
 
 TimeCommand::TimeCommand() : ShellCommand("time", 1)
@@ -53,8 +54,7 @@ int TimeCommand::execute(Size nparams, char **params)
     }
     else
     {
-        printf("forkexec '%s' failed: %s\r\n", params[0],
-                strerror(errno));
+        ERROR("forkexec `" << params[0] << "' failed: " << strerror(errno));
         return EXIT_FAILURE;
     }
     // Get timestamp after

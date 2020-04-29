@@ -26,6 +26,17 @@
 #include "SynopsisChannel.h"
 
 /**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup usb
+ * @{
+ *
+ * @addtogroup usb_controller
+ * @{
+ */
+
+/**
  * Synopsis DesignWare USB Host Controller implementation.
  *
  * @see https://github.com/xinu-os/xinu/system/platforms/arm-rpi/usb_dwc_regs.h
@@ -85,7 +96,7 @@ class SynopsisController : public USBController
         HostChannelMask   = 0x418,
         HostFrameList     = 0x41c,
         HostPortControl   = 0x440,
-        HostChannel       = 0x500, /* TODO: this is an array of channel registers.. */
+        HostChannel       = 0x500,
         Power             = 0xe00
     };
 
@@ -185,11 +196,19 @@ class SynopsisController : public USBController
      */
     void softReset();
 
+  private:
+
     /** Power Management. */
     BroadcomPower m_power;
 
     /** Channels. */
     Index<SynopsisChannel> m_channels;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_SYNOPSISUSB_H */

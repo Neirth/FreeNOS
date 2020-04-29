@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,16 +17,18 @@
 
 #ifndef __SERIAL_I8250_H
 #define __SERIAL_I8250_H
-        
-/**  
- * @defgroup i8250 i8250 (Intel 8250)
- * @{    
- */
 
 #include <Macros.h>
 #include <Types.h>
 #include <Device.h>
 
+/**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup serial
+ * @{
+ */
 
 /**
  * i8250 serial UART.
@@ -58,38 +60,46 @@ class i8250 : public Device
 
     /**
      * Constructor function.
+     *
      * @param base I/O base port.
      */
     i8250(u16 base, u16 irq);
 
     /**
      * @brief Initializes the i8250 serial UART.
+     *
      * @return Error status code.
      */
     virtual Error initialize();
 
     /**
      * Called when an interrupt has been triggered for this device.
+     *
      * @param vector Vector number of the interrupt.
+     *
      * @return Error result code.
      */
     virtual Error interrupt(Size vector);
 
-    /** 
+    /**
      * Read bytes from the i8250.
+     *
      * @param buffer Buffer to save the read bytes.
      * @param size Number of bytes to read.
      * @param offset Unused.
-     * @return Number of bytes on success and ZERO on failure. 
+     *
+     * @return Number of bytes on success and ZERO on failure.
      */
     virtual Error read(IOBuffer & buffer, Size size, Size offset);
 
-    /** 
+    /**
      * Write bytes to the device.
-     * @param buffer Buffer containing bytes to write. 
+     *
+     * @param buffer Buffer containing bytes to write.
      * @param size Number of bytes to write.
      * @param offset Unused.
-     * @return Number of bytes on success and ZERO on failure. 
+     *
+     * @return Number of bytes on success and ZERO on failure.
      */
     virtual Error write(IOBuffer & buffer, Size size, Size offset);
 
@@ -97,12 +107,13 @@ class i8250 : public Device
 
     /** Base I/O port. */
     u16 base;
-    
+
     /** Interrupt vector. */
     u16 irq;
 };
 
 /**
+ * @}
  * @}
  */
 

@@ -1,0 +1,151 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<matrix-project plugin="matrix-project@1.14">
+  <actions/>
+  <description>Build FreeNOS on FreeBSD 12</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition plugin="nodelabelparameter@1.7.2">
+          <name>freebsd12</name>
+          <description></description>
+          <defaultValue>freebsd12</defaultValue>
+          <allNodesMatchingLabel>false</allNodesMatchingLabel>
+          <triggerIfResult>allCases</triggerIfResult>
+          <nodeEligibility class="org.jvnet.jenkins.plugins.nodelabelparameter.node.AllNodeEligibility"/>
+        </org.jvnet.jenkins.plugins.nodelabelparameter.LabelParameterDefinition>
+        <hudson.plugins.matrix__configuration__parameter.MatrixCombinationsParameterDefinition plugin="matrix-combinations-parameter@1.3.0">
+          <name>matrixfilter</name>
+          <description></description>
+          <shortcutList>
+            <hudson.plugins.matrix__configuration__parameter.shortcut.ResultShortcut>
+              <name>Successful</name>
+              <exact>false</exact>
+              <resultsToCheck>
+                <string>SUCCESS</string>
+              </resultsToCheck>
+            </hudson.plugins.matrix__configuration__parameter.shortcut.ResultShortcut>
+            <hudson.plugins.matrix__configuration__parameter.shortcut.ResultShortcut>
+              <name>Failed</name>
+              <exact>false</exact>
+              <resultsToCheck>
+                <string>FAILURE</string>
+              </resultsToCheck>
+            </hudson.plugins.matrix__configuration__parameter.shortcut.ResultShortcut>
+            <hudson.plugins.matrix__configuration__parameter.shortcut.MatrixCombinationsShortcut_-All/>
+            <hudson.plugins.matrix__configuration__parameter.shortcut.MatrixCombinationsShortcut_-None/>
+          </shortcutList>
+        </hudson.plugins.matrix__configuration__parameter.MatrixCombinationsParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM" plugin="git@3.10.1">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>/home/vagrant/FreeNOS</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/master</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <authToken>FreeNOS-freebsd12-JobToken</authToken>
+  <triggers/>
+  <concurrentBuild>true</concurrentBuild>
+  <axes>
+    <hudson.matrix.TextAxis>
+      <name>debugging</name>
+      <values>
+        <string>DEBUG=True</string>
+        <string>DEBUG=False</string>
+      </values>
+    </hudson.matrix.TextAxis>
+    <hudson.matrix.TextAxis>
+      <name>sysargs</name>
+      <values>
+
+        <string>ARCH=arm SYSTEM=raspberry COMPILER=gcc CROSS_COMPILE=arm-none-eabi- VERSION_SUFFIX=</string>
+        <string>ARCH=arm SYSTEM=raspberry COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=60</string>
+        <string>ARCH=arm SYSTEM=raspberry COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=70</string>
+        <string>ARCH=arm SYSTEM=raspberry COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=80</string>
+        <string>ARCH=arm SYSTEM=raspberry COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=90</string>
+
+        <string>ARCH=arm SYSTEM=raspberry2 COMPILER=gcc CROSS_COMPILE=arm-none-eabi- VERSION_SUFFIX=</string>
+        <string>ARCH=arm SYSTEM=raspberry2 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=60</string>
+        <string>ARCH=arm SYSTEM=raspberry2 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=70</string>
+        <string>ARCH=arm SYSTEM=raspberry2 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=80</string>
+        <string>ARCH=arm SYSTEM=raspberry2 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=90</string>
+
+        <string>ARCH=arm SYSTEM=sunxi-h3 COMPILER=gcc CROSS_COMPILE=arm-none-eabi- VERSION_SUFFIX=</string>
+        <string>ARCH=arm SYSTEM=sunxi-h3 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=60</string>
+        <string>ARCH=arm SYSTEM=sunxi-h3 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=70</string>
+        <string>ARCH=arm SYSTEM=sunxi-h3 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=80</string>
+        <string>ARCH=arm SYSTEM=sunxi-h3 COMPILER=clang CROSS_COMPILE= VERSION_SUFFIX=90</string>
+
+        <string>ARCH=intel SYSTEM=pc COMPILER=gcc VERSION_SUFFIX=48</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=gcc VERSION_SUFFIX=5</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=gcc VERSION_SUFFIX=6</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=gcc VERSION_SUFFIX=7</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=gcc VERSION_SUFFIX=8</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=gcc VERSION_SUFFIX=9</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=clang VERSION_SUFFIX=60</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=clang VERSION_SUFFIX=70</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=clang VERSION_SUFFIX=80</string>
+        <string>ARCH=intel SYSTEM=pc COMPILER=clang VERSION_SUFFIX=90</string>
+
+      </values>
+    </hudson.matrix.TextAxis>
+  </axes>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/usr/local/bin/bash
+set -x
+export $sysargs $debugging
+
+# Unfortunately Clang does not ship with its own linker and libgcc equivalent.
+# Therefore, re-use those from the GCC compiler
+if [ "$ARCH" == "arm" ] &amp;&amp; [ "$COMPILER" == "clang" ] ; then
+  OBJCOPY='arm-none-eabi-objcopy'
+  ARM_GCC_VERSION="`ls /usr/local/lib/gcc/arm-none-eabi|head -n 1`"
+  LINKEXTRA="['-L/usr/local/lib/gcc/arm-none-eabi/$ARM_GCC_VERSION/']"
+  EXTRA="OBJCOPY=$OBJCOPY LINKEXTRA=$LINKEXTRA"
+else
+  EXTRA=""
+fi
+
+scons VERBOSE=True QEMU_BUILD=True $EXTRA
+scons QEMU_BUILD=True $EXTRA xml_test
+scons KVMFLAGS=&quot;&quot; TESTDELAY=30 QEMU_BUILD=True $EXTRA qemu_test
+</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers>
+    <hudson.tasks.junit.JUnitResultArchiver plugin="junit@1.28">
+      <testResults>build/**/*.xml</testResults>
+      <keepLongStdio>false</keepLongStdio>
+      <healthScaleFactor>1.0</healthScaleFactor>
+      <allowEmptyResults>false</allowEmptyResults>
+    </hudson.tasks.junit.JUnitResultArchiver>
+  </publishers>
+  <buildWrappers>
+    <hudson.plugins.ws__cleanup.PreBuildCleanup plugin="ws-cleanup@0.37">
+      <deleteDirs>false</deleteDirs>
+      <cleanupParameter></cleanupParameter>
+      <externalDelete></externalDelete>
+      <disableDeferredWipeout>false</disableDeferredWipeout>
+    </hudson.plugins.ws__cleanup.PreBuildCleanup>
+  </buildWrappers>
+  <executionStrategy class="hudson.matrix.DefaultMatrixExecutionStrategyImpl">
+    <runSequentially>false</runSequentially>
+  </executionStrategy>
+</matrix-project>

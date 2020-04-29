@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,6 +26,14 @@
 #include "FileStat.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
  * Actions which may be performed on the filesystem.
  */
 typedef enum FileSystemAction
@@ -43,9 +51,9 @@ FileSystemAction;
  */
 typedef struct FileSystemMessage : public ChannelMessage
 {
-    /** 
-     * Assignment operator. 
-     * @param m FileSystemMessage pointer to copy from. 
+    /**
+     * Assignment operator.
+     * @param m FileSystemMessage pointer to copy from.
      */
     void operator = (FileSystemMessage *m)
     {
@@ -67,8 +75,10 @@ typedef struct FileSystemMessage : public ChannelMessage
     }
 
     /**
-     * @brief Comparison operator.
+     * Comparison operator.
+     *
      * @param m Other FileSystemMessage to compare with.
+     *
      * @return True if equal, false otherwise.
      */
     bool operator == (FileSystemMessage *m)
@@ -82,7 +92,7 @@ typedef struct FileSystemMessage : public ChannelMessage
 
     /** Action to perform. */
     FileSystemAction action;
-    
+
     /** Result code. */
     Error result;
 
@@ -106,7 +116,7 @@ typedef struct FileSystemMessage : public ChannelMessage
 
     /** File mode permissions. */
     FileModes mode;
-        
+
     /** File Statistics. */
     FileStat *stat;
 
@@ -114,5 +124,10 @@ typedef struct FileSystemMessage : public ChannelMessage
     DeviceID deviceID;
 }
 FileSystemMessage;
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __FILESYSTEM_FILE_SYSTEM_MESSAGE_H */

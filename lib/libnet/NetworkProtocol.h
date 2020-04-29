@@ -26,6 +26,14 @@ class NetworkServer;
 class NetworkDevice;
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Network protocol abstraction class.
  */
 class NetworkProtocol : public Directory
@@ -53,6 +61,8 @@ class NetworkProtocol : public Directory
 
     /**
      * Perform initialization.
+     *
+     * @return Error code
      */
     virtual Error initialize() = 0;
 
@@ -71,5 +81,10 @@ class NetworkProtocol : public Directory
     /** Network device instance */
     NetworkDevice *m_device;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_NETWORKPROTOCOL_H */

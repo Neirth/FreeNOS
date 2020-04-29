@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,51 +22,63 @@
 #include <errno.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libfs
+ * @{
+ */
+
+/**
  * Provides a storage device to build filesystems on top.
  */
 class Storage
 {
-    public:
-    
-	/**
-	 * Constructor function.
-	 */
-	Storage()
-	{
-	}
+  public:
 
-	/**
-	 * Destructor function.
-	 */
-	virtual ~Storage() {}
+    /**
+     * Constructor function.
+     */
+    Storage();
 
-	/**
-	 * Read a contiguous set of data.
-	 * @param offset Offset to start reading from.
-	 * @param buffer Output buffer.
-	 * @param size Number of bytes to copied.
-	 */
-	virtual Error read(u64 offset, void *buffer, Size size)
-	{
-	    return ENOTSUP;
-	}
-	
-	/**
-	 * Write a contiguous set of data.
-	 * @param offset Offset to start writing to.
-	 * @param buffer Input buffer.
-	 * @param size Number of bytes to written.
-	 */
-	virtual Error write(u64 offset, void *buffer, Size size)
-	{
-	    return ENOTSUP;
-	}
+    /**
+     * Destructor function.
+     */
+    virtual ~Storage();
 
-	/**
-	 * Retrieve maximum storage capacity.
-	 * @return Storage capacity.
-	 */
-	virtual u64 capacity() = 0;
+    /**
+     * Read a contiguous set of data.
+     *
+     * @param offset Offset to start reading from.
+     * @param buffer Output buffer.
+     * @param size Number of bytes to copied.
+     *
+     * @return Result code
+     */
+    virtual Error read(u64 offset, void *buffer, Size size);
+
+    /**
+     * Write a contiguous set of data.
+     *
+     * @param offset Offset to start writing to.
+     * @param buffer Input buffer.
+     * @param size Number of bytes to written.
+     *
+     * @return Result code
+     */
+    virtual Error write(u64 offset, void *buffer, Size size);
+
+    /**
+     * Retrieve maximum storage capacity.
+     *
+     * @return Storage capacity.
+     */
+    virtual u64 capacity() const = 0;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __FILESYSTEM_STORAGE_H */

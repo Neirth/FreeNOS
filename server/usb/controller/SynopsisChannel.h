@@ -24,6 +24,17 @@
 #include "USBMessage.h"
 
 /**
+ * @addtogroup server
+ * @{
+ *
+ * @addtogroup usb
+ * @{
+ *
+ * @addtogroup usb_controller
+ * @{
+ */
+
+/**
  * Synopsis DesignWare USB Host Controller channels implementation.
  */
 class SynopsisChannel
@@ -74,7 +85,7 @@ class SynopsisChannel
     enum CharacteristicsFlags
     {
         LowSpeed          = (1 << 17),
-        ChannelEnable     = (1 << 31)        
+        ChannelEnable     = (1 << 31)
     };
 
     /**
@@ -131,6 +142,8 @@ class SynopsisChannel
         IOError,
         Busy
     };
+
+  public:
 
     /**
      * Constructor
@@ -208,5 +221,11 @@ class SynopsisChannel
     /** Channel state. */
     State m_state;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_SYNOPSISCHANNEL_H */

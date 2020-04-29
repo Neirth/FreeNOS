@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,20 +21,23 @@
 
 off_t lseek(int fildes, off_t offset, int whence)
 {
-    FileDescriptor *fd = (FileDescriptor *) getFiles()->get(fildes);
+    FileDescriptor *files = getFiles();
+
+    if (fildes >= FILE_DESCRIPTOR_MAX || fildes < 0)
+    {
+        errno = ERANGE;
+        return -1;
+    }
 
     // Do we have this file descriptor?
-    if (!fd)
+    if (!files[fildes].open)
     {
         errno = ENOENT;
         return -1;
     }
 
-    // TODO: use the whence parameter
-    // TODO: check for file size too
-
     // Update the file pointer
-    fd->position = offset;
+    files[fildes].position = offset;
 
     // Done
     return 0;

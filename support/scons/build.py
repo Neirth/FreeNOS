@@ -57,7 +57,12 @@ def HostProgram(env, target, source):
 def TargetProgram(env, target, source, install_dir = None):
     if env['ARCH'] != 'host':
 	env.Program(target, source)
-	env.TargetInstall(target, install_dir)
+        if install_dir is not False:
+	    env.TargetInstall(target, install_dir)
+
+def TargetHostProgram(env, target, source, install_dir = None):
+    HostProgram(env, target, source)
+    TargetProgram(env, target, source, install_dir)
 
 def TargetLibrary(env, lib, source):
     if env['ARCH'] != 'host':
@@ -73,7 +78,7 @@ def TargetInstall(env, source, target = None):
     if env['ARCH'] != 'host':
 	SCons.Tool.install.install_action.strfunction = CopyStrFunc
 
-	if not target:
+	if target is None:
 	    target = '${ROOTFS}/' + Dir('.').srcnode().path
 
 	env.Install(target, source)
@@ -90,6 +95,31 @@ def SubDirectories():
 
 	SConscript( dirs = dir_list )
 
+#
+# Reduce maximum number of open files resource limit.
+# Internally, SCons and python's subprocess module contain a loop which invokes close(2)
+# for 0..N files where N is the maximum number of open files.
+# The loop is called every time a new process is created (e.g. from a builder).
+# This loop becomes a serious performance issue when the limit
+# is set to a high value, e.g. 1 million on an Ubuntu 18.04 Jenkins slave.
+# Therefore, we override the limit here to prevent the potential performance penalty.
+#
+import resource
+resource.setrlimit(resource.RLIMIT_NOFILE, (512, 512))
+
+# Also override the cached value in the subprocess module of scons (in versions < 3.x.x)
+try:
+    SCons.compat.subprocess.MAXFD = 512
+except:
+    pass
+
+# Override cached value in python's subprocess module
+try:
+    import subprocess
+    subprocess.MAXFD = 512
+except:
+    pass
+
 Export('SubDirectories')
 
 # Create target, host and kernel environments.
@@ -97,6 +127,7 @@ host = Environment(tools    = ["default", "phony", "test"],
 		   toolpath = ["support/scons"])
 host.AddMethod(HostProgram, "HostProgram")
 host.AddMethod(TargetProgram, "TargetProgram")
+host.AddMethod(TargetHostProgram, "TargetHostProgram")
 host.AddMethod(TargetLibrary, "TargetLibrary")
 host.AddMethod(UseLibraries, "UseLibraries")
 host.AddMethod(UseServers, "UseServers")
@@ -107,27 +138,53 @@ host.Append(bin     = '${ROOTFS}/bin',
 	    etc     = '${ROOTFS}/etc',
 	    server  = '${ROOTFS}/server',
             boot    = '${ROOTFS}/boot')
+host.Append(QEMU    = 'qemu-system')
+host.Append(QEMUCMD = '${QEMU} ${QEMUFLAGS}')
+host.Append(QEMUFLAGS = '')
 
-target = host.Clone(tools    = ["default", "bootimage", "iso", "binary", "linn", "phony", "test"],
+target = host.Clone(tools    = ["default", "bootimage", "iso", "binary", "linn", "phony", "test", "compress"],
                     toolpath = ["support/scons"])
 
+# Configuration build variables may come from, in order of priority:
+#   Command-line arguments, OS environment or .conf file
+#
+# For the OS environment: ensure the 'ENV' environment variable does not exist,
+# to avoid internal SCons exception while running the autoconf tests.
+if 'ENV' in os.environ:
+   del os.environ['ENV']
+
+args = os.environ.copy()
+args.update(ARGUMENTS)
+
 # Apply configuration
-config.initialize(target, host, ARGUMENTS)
+config.initialize(target, host, args)
 config.write_header(target)
 config.write_header(host)
 
 # Enables verbose compilation command output.
 if not target['VERBOSE']:
-    target['CXXCOMSTR']    = host['CXXCOMSTR']    = "  CXX  $TARGET"
-    target['CCCOMSTR']     = host['CCCOMSTR']     = "  CC   $TARGET"
-    target['ASCOMSTR']     = host['ASCOMSTR']     = "  AS   $TARGET"
-    target['ASPPCOMSTR']   = host['ASPPCOMSTR']   = "  AS   $TARGET"
-    target['ARCOMSTR']     = host['ARCOMSTR']     = "  AR   $TARGET"
-    target['RANLIBCOMSTR'] = host['RANLIBCOMSTR'] = "  LIB  $TARGET"
-    target['LINKCOMSTR']   = host['LINKCOMSTR']   = "  LD   $TARGET"
-    target['COPYSTR']      = host['COPYSTR']      = "  COPY $SOURCE => $TARGET"
+    target['CXXCOMSTR']    = "  CXX  $TARGET"
+    target['CCCOMSTR']     = "  CC   $TARGET"
+    target['ASCOMSTR']     = "  AS   $TARGET"
+    target['ASPPCOMSTR']   = "  AS   $TARGET"
+    target['ARCOMSTR']     = "  AR   $TARGET"
+    target['RANLIBCOMSTR'] = "  LIB  $TARGET"
+    target['LINKCOMSTR']   = "  LD   $TARGET"
+    target['COPYSTR']      = "  COPY $SOURCE => $TARGET"
+
+if not host['VERBOSE']:
+    host['CXXCOMSTR']    = "  HOSTCXX  $TARGET"
+    host['CCCOMSTR']     = "  HOSTCC   $TARGET"
+    host['ASCOMSTR']     = "  HOSTAS   $TARGET"
+    host['ASPPCOMSTR']   = "  HOSTAS   $TARGET"
+    host['ARCOMSTR']     = "  HOSTAR   $TARGET"
+    host['RANLIBCOMSTR'] = "  HOSTLIB  $TARGET"
+    host['LINKCOMSTR']   = "  HOSTLD   $TARGET"
+    host['COPYSTR']      = "  COPY $SOURCE => $TARGET"
 
 # Verify the configured CFLAGS.
 if not GetOption('clean'):
     CheckCCFlags(target)
     CheckCXXFlags(target)
+    CheckCCFlags(host)
+    CheckCXXFlags(host)

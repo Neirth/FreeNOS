@@ -47,14 +47,12 @@ Alias('iso', cd)
 #
 # Qemu targets
 #
-env.Targets(qemu           = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -smp 4 -m 256')
-env.Targets(qemu_curses    = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -smp 4 -m 256 -curses')
-env.Targets(qemu_serial    = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -smp 4 -m 256 -nographic')
-env.Targets(qemu_debug     = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -smp 4 -m 256 -curses -s -S')
-env.Targets(qemu_debugs    = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -smp 4 -m 256 -nographic -s -S')
-env.Targets(qemu_debug_int = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -smp 4 -m 256 -nographic -s -S -d int,cpu_reset')
+env.Targets(qemu        = build_env['QEMUCMD'] + ' -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -nographic')
+env.Targets(qemu_sdl    = build_env['QEMUCMD'] + ' -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -sdl')
+env.Targets(qemu_curses = build_env['QEMUCMD'] + ' -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -curses')
+env.Targets(qemu_debug  = build_env['QEMUCMD'] + ' -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -nographic -s -S')
 
 #
 # Autotester in Qemu
 #
-env.AutoTester(qemu_test = 'qemu-system-i386 -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -m 256 -nographic')
+env.AutoTester(qemu_test = build_env['QEMUCMD'] + ' -cdrom ' + build_env['BUILDROOT'] + '/boot.iso -nographic')

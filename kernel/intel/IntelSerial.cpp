@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,19 +22,19 @@ IntelSerial::IntelSerial(u16 base)
 {
     m_io.setBase(base);
 
-    /* 8bit Words, no parity. */
+    // 8bit Words, no parity
     m_io.outb(LINECONTROL, 3);
-    
-    /* Enable interrupts. */
+
+    // Enable interrupts
     m_io.outb(IRQCONTROL, 1);
-    
-    /* No FIFO. */
+
+    // No FIFO
     m_io.outb(FIFOCONTROL, 0);
-    
-    /* Data Ready, Request to Send. */
+
+    // Data Ready, Request to Send
     m_io.outb(MODEMCONTROL, 3);
-    
-    /* Set baudrate. */
+
+    // Set baudrate
     m_io.outb(LINECONTROL, m_io.inb(LINECONTROL) | DLAB);
     m_io.outb(DIVISORLOW,  (11500 / BAUDRATE) & 0xff);
     m_io.outb(DIVISORHIGH, (11500 / BAUDRATE) >> 8);
@@ -43,7 +43,7 @@ IntelSerial::IntelSerial(u16 base)
 
 void IntelSerial::write(const char *str)
 {
-    /* Write as much bytes as possible. */
+    // Write as much bytes as possible
     while (m_io.inb(LINESTATUS) & TXREADY && *str)
     {
         m_io.outb(TRANSMIT, *str++);

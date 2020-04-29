@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,7 +27,9 @@
 
 /**
  * Entry inside the page table of a given virtual address.
+ *
  * @param vaddr Virtual Address.
+ *
  * @return Index of the corresponding page table entry.
  */
 #define TABENTRY(vaddr) \
@@ -52,7 +54,7 @@ MemoryContext::Result IntelPageTable::unmap(Address virt)
     return MemoryContext::Success;
 }
 
-MemoryContext::Result IntelPageTable::translate(Address virt, Address *phys)
+MemoryContext::Result IntelPageTable::translate(Address virt, Address *phys) const
 {
     if (!(m_pages[ TABENTRY(virt) ] & PAGE_PRESENT))
         return MemoryContext::InvalidAddress;
@@ -61,7 +63,7 @@ MemoryContext::Result IntelPageTable::translate(Address virt, Address *phys)
     return MemoryContext::Success;
 }
 
-MemoryContext::Result IntelPageTable::access(Address virt, Memory::Access *access)
+MemoryContext::Result IntelPageTable::access(Address virt, Memory::Access *access) const
 {
     u32 entry = m_pages[ TABENTRY(virt) ];
 
@@ -76,7 +78,7 @@ MemoryContext::Result IntelPageTable::access(Address virt, Memory::Access *acces
     return MemoryContext::Success;
 }
 
-u32 IntelPageTable::flags(Memory::Access access)
+u32 IntelPageTable::flags(Memory::Access access) const
 {
     u32 f = 0;
 

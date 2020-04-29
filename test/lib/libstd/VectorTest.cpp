@@ -96,7 +96,7 @@ TestCase(VectorResize)
 
 TestCase(VectorPutMultiple)
 {
-    TestInt<uint> sizes(128, 256);
+    TestInt<uint> sizes(32, 128);
     TestInt<int> ints(INT_MIN, INT_MAX);
     Vector<int> a(sizes.random());
 
@@ -115,7 +115,7 @@ TestCase(VectorPutMultiple)
 
 TestCase(VectorPutSeq)
 {
-    TestInt<uint> sizes(128, 256);
+    TestInt<uint> sizes(32, 128);
     TestInt<int> ints(INT_MIN, INT_MAX);
     Vector<int> a(sizes.random());
 
@@ -147,7 +147,7 @@ TestCase(VectorPutSeq)
 
 TestCase(VectorPutRandom)
 {
-    TestInt<uint> sizes(0, 255);
+    TestInt<uint> sizes(32, 128);
     TestInt<uint> indexes(0, 255);
     TestInt<int> ints(INT_MIN, INT_MAX);
     Vector<int> a(256);
@@ -184,7 +184,7 @@ TestCase(VectorPutRandom)
 
 TestCase(VectorRemoveOne)
 {
-    TestInt<uint> sizes(128, 256);
+    TestInt<uint> sizes(32, 128);
     TestInt<int> ints(INT_MIN, INT_MAX);
     Vector<int> a(sizes.random());
     TestInt<uint> indexes(0, sizes[0]);
@@ -245,7 +245,7 @@ TestCase(VectorClear)
 
 TestCase(VectorCompare)
 {
-    TestInt<uint> sizes(128, 256);
+    TestInt<uint> sizes(32, 128);
     TestInt<int> ints(INT_MIN, INT_MAX);
     Vector<int> a1(sizes.random());
     Vector<int> a2(sizes[0]);

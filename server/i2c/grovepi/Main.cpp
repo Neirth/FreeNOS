@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,7 +18,6 @@
 #include <DeviceServer.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <syslog.h>
 #include <BroadcomI2C.h>
 #include <KernelLog.h>
 #include "DigitalPort.h"
@@ -50,10 +49,6 @@ int main(int argc, char **argv)
             ERROR("failed to initialize I2C controller");
             return EXIT_FAILURE;
     }
-
-    // TODO: Provide /dev/i2c{0,1,2} and let the app set modes directly (TEMP fastest)
-    // or implement ioctl() support
-    // or /dev/grove/digi0/{mode | value | ...} with libfs / libdev (BEST)
 
     // Set Digipin 3 to input mode
     u8 command[4];

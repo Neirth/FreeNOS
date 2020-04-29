@@ -21,6 +21,14 @@
 #include <Types.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libusb
+ * @{
+ */
+
+/**
  * USB 2.0 definitions.
  */
 namespace USB
@@ -38,11 +46,16 @@ namespace USB
         Printer           = 0x07,
         MassStorage       = 0x08,
         Hub               = 0x09,
-        Video             = 0x0e,                        
+        Video             = 0x0e,
         WirelessControl   = 0xe0,
         Misc              = 0xef,
-        VendorSpecific    = 0xff        
+        VendorSpecific    = 0xff
     };
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBUSB_USB_H */

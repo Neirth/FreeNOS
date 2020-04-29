@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -18,12 +18,15 @@
 #include <FreeNOS/Config.h>
 #include <FreeNOS/Support.h>
 #include <FreeNOS/System.h>
-#include <FreeNOS/arm/ARMKernel.h>
 #include <Macros.h>
 #include <arm/ARMControl.h>
 #include <arm/broadcom/BroadcomInterrupt.h>
 #include <arm/broadcom/BroadcomTimer.h>
-#include "RaspiSerial.h"
+#include <PL011.h>
+#include <DeviceLog.h>
+#include "RaspberryKernel.h"
+
+extern Address __bootimg;
 
 extern C int kernel_main(u32 r0, u32 r1, u32 r2)
 {
@@ -37,33 +40,38 @@ extern C int kernel_main(u32 r0, u32 r1, u32 r2)
     ctrl.set(ARMControl::SMPBit);
 #endif
 
-    // Retrieve boot image from ATAGS
+    // Create local objects needed for the kernel
     Arch::MemoryMap mem;
-    BroadcomInterrupt irq;
-    ARMTags tags(r2);
-    Memory::Range initrd = tags.getInitRd2();
+    BootImage *bootimage = (BootImage *) &__bootimg;
 
     // Fill coreInfo
     MemoryBlock::set(&coreInfo, 0, sizeof(CoreInfo));
-    coreInfo.bootImageAddress = initrd.phys;
-    coreInfo.bootImageSize    = initrd.size;
-    coreInfo.kernel.phys      = 0;
+    coreInfo.bootImageAddress = (Address) (bootimage);
+    coreInfo.bootImageSize    = bootimage->bootImageSize;
+    coreInfo.kernel.phys      = RAM_ADDR;
     coreInfo.kernel.size      = MegaByte(4);
-    coreInfo.memory.phys      = 0;
-    coreInfo.memory.size      = MegaByte(512);
+    coreInfo.memory.phys      = RAM_ADDR;
+    coreInfo.memory.size      = RAM_SIZE;
 
-    // Initialize heap
-    Kernel::heap( MegaByte(3), MegaByte(1) );
+    // Initialize heap at the end of the kernel (and after embedded boot image)
+    coreInfo.heapAddress = coreInfo.bootImageAddress + coreInfo.bootImageSize;
+    coreInfo.heapAddress &= PAGEMASK;
+    coreInfo.heapAddress += PAGESIZE;
+    coreInfo.heapSize = MegaByte(1);
+    Kernel::heap(coreInfo.heapAddress, coreInfo.heapSize);
 
-    // TODO: put this in the boot.S, or maybe hide it in the support library? maybe a _run_main() or something.
+    // Run all constructors first
     constructors();
 
     // Open the serial console as default Log
-    RaspiSerial console;
+    PL011 pl011(UART0_IRQ);
+    pl011.initialize();
+
+    DeviceLog console(pl011);
     console.setMinimumLogLevel(Log::Notice);
 
     // Create the kernel
-    ARMKernel kernel(&irq, &coreInfo);
+    RaspberryKernel kernel(&coreInfo);
 
     // Run the kernel
     return kernel.run();

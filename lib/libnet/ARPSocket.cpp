@@ -70,22 +70,10 @@ Error ARPSocket::write(IOBuffer & buffer, Size size, Size offset)
 Error ARPSocket::process(NetworkQueue::Packet *pkt)
 {
     DEBUG("");
-
-/*
-    const Ethernet::Header *ether = (Ethernet::Header *) pkt->data;
-    const ARP::Header *arp = (ARP::Header *) (ether+1);
-
-    MemoryBlock::copy(&m_ethAddr, &arp->etherSource, sizeof(Ethernet::Address));
-    m_ethFound = true;
- */
     return ESUCCESS;
 }
 
 void ARPSocket::error(Error err)
 {
     DEBUG("");
-
-    // Set the ethernet reply result code
-    // The read operation uses the result code
-    // m_ethResult = err;
 }

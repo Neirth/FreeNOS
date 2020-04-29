@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,7 +21,10 @@
 #include <Macros.h>
 
 /**
- * @defgroup libposix libposix (POSIX.1-2008)
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libposix
  * @{
  */
 
@@ -33,6 +36,7 @@
  * For example, -3 returns 3, and 8 returns 8.
  *
  * @param number The number to make absolute.
+ *
  * @return Absolute value of the given number.
  */
 extern C int abs(int number);
@@ -41,11 +45,13 @@ extern C int abs(int number);
  * Compute the square root of a number.
  *
  * @param number The number to use for square root.
+ *
  * @return Square root of the given number.
  */
 extern C u32 sqrt(u32 number);
 
 /**
+ * @}
  * @}
  */
 

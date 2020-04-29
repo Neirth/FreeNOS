@@ -29,7 +29,7 @@ int main(int argc, char **argv)
     int iterations = 1, r;
     DirectoryScanner scanner(argc, argv);
     TestRunner runner(argc, argv);
-    
+
     // Grab command-line arguments, if any.
     // First positional argument is the directory.
     if (argc > 1)
@@ -52,10 +52,7 @@ int main(int argc, char **argv)
             iterations = atoi(argv[i+1]);
         }
     }
-
-    // Disable top-level reporting
-    runner.getReporter()->setReport(false);
-    printf("%s: running tests in '%s'\n", argv[0], path);
+    runner.getReporter()->setMultiline(true);
 
     // Discover tests
     if (scanner.scan(path) != EXIT_SUCCESS)

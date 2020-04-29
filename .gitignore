@@ -8,3 +8,12 @@ config.log
 /kernel/System
 .gdbinit
 /build*.conf
+*.diff
+*.bak
+*.BAK
+*.rej
+*.orig
+*.tar.gz
+*.tar
+.vagrant
+ChangeLog-*

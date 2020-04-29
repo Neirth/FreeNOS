@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -47,25 +47,24 @@ LinnCreate::LinnCreate()
     super     = ZERO;
     input     = ZERO;
     verbose   = false;
-    strip     = false;
 }
 
 LinnInode * LinnCreate::createInode(le32 inodeNum, FileType type,
-				    FileModes mode, UserID uid, GroupID gid)
+                                    FileModes mode, UserID uid, GroupID gid)
 {
     LinnGroup *group;
     LinnInode *inode;
     BitArray inodeMap(super->inodesPerGroup);
 
-    /* Point to the correct group. */    
+    // Point to the correct group
     group  = BLOCKPTR(LinnGroup, super->groupsTable);
     group += inodeNum / super->inodesPerGroup;
-    
-    /* Use it to find the inode. */
+
+    // Use it to find the inode
     inode  = BLOCKPTR(LinnInode, group->inodeTable);
     inode += inodeNum % super->inodesPerGroup;
-    
-    /* Initialize the inode. */
+
+    // Initialize the inode
     inode->type  = type;
     inode->mode  = mode;
     inode->uid   = uid;
@@ -76,17 +75,17 @@ LinnInode * LinnCreate::createInode(le32 inodeNum, FileType type,
     inode->modifyTime = inode->createTime;
     inode->changeTime = inode->createTime;
     inode->links = 1;
-    
-    /* Update inode BitArray, if needed. */
+
+    // Update inode BitArray, if needed
     inodeMap.setArray(BLOCKPTR(u8, group->inodeMap),
-		    super->inodesPerGroup);
+                    super->inodesPerGroup);
     inodeMap.set(inodeNum % super->inodesPerGroup);
-    
-    /* Update superblock. */
+
+    // Update superblock
     super->freeInodesCount--;
     group->freeInodesCount--;
-    
-    /* Done. */
+
+    // Done
     return inode;
 }
 
@@ -97,252 +96,212 @@ le32 LinnCreate::createInode(char *inputFile, struct stat *st)
     BitArray inodeMap(super->inodesPerGroup);
     u32 gn, in;
 
-    /* Loop all available LinnGroups. */
+    // Loop all available LinnGroups
     for (gn = 0; gn < LINN_GROUP_COUNT(super); gn++)
     {
-	/* Point to the correct LinnGroup. */
-	group = BLOCKPTR(LinnGroup, super->groupsTable) + gn;
-	
-	/* Does it have any free inodes? */
-	if (!group->freeInodesCount)
-	{
-	    group = ZERO;
-	    continue;
-	}
-	else
-	    break;
+        // Point to the correct LinnGroup
+        group = BLOCKPTR(LinnGroup, super->groupsTable) + gn;
+
+        // Does it have any free inodes?
+        if (!group->freeInodesCount)
+        {
+            group = ZERO;
+            continue;
+        }
+        else
+            break;
     }
-    /* Did we find an appropriate group? */
+
+    // Did we find an appropriate group?
     if (!group)
     {
-	printf("%s: no free inode available for `%s'\n",
-		prog, inputFile);
-	exit(EXIT_FAILURE);
+        printf("%s: no free inode available for `%s'\n",
+                prog, inputFile);
+        exit(EXIT_FAILURE);
     }
-    /* Find an empty inode number. */
+
+    // Find an empty inode number
     inodeMap.setArray(BLOCKPTR(u8, group->inodeMap),
-		    super->inodesPerGroup);
+                    super->inodesPerGroup);
     inodeMap.setNext(&in);
 
-    /* Instantiate the inode. */
+    // Instantiate the inode
     inode = createInode(in, FILETYPE_FROM_ST(st),
-			    FILEMODE_FROM_ST(st), st->st_uid, st->st_gid);
+                            FILEMODE_FROM_ST(st), st->st_uid, st->st_gid);
 
-    /* Insert file contents. */
+    // Insert file contents
     if (S_ISREG(st->st_mode))
     {
-	insertFile(inputFile, inode, st);
+        insertFile(inputFile, inode, st);
     }
-    /* Debug out. */
+
+    // Debug out
     if (verbose)
     {
-	printf("%s inode=%u size=%u\n", inputFile, in, inode->size);
+        printf("%s inode=%u size=%u\n", inputFile, in, inode->size);
     }
     return in;
 }
 
-bool LinnCreate::openFile(char *inputFile, struct stat *st, int *fd)
-{
-    int tmp, bytes, total = 0;
-    char buf[1024];
-
-    /* Open the local file. */
-    if ((*fd = open(inputFile, O_RDONLY)) < 0)
-    {
-	printf("%s: failed to fopen() `%s': %s\n",
-		prog, inputFile, strerror(errno));
-	exit(EXIT_FAILURE);
-    }
-    /* Attempt to strip(1) the file. */
-    if (strip && S_ISREG(st->st_mode) && st->st_mode & S_IXUSR)
-    {
-	strncpy(inputFile, "execXXXXXX", 11);
-    
-	/* Open temporary file. */
-	if ((tmp = mkstemp(inputFile)) == -1)
-	{
-	    printf("%s: failed to mkstemp() for `%s': %s\n",
-		    prog, inputFile, strerror(errno));
-	    exit(EXIT_FAILURE);
-	}
-	/* Copy contents. */
-	while ((bytes = read(*fd, buf, sizeof(buf))) > 0)
-	{
-	    write(tmp, buf, bytes);
-	    total += bytes;
-	}
-	/* Switch file descriptor. */
-	close(*fd);
-	close(tmp);
-
-	/* Now attempt to strip it. */
-	snprintf(buf, sizeof(buf), "strip %s", inputFile);
-	system(buf);
-	
-	/* Reopen. */
-	*fd = open(inputFile, O_RDONLY);
-	
-	/* Update file information. */
-	st->st_size = total;
-	return true;
-    }
-    return false;
-}
-
 void LinnCreate::insertIndirect(le32 *ptr, le32 blockNumber,
-				le32 blockValue, Size depth)
+                                le32 blockValue, Size depth)
 {
     Size remain = 1;
 
-    /* Does the block map itself have a block? */
+    // Does the block map itself have a block?
     if (!*ptr)
     {
-	*ptr = BLOCK(super);
+        *ptr = BLOCK(super);
     }
-    /* Point to the block map. */
+
+    // Point to the block map
     ptr = BLOCKPTR(u32, *ptr);
-    
-    /* Calculate the number of blocks remaining per entry. */
+
+    // Calculate the number of blocks remaining per entry
     for (Size i = 0; i < depth - 1; i++)
     {
         remain *= LINN_SUPER_NUM_PTRS(super);
     }
-    /* More indirection? */
+
+    // More indirection?
     if (remain == 1)
     {
-	ptr[blockNumber % LINN_SUPER_NUM_PTRS(super)] = blockValue;
+        ptr[blockNumber % LINN_SUPER_NUM_PTRS(super)] = blockValue;
     }
-    /* Traverse indirection. */
+    // Traverse indirection
     else
     {
-	insertIndirect(&ptr[blockNumber / remain],
-			blockNumber, blockValue, depth - 1);
+        insertIndirect(&ptr[blockNumber / remain],
+                        blockNumber, blockValue, depth - 1);
     }
 }
 
 void LinnCreate::insertFile(char *inputFile, LinnInode *inode,
-			    struct stat *st)
+                            struct stat *st)
 {
     int fd, bytes;
     le32 blockNr;
-    bool stripped;
-    char *tmpPath = strdup(inputFile);
 
-    /* Get file handle. */
-    stripped = openFile(tmpPath, st, &fd);
+    // Open the local file
+    if ((fd = open(inputFile, O_RDONLY)) < 0)
+    {
+        printf("%s: failed to fopen() `%s': %s\n",
+                prog, inputFile, strerror(errno));
+        exit(EXIT_FAILURE);
+    }
 
-    /* Read blocks from the file. */
+    // Read blocks from the file
     while (true)
     {
-	/* Grab a block. */
-	blockNr = BLOCK(super);
-    
-	/* Read a block. */
-	if ((bytes = read(fd, BLOCKPTR(u8, blockNr), super->blockSize)) < 0)
-	{
-	    printf("%s: failed to read() `%s': %s\n",
-		    prog, inputFile, strerror(errno));
-	    exit(EXIT_FAILURE);
-	}
-	/* End of file? */
-	if (!bytes) break;
-	
-	/* Insert the block (direct). */
-	if (LINN_INODE_NUM_BLOCKS(super, inode) <
-	    LINN_INODE_DIR_BLOCKS)
-	{
-	    inode->block[LINN_INODE_NUM_BLOCKS(super,inode)] = blockNr;
-	}
-	/* Insert the block (indirect). */
-	else if (LINN_INODE_NUM_BLOCKS(super, inode) <
-		 LINN_INODE_DIR_BLOCKS + LINN_SUPER_NUM_PTRS(super))
-	{
-	    insertIndirect(&inode->block[LINN_INODE_IND_BLOCKS-1],
-			    LINN_INODE_NUM_BLOCKS(super, inode) -
-			    LINN_INODE_DIR_BLOCKS, blockNr, 1);
-	}
-	/* Insert the block (double indirect). */
-	else if (LINN_INODE_NUM_BLOCKS(super, inode) <
-		 LINN_INODE_DIR_BLOCKS + (LINN_SUPER_NUM_PTRS(super) *
-					  LINN_SUPER_NUM_PTRS(super)))
-	{
-	    insertIndirect(&inode->block[LINN_INODE_DIND_BLOCKS-1],
-			    LINN_INODE_NUM_BLOCKS(super, inode) -
-			    LINN_INODE_DIR_BLOCKS, blockNr, 2);
-	}
-	/* Insert the blck (triple indirect). */
-	else if (LINN_INODE_NUM_BLOCKS(super, inode) <
-		 LINN_INODE_DIR_BLOCKS + (LINN_SUPER_NUM_PTRS(super) *
-					  LINN_SUPER_NUM_PTRS(super) *
-					  LINN_SUPER_NUM_PTRS(super)))
-	{
-	    insertIndirect(&inode->block[LINN_INODE_TIND_BLOCKS-1],
-			    LINN_INODE_NUM_BLOCKS(super, inode) -
-			    LINN_INODE_DIR_BLOCKS, blockNr, 3);
-	}
-	/* Maximum file capacity reached. */
-	else
-	{
-	    printf("%s: maximum file size reached for `%s'\n",
-		    prog, inputFile);
-	    break;
-	}
-	/* Increment size appropriately. */
-	inode->size += bytes;
+        // Grab a block
+        blockNr = BLOCK(super);
+
+        // Read a block
+        if ((bytes = read(fd, BLOCKPTR(u8, blockNr), super->blockSize)) < 0)
+        {
+            printf("%s: failed to read() `%s': %s\n",
+                    prog, inputFile, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+
+        // End of file?
+        if (!bytes) break;
+
+        // Insert the block (direct)
+        if (LINN_INODE_NUM_BLOCKS(super, inode) <
+            LINN_INODE_DIR_BLOCKS)
+        {
+            inode->block[LINN_INODE_NUM_BLOCKS(super,inode)] = blockNr;
+        }
+        // Insert the block (indirect)
+        else if (LINN_INODE_NUM_BLOCKS(super, inode) <
+                 LINN_INODE_DIR_BLOCKS + LINN_SUPER_NUM_PTRS(super))
+        {
+            insertIndirect(&inode->block[LINN_INODE_IND_BLOCKS-1],
+                            LINN_INODE_NUM_BLOCKS(super, inode) -
+                            LINN_INODE_DIR_BLOCKS, blockNr, 1);
+        }
+        // Insert the block (double indirect)
+        else if (LINN_INODE_NUM_BLOCKS(super, inode) <
+                 LINN_INODE_DIR_BLOCKS + (LINN_SUPER_NUM_PTRS(super) *
+                                          LINN_SUPER_NUM_PTRS(super)))
+        {
+            insertIndirect(&inode->block[LINN_INODE_DIND_BLOCKS-1],
+                            LINN_INODE_NUM_BLOCKS(super, inode) -
+                            LINN_INODE_DIR_BLOCKS, blockNr, 2);
+        }
+        // Insert the blck (triple indirect)
+        else if (LINN_INODE_NUM_BLOCKS(super, inode) <
+                 LINN_INODE_DIR_BLOCKS + (LINN_SUPER_NUM_PTRS(super) *
+                                          LINN_SUPER_NUM_PTRS(super) *
+                                          LINN_SUPER_NUM_PTRS(super)))
+        {
+            insertIndirect(&inode->block[LINN_INODE_TIND_BLOCKS-1],
+                            LINN_INODE_NUM_BLOCKS(super, inode) -
+                            LINN_INODE_DIR_BLOCKS, blockNr, 3);
+        }
+        // Maximum file capacity reached
+        else
+        {
+            printf("%s: maximum file size reached for `%s'\n",
+                    prog, inputFile);
+            break;
+        }
+        // Increment size appropriately
+        inode->size += bytes;
     }
-    /* Cleanup. */
+    // Cleanup
     close(fd);
-    if (stripped) unlink(tmpPath);
 }
 
 void LinnCreate::insertEntry(le32 dirInode, le32 entryInode,
-			     const char *name, FileType type)
+                             const char *name, FileType type)
 {
     LinnGroup *group;
     LinnInode *inode;
     LinnDirectoryEntry *entry;
     le32 entryNum, blockNum;
-    
-    /* Point to the correct group. */
+
+    // Point to the correct group
     group = BLOCKPTR(LinnGroup, super->groupsTable);
     if (dirInode != ZERO)
     {
-	group += (dirInode / super->inodesPerGroup);
+        group += (dirInode / super->inodesPerGroup);
     }
-    /* Fetch inode. */
+    // Fetch inode
     inode = BLOCKPTR(LinnInode, group->inodeTable) +
-		    (dirInode % super->inodesPerGroup);
+                    (dirInode % super->inodesPerGroup);
 
-    /* Calculate entry and block number. */
+    // Calculate entry and block number
     entryNum = inode->size / sizeof(LinnDirectoryEntry);
     blockNum = (entryNum * sizeof(LinnDirectoryEntry)) /
-		super->blockSize;
+                super->blockSize;
 
-    /* Direct block. */
+    // Direct block
     if (blockNum < LINN_INODE_DIR_BLOCKS)
     {
-	/* Allocate a new block, if needed. */
-	if (!inode->block[blockNum])
-	{
-	    inode->block[blockNum] = BLOCK(super);
-	}
-	/* Point to the fresh entry. */
-	entry = BLOCKPTR(LinnDirectoryEntry, inode->block[blockNum]) +
-			(entryNum % super->blockSize);
-	/* Fill it. */
-	entry->inode = entryInode;
-	entry->type  = type;
-	strncpy(entry->name, name, LINN_DIRENT_NAME_LEN);
-	entry->name[LINN_DIRENT_NAME_LEN - 1] = ZERO;
+        // Allocate a new block, if needed
+        if (!inode->block[blockNum])
+        {
+            inode->block[blockNum] = BLOCK(super);
+        }
+        // Point to the fresh entry
+        entry = BLOCKPTR(LinnDirectoryEntry, inode->block[blockNum]) +
+                        (entryNum % super->blockSize);
+        // Fill it
+        entry->inode = entryInode;
+        entry->type  = type;
+        strncpy(entry->name, name, LINN_DIRENT_NAME_LEN);
+        entry->name[LINN_DIRENT_NAME_LEN - 1] = ZERO;
     }
-    /* Indirect block. */
+    // Indirect block
     else
     {
-	printf("%s: indirect blocks not (yet) supported for directories\n",
-		prog);
-	exit(EXIT_FAILURE);
+        printf("%s: indirect blocks not (yet) supported for directories\n",
+                prog);
+        exit(EXIT_FAILURE);
     }
-    /* Increment directory size. */
+    // Increment directory size
     inode->size += sizeof(LinnDirectoryEntry);
 }
 
@@ -355,62 +314,62 @@ void LinnCreate::insertDirectory(char *inputDir, le32 inodeNum, le32 parentNum)
     le32 child;
     bool skip = false;
 
-    /* Create '.' and '..' */
+    // Create '.' and '..'
     insertEntry(inodeNum, inodeNum,  ".",  DirectoryFile);
     insertEntry(inodeNum, parentNum, "..", DirectoryFile);
 
-    /* Open the input directory. */
+    // Open the input directory
     if ((dir = opendir(inputDir)) == NULL)
     {
-	printf("%s: failed to opendir() `%s': %s\n",
-		prog, inputDir, strerror(errno));
-	exit(EXIT_FAILURE);
+        printf("%s: failed to opendir() `%s': %s\n",
+                prog, inputDir, strerror(errno));
+        exit(EXIT_FAILURE);
     }
-    /* Read all it's entries. */
+    // Read all it's entries
     while ((ent = readdir(dir)))
     {
-	/* Hidden files. */
-	skip = ent->d_name[0] == '.';
-	
-	/* Excluded files. */
-	for (ListIterator<String *> e(&excludes); e.hasCurrent(); e++)
-	{
+        // Hidden files
+        skip = ent->d_name[0] == '.';
+
+        // Excluded files
+        for (ListIterator<String *> e(&excludes); e.hasCurrent(); e++)
+        {
             String dent = (const char *) ent->d_name;
 
-	    if (dent.match(**e.current()))
-	    {
-		skip = true;
-		break;
-	    }
-	}
-	/* Skip file? */
-	if (skip) continue;
-	
-	/* Construct local path. */
-	snprintf(path, sizeof(path), "%s/%s",
-		 inputDir, ent->d_name);
+            if (dent.match(**e.current()))
+            {
+                skip = true;
+                break;
+            }
+        }
+        // Skip file?
+        if (skip) continue;
 
-	/* Stat the file. */
-	if (stat(path, &st) != 0)
-	{
-	    printf("%s: failed to stat() `%s': %s\n",
-		    prog, path, strerror(errno));
-	    exit(EXIT_FAILURE);
-	}
-	/* Create an inode for the child. */
-	child = createInode(path, &st);
-	
-	/* Insert directory entry. */
-	insertEntry(inodeNum, child, ent->d_name,
-		    FILETYPE_FROM_ST(&st));
-	
-	/* Traverse down. */
-	if (S_ISDIR(st.st_mode))
-	{
-	    insertDirectory(path, child, inodeNum);
-	}
+        // Construct local path
+        snprintf(path, sizeof(path), "%s/%s",
+                 inputDir, ent->d_name);
+
+        // Stat the file
+        if (stat(path, &st) != 0)
+        {
+            printf("%s: failed to stat() `%s': %s\n",
+                    prog, path, strerror(errno));
+            exit(EXIT_FAILURE);
+        }
+        // Create an inode for the child
+        child = createInode(path, &st);
+
+        // Insert directory entry
+        insertEntry(inodeNum, child, ent->d_name,
+                    FILETYPE_FROM_ST(&st));
+
+        // Traverse down
+        if (S_ISDIR(st.st_mode))
+        {
+            insertDirectory(path, child, inodeNum);
+        }
     }
-    /* All done. */
+    // All done
     closedir(dir);
 }
 
@@ -424,11 +383,11 @@ int LinnCreate::create(Size blockSize, Size blockNum, Size inodeNum)
     assert(blockNum >= 2);
     assert(inodeNum > 0);
 
-    /* Allocate blocks. */
+    // Allocate blocks
     blocks = new u8[blockSize * blockNum];
     memset(blocks, 0, blockSize * blockNum);
 
-    /* Create a superblock. */
+    // Create a superblock
     super = (LinnSuperBlock *) (blocks + LINN_SUPER_OFFSET);
     super->magic0 = LINN_SUPER_MAGIC0;
     super->magic1 = LINN_SUPER_MAGIC1;
@@ -438,83 +397,85 @@ int LinnCreate::create(Size blockSize, Size blockNum, Size inodeNum)
     super->blockSize        = blockSize;
     super->blocksPerGroup   = LINN_CREATE_BLOCKS_PER_GROUP;
     super->inodesCount      = inodeNum;
-    super->blocksCount	    = blockNum;
+    super->blocksCount            = blockNum;
     super->inodesPerGroup   = super->inodesCount / LINN_GROUP_COUNT(super);
     super->freeInodesCount  = super->inodesCount;
     super->freeBlocksCount  = blockNum - 3;
     super->creationTime     = time(ZERO);
-    super->mountTime	    = ZERO;
-    super->mountCount	    = ZERO;
-    super->lastCheck	    = ZERO;
-    super->groupsTable	    = 2;
+    super->mountTime            = ZERO;
+    super->mountCount            = ZERO;
+    super->lastCheck            = ZERO;
+    super->groupsTable            = 2;
 
-    /* Allocate LinnGroups. */
+    // Allocate LinnGroups
     for (Size i = 0; i < LINN_GROUP_COUNT(super); i++)
     {
-	/* Point to the correct LinnGroup. */
-	group = BLOCKPTR(LinnGroup, 2) + i;
+        // Point to the correct LinnGroup
+        group = BLOCKPTR(LinnGroup, 2) + i;
 
-	/* Fill the group. */
-	group->freeBlocksCount = super->blocksPerGroup;
-	group->freeInodesCount = super->inodesPerGroup;
-	group->blockMap        = BLOCKS(super, LINN_GROUP_NUM_BLOCKMAP(super));
-	group->inodeMap        = BLOCKS(super, LINN_GROUP_NUM_INODEMAP(super));
-	group->inodeTable      = BLOCKS(super, LINN_GROUP_NUM_INODETAB(super));
+        // Fill the group
+        group->freeBlocksCount = super->blocksPerGroup;
+        group->freeInodesCount = super->inodesPerGroup;
+        group->blockMap        = BLOCKS(super, LINN_GROUP_NUM_BLOCKMAP(super));
+        group->inodeMap        = BLOCKS(super, LINN_GROUP_NUM_INODEMAP(super));
+        group->inodeTable      = BLOCKS(super, LINN_GROUP_NUM_INODETAB(super));
     }
-    /* Create special inodes. */
-    createInode(LINN_INODE_ROOT, DirectoryFile,
-		OwnerRWX | GroupRX | OtherRX);
-    createInode(LINN_INODE_LOADER, RegularFile,
-		OwnerRWX | GroupRX | OtherRX);
-    createInode(LINN_INODE_BAD, RegularFile,
-		OwnerRW | GroupR | OtherR);
-    createInode(LINN_INODE_JOURNAL, RegularFile,
-		OwnerRW | GroupR | OtherR);
 
-    /* Insert into directory contents, if set. */
+    // Create special inodes
+    createInode(LINN_INODE_ROOT, DirectoryFile,
+                OwnerRWX | GroupRX | OtherRX);
+    createInode(LINN_INODE_LOADER, RegularFile,
+                OwnerRWX | GroupRX | OtherRX);
+    createInode(LINN_INODE_BAD, RegularFile,
+                OwnerRW | GroupR | OtherR);
+    createInode(LINN_INODE_JOURNAL, RegularFile,
+                OwnerRW | GroupR | OtherR);
+
+    // Insert into directory contents, if set
     if (input)
     {
-	insertDirectory(input, LINN_INODE_ROOT,
-			       LINN_INODE_ROOT);
+        insertDirectory(input, LINN_INODE_ROOT,
+                               LINN_INODE_ROOT);
     }
-    /* Mark blocks used. */
+    // Mark blocks used
     for (le32 block = 0; block < super->freeBlocksCount; block++)
     {
-	/* Point to group. */
-	group = BLOCKPTR(LinnGroup, super->groupsTable) +
-			(block / super->blocksPerGroup);
-	group->freeBlocksCount--;
-	
-	/* Mark the block used. */
-	map.setArray(BLOCKPTR(u8, group->blockMap),
-		   super->blocksPerGroup);
-	map.set(block % super->blocksPerGroup);
+        // Point to group
+        group = BLOCKPTR(LinnGroup, super->groupsTable) +
+                        (block / super->blocksPerGroup);
+        group->freeBlocksCount--;
+
+        // Mark the block used
+        map.setArray(BLOCKPTR(u8, group->blockMap),
+                   super->blocksPerGroup);
+        map.set(block % super->blocksPerGroup);
     }
-    /* Write the final image. */
+    // Write the final image
     return writeImage();
-}    
+}
 
 int LinnCreate::writeImage()
 {
     FILE *fp;
-    
-    /* Open output image. */
+
+    // Open output image
     if ((fp = fopen(image, "w")) == NULL)
     {
-	printf("%s: failed to fopen() `%s' for writing: %s\r\n",
-		prog, image, strerror(errno));
-	return EXIT_FAILURE;
+        printf("%s: failed to fopen() `%s' for writing: %s\r\n",
+                prog, image, strerror(errno));
+        return EXIT_FAILURE;
     }
-    /* Write all blocks at once. */
+
+    // Write all blocks at once
     if (fwrite(blocks, super->blockSize *
-		      (super->blocksCount - super->freeBlocksCount), 1, fp) != 1)
+                      (super->blocksCount - super->freeBlocksCount), 1, fp) != 1)
     {
-	printf("%s: failed to fwrite() `%s': %s\r\n",
-		prog, image, strerror(errno));
-	fclose(fp);
-	return EXIT_FAILURE;
+        printf("%s: failed to fwrite() `%s': %s\r\n",
+                prog, image, strerror(errno));
+        fclose(fp);
+        return EXIT_FAILURE;
     }
-    /* All done. */
+    // All done
     fclose(fp);
     return EXIT_SUCCESS;
 }
@@ -544,11 +505,6 @@ void LinnCreate::setVerbose(bool newVerbose)
     this->verbose = newVerbose;
 }
 
-void LinnCreate::setStrip(bool newStrip)
-{
-    this->strip = newStrip;
-}
-
 int main(int argc, char **argv)
 {
     LinnCreate fs;
@@ -556,88 +512,82 @@ int main(int argc, char **argv)
     Size blockNum  = LINN_CREATE_BLOCK_NUM;
     Size inodeNum  = LINN_CREATE_INODE_NUM;
 
-    /* Verify command-line arguments. */
+    // Verify command-line arguments
     if (argc < 2)
     {
-	printf("usage: %s IMAGE [OPTIONS...]\r\n"
-	       "Creates a new Linnenbank FileSystem\r\n"
-	       "\r\n"
-	       " -h           Show this help message.\r\n"
-	       " -v           Output verbose messages.\r\n"
-	       " -d DIRECTORY Insert files from the given directory into the image\r\n"
-	       " -e PATTERN   Exclude matching files from the created filesystem\r\n"
-	       " -s           Use strip(1) on executable input files.\r\n"
-	       " -b SIZE      Specifies the blocksize in bytes.\r\n"
-	       " -n COUNT     Specifies the maximum number of blocks.\r\n"
-	       " -i COUNT     Specifies the number of inodes to allocate.\r\n",
-		argv[0]);
-	return EXIT_FAILURE;
+        printf("usage: %s IMAGE [OPTIONS...]\r\n"
+               "Creates a new Linnenbank FileSystem\r\n"
+               "\r\n"
+               " -h           Show this help message.\r\n"
+               " -v           Output verbose messages.\r\n"
+               " -d DIRECTORY Insert files from the given directory into the image\r\n"
+               " -e PATTERN   Exclude matching files from the created filesystem\r\n"
+               " -b SIZE      Specifies the blocksize in bytes.\r\n"
+               " -n COUNT     Specifies the maximum number of blocks.\r\n"
+               " -i COUNT     Specifies the number of inodes to allocate.\r\n",
+                argv[0]);
+        return EXIT_FAILURE;
     }
-    /* Process command-line arguments. */
+    // Process command-line arguments
     fs.setProgram(argv[0]);
     fs.setImage(argv[1]);
-    
-    /* Process command-line options. */
+
+    // Process command-line options
     for (int i = 0; i < argc - 2; i++)
     {
-	/* Exclude files matching the given pattern. */
-	if (!strcmp(argv[i + 2], "-e") && i < argc - 3)
-	{
-	    fs.setExclude(argv[i + 3]);
-	    i++;
-	}
-	/* Verbose output. */
-	else if (!strcmp(argv[i + 2], "-v"))
-	{
-	    fs.setVerbose(true);
-	}
-	/* Input directory. */
-	else if (!strcmp(argv[i + 2], "-d") && i < argc - 3)
-	{
-	    fs.setInput(argv[i + 3]);
-	    i++;
-	}
-	/* Strip executable files. */
-	else if (!strcmp(argv[i + 2], "-s"))
-	{
-	    fs.setStrip(true);
-	}
-	/* Block size. */
-	else if (!strcmp(argv[i + 2], "-b") && i < argc - 3)
-	{
-	    blockSize = atoi(argv[i + 3]);
-	    i++;
-	}
-	/* Maximum block count. */
-	else if (!strcmp(argv[i + 2], "-n") && i < argc - 3)
-	{
-	    if ((blockNum = atoi(argv[i + 3])) < 2)
-	    {
-		printf("%s: block count must be >= 2\r\n",
-			argv[0]);
-		return EXIT_FAILURE;
-	    }
-	    i++;
-	}
-	/* Inode count. */
-	else if (!strcmp(argv[i + 2], "-i") && i < argc - 3)
-	{
-	    if ((inodeNum = atoi(argv[i + 3])) < 1)
-	    {
-		printf("%s: inode count must be >= 1\r\n",
-			argv[0]);
-		return EXIT_FAILURE;
-	    };
-	    i++;
-	}
-	/* Unknown argument. */
-	else
-	{
-	    printf("%s: unknown option `%s'\r\n",
-		    argv[0], argv[i + 2]);
-	    return EXIT_FAILURE;
-	}
+        // Exclude files matching the given pattern
+        if (!strcmp(argv[i + 2], "-e") && i < argc - 3)
+        {
+            fs.setExclude(argv[i + 3]);
+            i++;
+        }
+        // Verbose output
+        else if (!strcmp(argv[i + 2], "-v"))
+        {
+            fs.setVerbose(true);
+        }
+        // Input directory
+        else if (!strcmp(argv[i + 2], "-d") && i < argc - 3)
+        {
+            fs.setInput(argv[i + 3]);
+            i++;
+        }
+        // Block size
+        else if (!strcmp(argv[i + 2], "-b") && i < argc - 3)
+        {
+            blockSize = atoi(argv[i + 3]);
+            i++;
+        }
+        // Maximum block count
+        else if (!strcmp(argv[i + 2], "-n") && i < argc - 3)
+        {
+            if ((blockNum = atoi(argv[i + 3])) < 2)
+            {
+                printf("%s: block count must be >= 2\r\n",
+                        argv[0]);
+                return EXIT_FAILURE;
+            }
+            i++;
+        }
+        // Inode count
+        else if (!strcmp(argv[i + 2], "-i") && i < argc - 3)
+        {
+            if ((inodeNum = atoi(argv[i + 3])) < 1)
+            {
+                printf("%s: inode count must be >= 1\r\n",
+                        argv[0]);
+                return EXIT_FAILURE;
+            };
+            i++;
+        }
+        // Unknown argument
+        else
+        {
+            printf("%s: unknown option `%s'\r\n",
+                    argv[0], argv[i + 2]);
+            return EXIT_FAILURE;
+        }
     }
-    /* Create a new Linnenbank FileSystem. */
+    // Create a new Linnenbank FileSystem
     return fs.create(blockSize, blockNum, inodeNum);
 }

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,10 +23,10 @@ int printf(const char *format, ...)
 {
     va_list args;
     int ret;
-    
+
     va_start(args, format);
     ret = vprintf(format, args);
     va_end(args);
-    
+
     return ret;
 }

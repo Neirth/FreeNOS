@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,6 +22,17 @@
 #include <IO.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
+
+/**
  * Intel I/O functions.
  */
 class IntelIO : public IO
@@ -30,10 +41,12 @@ class IntelIO : public IO
 
     /**
      * Read a byte from a port.
+     *
      * @param port The I/O port to read from.
+     *
      * @return A byte read from the port.
      */
-    inline u8 inb(u16 port)
+    inline u8 inb(u16 port) const
     {
         u8 b;
         port += m_base;
@@ -43,10 +56,12 @@ class IntelIO : public IO
 
     /**
      * Read a word from a port.
+     *
      * @param port The I/O port to read from.
+     *
      * @return Word read from the port.
      */
-    inline u16 inw(u16 port)
+    inline u16 inw(u16 port) const
     {
         u16 w;
         port += m_base;
@@ -56,6 +71,7 @@ class IntelIO : public IO
 
     /**
      * Output a byte to a port.
+     *
      * @param port Port to write to.
      * @param byte The byte to output.
      */
@@ -67,6 +83,7 @@ class IntelIO : public IO
 
     /**
      * Output a word to a port.
+     *
      * @param port Port to write to.
      * @param byte The word to output.
      */
@@ -78,6 +95,7 @@ class IntelIO : public IO
 
     /**
      * Output a long to a I/O port.
+     *
      * @param port Target I/O port.
      * @param l The long 32-bit number to output.
      */
@@ -91,9 +109,10 @@ class IntelIO : public IO
      * Read memory mapped register.
      *
      * @param addr Address of the register to read.
+     *
      * @return 32-bit value of the register.
      */
-    inline u32 read(Address addr)
+    inline u32 read(Address addr) const
     {
         addr += m_base;
         return *(volatile u32 *) addr;
@@ -106,7 +125,7 @@ class IntelIO : public IO
      * @param count Number of bytes to read.
      * @param buf Output buffer.
      */
-    inline void read(Address addr, Size count, void *buf)
+    inline void read(Address addr, Size count, void *buf) const
     {
         for (Size i = 0; i < count; i+= sizeof(u32))
         {
@@ -172,5 +191,11 @@ namespace Arch
 {
     typedef IntelIO IO;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_INTELIO_H */

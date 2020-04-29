@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -10,7 +10,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -23,6 +23,17 @@
 #include <Cache.h>
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libarch
+ * @{
+ *
+ * @addtogroup libarch_intel
+ * @{
+ */
+
+/**
  * Intel cache management implementation.
  */
 class IntelCache : public Cache
@@ -33,6 +44,7 @@ class IntelCache : public Cache
      * Invalidate the entire cache.
      *
      * @param type Cache type to invalidate.
+     *
      * @return Result code
      */
     virtual Result invalidate(Type type);
@@ -44,6 +56,7 @@ class IntelCache : public Cache
      * entire given cache.
      *
      * @param type Cache type to clean and invalidate.
+     *
      * @return Result code
      */
     virtual Result cleanInvalidate(Type type);
@@ -53,6 +66,7 @@ class IntelCache : public Cache
      *
      * @param type Cache type to clean and invalidate.
      * @param addr Virtual memory address of the page to clean and invalidate
+     *
      * @return Result code
      */
     virtual Result cleanInvalidateAddress(Type type, Address addr);
@@ -62,6 +76,7 @@ class IntelCache : public Cache
      *
      * @param type Cache type to clean
      * @param addr Virtual memory address of the page to clean and invalidate
+     *
      * @return Result code
      */
     virtual Result cleanAddress(Type type, Address addr);
@@ -71,5 +86,11 @@ namespace Arch
 {
     typedef IntelCache Cache;
 };
+
+/**
+ * @}
+ * @}
+ * @}
+ */
 
 #endif /* __LIBARCH_INTEL_INTELCACHE_H */

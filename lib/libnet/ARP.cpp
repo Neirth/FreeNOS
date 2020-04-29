@@ -112,8 +112,6 @@ Error ARP::sendRequest(IPV4::Address address)
     if (!entry)
         return EHOSTUNREACH;
 
-    // TODO: take the time into account too
-
     // Update the cache entry administration
     entry->valid = false;
     entry->retryCount++;
@@ -209,7 +207,7 @@ Error ARP::process(NetworkQueue::Packet *pkt, Size offset)
     const Ethernet::Header *ether = (Ethernet::Header *) (pkt->data + offset - sizeof(Ethernet::Header));
     const Header *arp = (Header *) (pkt->data + offset);
     IPV4::Address ipAddr;
-    
+
     if (!m_ip)
         return EINVAL;
 

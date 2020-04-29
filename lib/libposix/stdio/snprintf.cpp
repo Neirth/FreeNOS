@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,6 +27,6 @@ int snprintf(char *buffer, unsigned int size, const char *fmt, ...)
     va_start(args, fmt);
     ret = vsnprintf(buffer, size, fmt, args);
     va_end(args);
-    
+
     return (ret);
 }

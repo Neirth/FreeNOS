@@ -27,14 +27,26 @@
 class ARPSocket;
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libnet
+ * @{
+ */
+
+/**
  * Address Resolution Protocol
  */
 class ARP : public NetworkProtocol
 {
   private:
 
+    /** Maximum number of retries for ARP lookup */
     static const Size MaxRetries = 3;
 
+    /**
+     * ARP table cache entry
+     */
     typedef struct ARPCache
     {
         Ethernet::Address ethAddr;
@@ -93,6 +105,8 @@ class ARP : public NetworkProtocol
     }
     PACKED Header;
 
+  public:
+
     /**
      * Constructor
      */
@@ -116,6 +130,11 @@ class ARP : public NetworkProtocol
      */
     void setIP(::IPV4 *ip);
 
+    /**
+     * Set Ethernet instance
+     *
+     * @param ether Ethernet intstance
+     */
     void setEthernet(::Ethernet *ether);
 
     /**
@@ -123,6 +142,7 @@ class ARP : public NetworkProtocol
      *
      * @param ipAddr Input IP address to lookup
      * @param ethAddr Output Ethernet address when found
+     *
      * @return EAGAIN when the lookup is in progress
      *         ESUCCESS on success
      *         Other error code on error
@@ -134,6 +154,8 @@ class ARP : public NetworkProtocol
      * Send ARP request
      *
      * @param address IPV4 address to lookup
+     *
+     * @return Error code
      */
     Error sendRequest(IPV4::Address address);
 
@@ -142,12 +164,17 @@ class ARP : public NetworkProtocol
      *
      * @param ethaddr Ethernet address to send reply to
      * @param ipaddr IP address of the origin
+     *
+     * @return Error code
      */
     Error sendReply(const Ethernet::Address *ethaddr,
                     const IPV4::Address ipAddr);
 
     /**
      * Process incoming network packet.
+     *
+     * @param pkt Incoming packet pointer
+     * @param offset Offset for processing
      *
      * @return Error code
      */
@@ -159,6 +186,7 @@ class ARP : public NetworkProtocol
      * Insert a new entry to the ARP cache
      *
      * @param ipAddr IP address to add
+     *
      * @return ARPCache object pointer
      */
     ARPCache * insertCacheEntry(IPV4::Address ipAddr);
@@ -167,6 +195,7 @@ class ARP : public NetworkProtocol
      * Retrieve cache entry by IP
      *
      * @param ipAddr IP address to lookup
+     *
      * @return ARPCache object pointer or ZERO if not found
      */
     ARPCache * getCacheEntry(IPV4::Address ipAddr);
@@ -180,6 +209,8 @@ class ARP : public NetworkProtocol
     void updateCacheEntry(IPV4::Address ipAddr,
                           Ethernet::Address ethAddr);
 
+  private:
+
     /** The single ARP socket */
     ARPSocket *m_sock;
 
@@ -192,5 +223,10 @@ class ARP : public NetworkProtocol
     /** Contains a cached mapping from IP to Ethernet addresses */
     HashTable<IPV4::Address, ARPCache *> m_cache;
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBNET_ARP_H */

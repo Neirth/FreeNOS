@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,13 +22,13 @@
 
 int uname(struct utsname *name)
 {
-    /* Fill in the struct. */
+    // Fill in the struct
     strlcpy(name->sysname, "FreeNOS", UTSBUF);
     gethostname(name->nodename, UTSBUF);
     strlcpy(name->release, RELEASE, UTSBUF);
     strlcpy(name->version, COMPILER_VERSION " " DATETIME, UTSBUF);
     strlcpy(name->machine, ARCH "/" SYSTEM, UTSBUF);
 
-    /* Success. */
+    // Success
     return 0;
 }

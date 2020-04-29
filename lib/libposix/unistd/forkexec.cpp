@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,7 +17,6 @@
 
 #include <FreeNOS/System.h>
 #include <ExecutableFormat.h>
-#include <FileSystemMessage.h>
 #include <Types.h>
 #include <Runtime.h>
 #include <string.h>
@@ -28,54 +27,75 @@
 
 int forkexec(const char *path, const char *argv[])
 {
-    FileSystemMessage msg;
     ExecutableFormat *fmt;
     ExecutableFormat::Region regions[16];
     Memory::Range range;
+    Arch::MemoryMap map;
     uint count = 0;
     pid_t pid = 0;
     Size numRegions = 16;
     int fd;
-    Vector<FileDescriptor> *fds = getFiles();
     struct stat st;
     u8 *image;
     Address entry;
 
-    // Read the program image
+    // Find program image
     if (stat(path, &st) != 0)
         return -1;
 
+    // Open program image
     if ((fd = open(path, O_RDONLY)) < 0)
         return -1;
 
+    // Read the program image
     image = new u8[st.st_size];
     if (read(fd, image, st.st_size) != st.st_size)
     {
         delete image;
+        close(fd);
         return -1;
     }
     close(fd);
-    
+
     // Attempt to read executable format
     if (ExecutableFormat::find(image, st.st_size, &fmt) != ExecutableFormat::Success)
+    {
+        delete image;
+        errno = ENOEXEC;
         return -1;
+    }
 
-    // Retrieve memory regions
-    if (fmt->regions(regions, &numRegions) != ExecutableFormat::Success)
-        return -1;
-
+    // Retrieve entry point
     if (fmt->entry(&entry) != ExecutableFormat::Success)
+    {
+        delete fmt;
+        delete image;
+        errno = ENOEXEC;
         return -1;
+    }
 
     // Create new process
     pid = ProcessCtl(ANY, Spawn, entry);
+    if (pid == (pid_t) -1)
+    {
+        delete fmt;
+        delete image;
+        errno = EIO;
+        return -1;
+    }
 
-    // TODO: check the result of ProcessCtl()
+    // Retrieve memory regions
+    if (fmt->regions(regions, &numRegions) != ExecutableFormat::Success)
+    {
+        delete fmt;
+        delete image;
+        errno = ENOEXEC;
+        return -1;
+    }
 
-    // TODO: make this much more efficient. perhaps let libexec write directly to the target buffer.
-    // at least Map & copy in one shot.
-    // TODO: move the memory administration updates to coreserver instead.
-    // this process can read the libexec data once, and then let coreserver create a process for it.
+    // Not needed anymore
+    delete fmt;
+    delete image;
 
     // Map program regions into virtual memory of the new process
     for (Size i = 0; i < numRegions; i++)
@@ -88,26 +108,29 @@ int forkexec(const char *path, const char *argv[])
                        Memory::Readable |
                        Memory::Writable |
                        Memory::Executable;
-        
+
         // Create mapping first
         if (VMCtl(pid, Map, &range) != 0)
         {
-            // TODO: convert from API::Error to errno.
             errno = EFAULT;
             return -1;
         }
         // Copy bytes
         VMCopy(pid, API::Write, (Address) regions[i].data,
                regions[i].virt, regions[i].size);
+
+        // Release buffer
+        delete regions[i].data;
     }
-    /* Create mapping for command-line arguments. */
-    range.virt  = ARGV_ADDR;
-    range.phys  = ZERO;
-    range.size  = PAGESIZE;
+
+    // Create mapping for command-line arguments
+    range = map.range(MemoryMap::UserArgs);
+    range.phys = ZERO;
+    range.access = Memory::User | Memory::Readable | Memory::Writable;
     VMCtl(pid, Map, &range);
 
-    // Allocate arguments
-    char *arguments = new char[PAGESIZE];
+    // Allocate arguments and current working directory
+    char *arguments = new char[PAGESIZE*2];
     memset(arguments, 0, PAGESIZE);
 
     // Fill in arguments
@@ -117,26 +140,32 @@ int forkexec(const char *path, const char *argv[])
         count++;
     }
 
+    // Fill in the current working directory
+    strlcpy(arguments + PAGESIZE, **(getCurrentDirectory()), PATH_MAX);
+
     // Copy argc/argv into the new process
-    if ((VMCopy(pid, API::Write, (Address) arguments,
-               (Address) ARGV_ADDR, PAGESIZE)) < 0)
+    if ((VMCopy(pid, API::Write, (Address) arguments, range.virt, PAGESIZE * 2)) < 0)
     {
-        delete arguments;
+        delete[] arguments;
         errno = EFAULT;
+        ProcessCtl(pid, KillPID);
+        return -1;
+    }
+
+    // Copy fds into the new process.
+    if ((VMCopy(pid, API::Write, (Address) getFiles(),
+                range.virt + (PAGESIZE * 2), range.size - (PAGESIZE * 2))) < 0)
+    {
+        delete[] arguments;
+        errno = EFAULT;
+        ProcessCtl(pid, KillPID);
         return -1;
     }
 
     // Let the Child begin execution
     ProcessCtl(pid, Resume);
 
-    // Send a pointer to our list of file descriptors to the child
-    // TODO: ofcourse, insecure. To be fixed later.
-    msg.from = SELF;
-    msg.type = ChannelMessage::Request;
-    msg.path = (char *) fds->vector();
-    ChannelClient::instance->syncSendReceive(&msg, pid);
-
     // Done. Cleanup.
-    delete arguments;
+    delete[] arguments;
     return pid;
 }

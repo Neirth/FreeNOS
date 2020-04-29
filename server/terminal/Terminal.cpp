@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -52,39 +52,27 @@ Error Terminal::initialize()
 {
     teken_pos_t winsz;
 
-    // TODO: hack
+    // Close standard I/O
     ::close(0);
     ::close(1);
 
-    /*
-     * Attempt to open input file.
-     */
+    // Attempt to open input file.
     if ((input = ::open(inputFile, O_RDONLY)) < 0)
     {
-	printf("failed to open `%s': %s\r\n",
-		inputFile, strerror(errno));
-	exit(EXIT_FAILURE);
+        printf("failed to open `%s': %s\r\n",
+                inputFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
-    /*
-     * Then open the output file.
-     */
+
+    // Then open the output file.
     if ((output = ::open(outputFile, O_RDWR)) < 0)
     {
-	printf("failed to open `%s': %s\r\n",
-		outputFile, strerror(errno));
-	exit(EXIT_FAILURE);
+        printf("failed to open `%s': %s\r\n",
+                outputFile, strerror(errno));
+        exit(EXIT_FAILURE);
     }
 
-#warning TODO: Hack the file descriptors table...
-    Vector<FileDescriptor> *files = getFiles();
-    (*files)[0].open = true;
-    strlcpy((*files)[0].path, inputFile, PATHLEN); /* keyboard0 */
-    (*files)[0].mount = 6;
-    (*files)[1].open = true;
-    strlcpy((*files)[1].path, outputFile, PATHLEN); /* vga0 */
-    (*files)[1].mount = 7;
-
-    /* Fill in function pointers. */
+    // Fill in function pointers
     funcs.tf_bell    = (tf_bell_t *)    bell;
     funcs.tf_cursor  = (tf_cursor_t *)  cursor;
     funcs.tf_putchar = (tf_putchar_t *) putchar;
@@ -93,27 +81,26 @@ Error Terminal::initialize()
     funcs.tf_param   = (tf_param_t *)   param;
     funcs.tf_respond = (tf_respond_t *) respond;
 
-    /* Reset cursor. */
+    // Reset cursor
     memset(&cursorPos, 0, sizeof(cursorPos));
 
-    /* Initialize libteken. */
+    // Initialize libteken
     teken_init(&state, &funcs, this);
-    
-    /* Set appropriate terminal sizes. */
+
+    // Set appropriate terminal sizes
     winsz.tp_col = 80;
     winsz.tp_row = 25;
     teken_set_winsize(&state, &winsz);
-    
-    /* Print banners. */
-#warning fix this. should not be done like this.
+
+    // Print banners
     FileSystemMessage msg;
     msg.type = ChannelMessage::Request;
     msg.size = 512;
     IOBuffer io(&msg);
     io.bufferedWrite((void *)(BANNER COPYRIGHT "\r\n"), strlen(BANNER)+strlen(COPYRIGHT)+2);
     write(io, io.getCount(), 0);
-    
-    /* Done! */
+
+    // Done
     return ESUCCESS;
 }
 
@@ -170,14 +157,12 @@ Error Terminal::write(IOBuffer & buffer, Size size, Size offset)
 {
     char cr = '\r', ch;
 
-    /* Initialize buffer with the current screen first. */
+    // Initialize buffer with the current screen first
     ::lseek(output, 0, SEEK_SET);
     ::read(output, this->buffer, width * height * 2);
-    
-    /* 
-     * Loop all input characters. Add an additional carriage return 
-     * whenever a linefeed is detected. 
-     */
+
+    // Loop all input characters. Add an additional carriage return
+    // whenever a linefeed is detected.
     for (Size i = 0; i < size; i++)
     {
         if (buffer[i] == '\n')
@@ -187,11 +172,12 @@ Error Terminal::write(IOBuffer & buffer, Size size, Size offset)
         ch = buffer[i];
         teken_input(&state, &ch, 1);
     }
-    /* Flush changes back to our output device. */
+
+    // Flush changes back to our output device
     ::lseek(output, 0, SEEK_SET);
     ::write(output, this->buffer, width * height * 2);
-    
-    /* Done. */
+
+    // Done
     return size;
 }
 
@@ -199,14 +185,14 @@ void Terminal::hideCursor()
 {
     u16 index = cursorPos.tp_col + (cursorPos.tp_row * width);
 
-    /* Restore old attributes. */
+    // Restore old attributes
     buffer[index] &= 0xff;
     buffer[index] |= (cursorValue & 0xff00);
 }
-    
+
 void Terminal::setCursor(const teken_pos_t *pos)
 {
-    /* Save value. */
+    // Save value
     cursorValue = buffer[pos->tp_col + (pos->tp_row * width)];
     cursorPos   = *pos;
 }
@@ -214,35 +200,35 @@ void Terminal::setCursor(const teken_pos_t *pos)
 void Terminal::showCursor()
 {
     u16 index = cursorPos.tp_col + (cursorPos.tp_row * width);
-    
-    /* Refresh cursorValue first. */
+
+    // Refresh cursorValue first
     setCursor(&cursorPos);
-    
-    /* Write cursor. */
+
+    // Write cursor
     buffer[index] &= 0xff;
     buffer[index] |= VGA_ATTR(LIGHTGREY, LIGHTGREY) << 8;
 }
 
 void bell(Terminal *term)
 {
-    /* Does nothing yet. */
+    // Does nothing yet
 }
 
 void putchar(Terminal *term, const teken_pos_t *pos,
              teken_char_t ch, const teken_attr_t *attr)
 {
-    /* Retrieve variables first. */
+    // Retrieve variables first
     u16 *buffer = term->getBuffer();
     Size width  = term->getWidth();
 
-    /* Make sure to don't overwrite cursor. */
+    // Make sure to don't overwrite cursor
     term->hideCursor();
 
-    /* Write the buffer. */
+    // Write the buffer
     buffer[pos->tp_col + (pos->tp_row * width)] =
         VGA_CHAR(ch, tekenToVGA[attr->ta_fgcolor], BLACK);
-    
-    /* Show cursor again. */
+
+    // Show cursor again
     term->showCursor();
 }
 
@@ -256,14 +242,14 @@ void cursor(Terminal *term, const teken_pos_t *pos)
 void fill(Terminal *term, const teken_rect_t *rect,
           teken_char_t ch, const teken_attr_t *attr)
 {
-    /* Make sure we don't overwrite the cursor. */
+    // Make sure we don't overwrite the cursor
     term->hideCursor();
-        
-    /* Fill video memory; loop rows. */
+
+    // Fill video memory; loop rows
     for (Size row = rect->tr_begin.tp_row;
                     row < rect->tr_end.tp_row; row++)
     {
-        /* Loop columns. */
+        // Loop columns
         for (Size col = rect->tr_begin.tp_col;
                         col < rect->tr_end.tp_col; col++)
         {
@@ -271,39 +257,39 @@ void fill(Terminal *term, const teken_rect_t *rect,
                 VGA_CHAR(ch, tekenToVGA[attr->ta_fgcolor], BLACK);
         }
     }
-    /* Show cursor again. */
+    // Show cursor again
     term->showCursor();
 }
 
 void copy(Terminal *term, const teken_rect_t *rect,
           const teken_pos_t *pos)
 {
-    /* Retrieve variables. */
+    // Retrieve variables
     u16 *buffer  = term->getBuffer();
     Size width   = term->getWidth();
 
-    /* Calculate sizes. */
+    // Calculate sizes
     Size numCols = rect->tr_end.tp_col - rect->tr_begin.tp_col;
     Size numRows = rect->tr_end.tp_row - rect->tr_begin.tp_row;
 
-    /* Hide cursor first. */
+    // Hide cursor first
     term->hideCursor();
 
-    /* Copy video memory. */
+    // Copy video memory
     memcpy(buffer + pos->tp_col + (pos->tp_row * width),
            buffer + rect->tr_begin.tp_col + (rect->tr_begin.tp_row * width),
            numCols + (numRows * width) * sizeof(u16));
 
-    /* Show cursor again. */
+    // Show cursor again
     term->showCursor();
 }
 
 void param(Terminal *term, int key, int value)
 {
-    /* Do nothing. */
+    // Do nothing
 }
 
 void respond(Terminal *ctx, const void *buf, size_t size)
 {
-    /* Do nothing. */
+    // Do nothing
 }

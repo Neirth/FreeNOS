@@ -24,8 +24,17 @@
 #include "Macros.h"
 
 /**
+ * @addtogroup lib
+ * @{
+ *
+ * @addtogroup libstd
+ * @{
+ */
+
+/**
  * This is a wrapper class for a fixed size array.
- * It contains some extra functionality, somewhat like the Arrays class in Java.
+ *
+ * This class contains some extra functionality, somewhat like the Arrays class in Java.
  */
 template <class T, Size N> class Array : public Sequence<T>
 {
@@ -53,11 +62,13 @@ template <class T, Size N> class Array : public Sequence<T>
 
     /**
      * Puts the given item at the given position.
+     *
      * If an item exists at the given position, it will be
      * replaced by the given item.
      *
      * @param position The position to insert the item.
      * @param item The item to put
+     *
      * @return bool Whether putting the item at the given position succeeded.
      */
     virtual bool insert(Size position, const T & item)
@@ -74,6 +85,7 @@ template <class T, Size N> class Array : public Sequence<T>
      * Returns the item at the given position.
      *
      * @param position The position of the item to get.
+     *
      * @return Pointer to the item at the given position.
      */
     virtual const T * get(Size position) const
@@ -87,10 +99,12 @@ template <class T, Size N> class Array : public Sequence<T>
 
     /**
      * Returns a reference to the item at the given position.
+     *
      * Note that this function does not perform bounds checking.
      * Position must be a valid index.
      *
      * @param position Valid index inside this array.
+     *
      * @return Reference to the item at the given position
      */
     virtual const T & at(Size position) const
@@ -100,10 +114,12 @@ template <class T, Size N> class Array : public Sequence<T>
 
     /**
      * Return value at the given position.
+     *
      * If position is not within bounds of this array,
      * this function will return a default constructed T.
      *
      * @param position Index inside this array.
+     *
      * @return T at the given position or default constructed T.
      */
     virtual const T value(Size position) const
@@ -139,5 +155,10 @@ template <class T, Size N> class Array : public Sequence<T>
     /** The actual array where the data is stored. */
     T m_array[N];
 };
+
+/**
+ * @}
+ * @}
+ */
 
 #endif /* __LIBSTD_ARRAY_H */

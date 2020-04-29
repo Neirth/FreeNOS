@@ -28,7 +28,6 @@
 ExternalTest::ExternalTest(const char *name, int argc, char **argv)
     : TestInstance(name)
 {
-    // TODO: perhaps argc/argv?
     m_argc = argc;
     m_argv = argv;
 }
@@ -49,14 +48,11 @@ TestResult ExternalTest::run()
 #ifdef __HOST__
     if ((pid = fork()) == 0)
         execv(argv[0], argv);
-
-    //status = system(tmp);
-    //if (WIFEXITED(status))
-    //    status = WEXITSTATUS(status);
 #else
     pid = forkexec(*m_name, (const char **) argv);
 #endif
     waitpid(pid, &status, 0);
+    delete[] argv;
 
     return status == 0 ? OK : FAIL;
 }

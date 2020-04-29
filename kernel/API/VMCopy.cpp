@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2009 Niek Linnenbank
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -19,8 +19,8 @@
 #include <SplitAllocator.h>
 #include "VMCopy.h"
 
-Error VMCopyHandler(ProcessID procID, API::Operation how, Address ours,
-                    Address theirs, Size sz)
+API::Result VMCopyHandler(ProcessID procID, API::Operation how, Address ours,
+                          Address theirs, Size sz)
 {
     ProcessManager *procs = Kernel::instance->getProcessManager();
     Process *proc;
@@ -35,14 +35,13 @@ Error VMCopyHandler(ProcessID procID, API::Operation how, Address ours,
     else if (!(proc = procs->get(procID)))
         return API::NotFound;
 
-    // TODO: Verify memory addresses
     MemoryContext *local  = procs->current()->getMemoryContext();
     MemoryContext *remote = proc->getMemoryContext();
 
     // Keep on going until all memory is processed
     while (total < sz)
     {
-        /* Update variables. */
+        // Update variables
         if (how == API::ReadPhys)
             paddr = theirs & PAGEMASK;
         else if (remote->lookup(theirs, &paddr) != MemoryContext::Success)
@@ -52,31 +51,32 @@ Error VMCopyHandler(ProcessID procID, API::Operation how, Address ours,
         pageOff = theirs & ~PAGEMASK;
         bytes   = (PAGESIZE - pageOff) < (sz - total) ?
                   (PAGESIZE - pageOff) : (sz - total);
-                
-        /* Valid address? */
+
+        // Valid address?
         if (!paddr) break;
-                
+
         // Map their address into our local address space
         if (local->findFree(PAGESIZE, MemoryMap::KernelPrivate, &vaddr) != MemoryContext::Success)
             return API::RangeError;
 
         local->map(vaddr, paddr, Memory::Readable | Memory::Writable);
 
-        /* Process the action appropriately. */
+        // Process the action appropriately
         switch (how)
         {
             case API::Read:
             case API::ReadPhys:
                 MemoryBlock::copy((void *)ours, (void *)(vaddr + pageOff), bytes);
                 break;
-                        
+
             case API::Write:
                 MemoryBlock::copy((void *)(vaddr + pageOff), (void *)ours, bytes);
                 break;
-            
+
             default:
                 ;
-        }       
+        }
+
         // Unmap
         local->unmap(vaddr);
 
